@@ -1,0 +1,33 @@
+export const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAE5PbjUhjcAnsaqlpDtYEgTJoqPOy2D14',
+  authDomain: 'rooted-59912.firebaseapp.com',
+  projectId: 'rooted-59912',
+  storageBucket: 'rooted-59912.firebasestorage.app',
+  messagingSenderId: '269052006423',
+  appId: '1:269052006423:web:6dc8dc7ad53fac43614c52',
+  measurementId: 'G-37R6EX5HG8',
+} as const;
+
+export const BACKEND_API_BASE_URL =
+  process.env.EXPO_PUBLIC_BACKEND_API_BASE_URL ?? 'http://127.0.0.1:3333';
+
+const LEGACY_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+const GOOGLE_WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? LEGACY_GOOGLE_CLIENT_ID;
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
+const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
+const GOOGLE_FALLBACK_CLIENT_ID =
+  GOOGLE_WEB_CLIENT_ID || GOOGLE_IOS_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID || LEGACY_GOOGLE_CLIENT_ID;
+
+export const GOOGLE_AUTH_CONFIG = {
+  clientId: GOOGLE_FALLBACK_CLIENT_ID,
+  webClientId: GOOGLE_WEB_CLIENT_ID || GOOGLE_FALLBACK_CLIENT_ID,
+  ...(GOOGLE_IOS_CLIENT_ID ? { iosClientId: GOOGLE_IOS_CLIENT_ID } : {}),
+  ...(GOOGLE_ANDROID_CLIENT_ID ? { androidClientId: GOOGLE_ANDROID_CLIENT_ID } : {}),
+} as const;
+
+export const GOOGLE_AUTH_READY = Boolean(
+  GOOGLE_WEB_CLIENT_ID || GOOGLE_IOS_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID
+);
+
+export const GOOGLE_CLIENT_ID = LEGACY_GOOGLE_CLIENT_ID;

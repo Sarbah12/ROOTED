@@ -1,0 +1,191 @@
+{
+  "user": {
+    "id": "user_demo",
+    "displayName": "Guest Reader",
+    "email": null,
+    "phone": {
+      "countryCode": "+1",
+      "number": "5551234567"
+    },
+    "provider": "phone",
+    "settings": {
+      "darkMode": true,
+      "remindersEnabled": true,
+      "verseNotificationsEnabled": true,
+      "streakBadgeEnabled": false,
+      "reminderTime": "7:00 AM",
+      "fontSize": "Default"
+    }
+  },
+  "notes": [
+    {
+      "id": "note_1",
+      "title": "Faith Without Works",
+      "reference": "James 2:14-26",
+      "content": "James argues that genuine faith is evidenced by action. This is not salvation by works but the fruit of true saving faith. A dead faith produces no fruit.",
+      "tags": [
+        "Faith",
+        "Works",
+        "James"
+      ],
+      "updatedAt": "2026-04-07T00:00:00.000Z",
+      "color": "#2E6A5C"
+    },
+    {
+      "id": "note_2",
+      "title": "The Armor of God",
+      "reference": "Ephesians 6:10-18",
+      "content": "Paul uses Roman soldier imagery to describe spiritual readiness. Each piece of armor corresponds to a spiritual virtue: truth, righteousness, readiness, faith, salvation, the Word, and prayer.",
+      "tags": [
+        "Spiritual Warfare",
+        "Prayer",
+        "Ephesians"
+      ],
+      "updatedAt": "2026-04-03T00:00:00.000Z",
+      "color": "#8A6236"
+    },
+    {
+      "id": "note_3",
+      "title": "Sermon on the Mount - Beatitudes",
+      "reference": "Matthew 5:1-12",
+      "content": "The Beatitudes describe the character of citizens of God's kingdom. Counterintuitive by worldly standards - the poor in spirit, mourning, and meek are declared blessed. Kingdom values invert cultural expectations.",
+      "tags": [
+        "Sermon",
+        "Kingdom",
+        "Matthew"
+      ],
+      "updatedAt": "2026-03-29T00:00:00.000Z",
+      "color": "#5D7A66"
+    }
+  ],
+  "prayers": [
+    {
+      "id": "prayer_1",
+      "title": "Healing for a friend",
+      "category": "Intercession",
+      "content": "Lord, I pray for Michael's recovery. Bring Your healing touch upon him and give his family peace during this time.",
+      "status": "ongoing",
+      "verse": "James 5:15",
+      "updatedAt": "2026-04-08T00:00:00.000Z"
+    },
+    {
+      "id": "prayer_2",
+      "title": "Gratitude for new job",
+      "category": "Thanksgiving",
+      "content": "Thank You Lord for opening this door. I see Your provision clearly and I am grateful for Your faithfulness.",
+      "status": "answered",
+      "verse": "Philippians 4:6",
+      "updatedAt": "2026-04-01T00:00:00.000Z"
+    },
+    {
+      "id": "prayer_3",
+      "title": "Wisdom for a decision",
+      "category": "Guidance",
+      "content": "Father, I need Your wisdom regarding the next steps in my career. Guide me by Your Spirit and confirm Your will.",
+      "status": "unanswered",
+      "verse": "James 1:5",
+      "updatedAt": "2026-03-30T00:00:00.000Z"
+    }
+  ],
+  "readingPlans": [
+    {
+      "id": "plan_1",
+      "name": "Bible in a Year",
+      "duration": "365 days",
+      "progress": 0.23,
+      "color": "#2E6A5C"
+    },
+    {
+      "id": "plan_2",
+      "name": "New Testament in 90 Days",
+      "duration": "90 days",
+      "progress": 0.58,
+      "color": "#8A6236"
+    },
+    {
+      "id": "plan_3",
+      "name": "Psalms & Proverbs",
+      "duration": "60 days",
+      "progress": 0.12,
+      "color": "#5D7A66"
+    }
+  ],
+  "quizQuestions": [
+    {
+      "id": "quiz_1",
+      "question": "Who was the first man created according to Genesis?",
+      "options": [
+        "Abraham",
+        "Noah",
+        "Adam",
+        "Moses"
+      ],
+      "answer": "Adam",
+      "reference": "Genesis 2:7",
+      "difficulty": "Easy",
+      "category": "Old Testament"
+    },
+    {
+      "id": "quiz_2",
+      "question": "How many days did Jesus fast in the wilderness?",
+      "options": [
+        "20 days",
+        "40 days",
+        "30 days",
+        "50 days"
+      ],
+      "answer": "40 days",
+      "reference": "Matthew 4:2",
+      "difficulty": "Easy",
+      "category": "New Testament"
+    },
+    {
+      "id": "quiz_3",
+      "question": "Which apostle denied Jesus three times?",
+      "options": [
+        "John",
+        "James",
+        "Thomas",
+        "Peter"
+      ],
+      "answer": "Peter",
+      "reference": "Matthew 26:75",
+      "difficulty": "Easy",
+      "category": "New Testament"
+    },
+    {
+      "id": "quiz_4",
+      "question": "What is the shortest verse in the Bible?",
+      "options": [
+        "\"Jesus wept.\"",
+        "\"God is love.\"",
+        "\"Fear not.\"",
+        "\"Amen.\""
+      ],
+      "answer": "\"Jesus wept.\"",
+      "reference": "John 11:35",
+      "difficulty": "Medium",
+      "category": "Bible Facts"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "c2955cc0-5a2d-4661-ac26-795d04a45a2f",
+      "userId": "user_demo",
+      "provider": "phone",
+      "createdAt": "2026-04-10T14:13:21.941Z"
+    },
+    {
+      "id": "5a03de94-b76a-47a3-b3af-7bca51923506",
+      "userId": "user_demo",
+      "provider": "phone",
+      "accessTokenHash": "fea0bfc682b66f78a9696d688e7e9cf85d2616ebf651835277814ced4828c5a6",
+      "refreshTokenHash": "3909e165a11b83be38bb98fef1b3506fa4537aea171f7b1f143fab6a1c8984a3",
+      "accessExpiresAt": "2026-04-10T14:36:34.685Z",
+      "refreshExpiresAt": "2026-05-10T14:21:34.685Z",
+      "createdAt": "2026-04-10T14:21:34.640Z",
+      "lastUsedAt": "2026-04-10T14:21:34.685Z",
+      "revokedAt": "2026-04-10T14:21:34.695Z"
+    }
+  ]
+}
