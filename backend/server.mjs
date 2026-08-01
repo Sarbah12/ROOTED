@@ -172,21 +172,21 @@ async function handleAuthLogin(req, res) {
 }
 
 async function handleAuthLogout(req, res) {
-  const store = await loadStore();
-  const authContext = await requireAuth(req, store);
+  const authContext = await requireAuth(req);
 
-  await revokeFirebaseUserSessions(authContext.user.uid, config);
+  await revokeFirebaseUserSessions(authContext.decodedToken.uid, config);
 
   sendJson(res, 200, { loggedOut: true });
 }
 
 async function handleMe(req, res) {
   const store = await loadStore();
-  const authContext = await requireAuth(req, store);
+  const authContext = await requireAuth(req);
+  const firebaseUser = sanitizeFirebaseUserRecord(authContext.userRecord, authContext.decodedToken);
 
   sendJson(res, 200, {
-    user: store.user?.id === authContext.user.uid ? store.user : authContext.user,
-    firebaseUser: sanitizeFirebaseUserRecord(authContext.userRecord, authContext.decodedToken),
+    user: store.user?.id === firebaseUser.uid ? store.user : firebaseUser,
+    firebaseUser,
   });
 }
 
