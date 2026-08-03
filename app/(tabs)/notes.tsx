@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -13,9 +15,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { NOTE_COLORS, SAMPLE_NOTES, type Note } from '@/constants/bible-study';
+import { NOTE_COLORS } from '@/constants/bible-study';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
+import { useNotes, type BackendNote } from '@/hooks/use-notes';
 
 type NoteForm = {
   title: string;
@@ -24,13 +27,24 @@ type NoteForm = {
   tags: string;
 };
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 export default function StudyNotesScreen() {
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
-  const [notes, setNotes] = useState<Note[]>(SAMPLE_NOTES);
+  const { notes, isLoading, error, isSignedIn, refresh, createNote, updateNote, deleteNote } =
+    useNotes();
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingNote, setEditingNote] = useState<BackendNote | null>(null);
   const [search, setSearch] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState<NoteForm>({
     title: '',
     reference: '',
@@ -40,12 +54,14 @@ export default function StudyNotesScreen() {
 
   const openCreate = () => {
     setEditingNote(null);
+    setSaveError(null);
     setForm({ title: '', reference: '', content: '', tags: '' });
     setModalVisible(true);
   };
 
-  const openEdit = (note: Note) => {
+  const openEdit = (note: BackendNote) => {
     setEditingNote(note);
+    setSaveError(null);
     setForm({
       title: note.title,
       reference: note.reference,
@@ -55,7 +71,7 @@ export default function StudyNotesScreen() {
     setModalVisible(true);
   };
 
-  const saveNote = () => {
+  const saveNote = async () => {
     if (!form.title.trim()) {
       return;
     }
@@ -65,30 +81,38 @@ export default function StudyNotesScreen() {
       .map((entry) => entry.trim())
       .filter(Boolean);
 
-    if (editingNote) {
-      setNotes((previous) =>
-        previous.map((note) =>
-          note.id === editingNote.id ? { ...note, ...form, tags, date: 'Just now' } : note,
-        ),
-      );
-    } else {
-      setNotes((previous) => [
-        {
-          id: Date.now(),
-          ...form,
-          tags,
-          date: 'Just now',
-          color: NOTE_COLORS[previous.length % NOTE_COLORS.length],
-        },
-        ...previous,
-      ]);
-    }
+    setIsSaving(true);
+    setSaveError(null);
 
-    setModalVisible(false);
+    try {
+      if (editingNote) {
+        await updateNote(editingNote.id, {
+          title: form.title,
+          reference: form.reference,
+          content: form.content,
+          tags,
+        });
+      } else {
+        await createNote({
+          title: form.title,
+          reference: form.reference,
+          content: form.content,
+          tags,
+          color: NOTE_COLORS[notes.length % NOTE_COLORS.length],
+        });
+      }
+      setModalVisible(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Unable to save note');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const deleteNote = (id: number) => {
-    setNotes((previous) => previous.filter((note) => note.id !== id));
+  const handleDelete = (id: string) => {
+    deleteNote(id).catch((err) => {
+      Alert.alert('Unable to delete note', err instanceof Error ? err.message : undefined);
+    });
   };
 
   const filtered = notes.filter((note) => {
@@ -99,6 +123,30 @@ export default function StudyNotesScreen() {
       note.content.toLowerCase().includes(query)
     );
   });
+
+  if (!isSignedIn) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+        <View style={styles.centeredState}>
+          <Ionicons name="lock-closed-outline" size={28} color={theme.textMuted} />
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>Sign in to see your notes</Text>
+          <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>
+            Your study notes sync to your account once you&apos;re signed in.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isLoading && notes.length === 0) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+        <View style={styles.centeredState}>
+          <ActivityIndicator color={theme.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -157,6 +205,18 @@ export default function StudyNotesScreen() {
           ) : null}
         </View>
 
+        {error ? (
+          <TouchableOpacity
+            onPress={refresh}
+            style={[styles.errorBanner, { backgroundColor: theme.primarySoft, borderColor: theme.border }]}
+            activeOpacity={0.8}>
+            <Ionicons name="refresh-outline" size={16} color={theme.primary} />
+            <Text style={[styles.errorBannerText, { color: theme.text }]}>
+              Couldn&apos;t refresh notes. Tap to retry.
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionLabel, { color: theme.text }]}>Recent notes</Text>
           <Text style={[styles.sectionMeta, { color: theme.textMuted }]}>
@@ -198,7 +258,7 @@ export default function StudyNotesScreen() {
                       <Text style={[styles.noteRef, { color: theme.primary }]}>{note.reference}</Text>
                     </View>
                     <TouchableOpacity
-                      onPress={() => deleteNote(note.id)}
+                      onPress={() => handleDelete(note.id)}
                       style={[styles.deleteBtn, { backgroundColor: theme.primarySoft }]}
                       activeOpacity={0.8}>
                       <Ionicons name="trash-outline" size={14} color={theme.primary} />
@@ -217,7 +277,9 @@ export default function StudyNotesScreen() {
                         </View>
                       ))}
                     </View>
-                    <Text style={[styles.noteDate, { color: theme.textMuted }]}>{note.date}</Text>
+                    <Text style={[styles.noteDate, { color: theme.textMuted }]}>
+                      {formatDate(note.updatedAt)}
+                    </Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -244,12 +306,17 @@ export default function StudyNotesScreen() {
               <Text style={[styles.modalTitle, { color: theme.text }]}>
                 {editingNote ? 'Edit note' : 'New note'}
               </Text>
-              <TouchableOpacity onPress={saveNote} activeOpacity={0.8}>
-                <Text style={[styles.modalAction, { color: theme.primary }]}>Save</Text>
+              <TouchableOpacity onPress={saveNote} activeOpacity={0.8} disabled={isSaving}>
+                <Text style={[styles.modalAction, { color: theme.primary, opacity: isSaving ? 0.5 : 1 }]}>
+                  {isSaving ? 'Saving…' : 'Save'}
+                </Text>
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalScroll} keyboardShouldPersistTaps="handled">
+              {saveError ? (
+                <Text style={[styles.saveErrorText, { color: theme.text }]}>{saveError}</Text>
+              ) : null}
               <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <Text style={[styles.formLabel, { color: theme.textMuted }]}>Title</Text>
                 <TextInput
@@ -308,6 +375,33 @@ export default function StudyNotesScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+  },
+  centeredState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 32,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  errorBannerText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  saveErrorText: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    fontSize: 13,
+    fontWeight: '700',
   },
   scroll: {
     flex: 1,

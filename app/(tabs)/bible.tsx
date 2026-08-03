@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Modal,
   ScrollView,
@@ -11,29 +12,39 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BIBLE_BOOKS, BIBLE_BOOKS_BY_ID, type Testament } from '@/constants/bible-books';
+import { SPACING } from '@/constants/bible-study';
 import {
-  BOOKS,
-  SAMPLE_VERSES,
-  SPACING,
-  type Testament,
-} from '@/constants/bible-study';
+  DEFAULT_TRANSLATION_ID,
+  TRANSLATIONS,
+  getTranslation,
+} from '@/constants/bible-translations';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
+import { useChapter } from '@/hooks/use-chapter';
 
 export default function BibleReaderScreen() {
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
-  const [selectedBook, setSelectedBook] = useState(BOOKS[16]);
+  const [selectedBookId, setSelectedBookId] = useState('jhn');
   const [selectedChapter, setSelectedChapter] = useState(3);
+  const [translationId, setTranslationId] = useState(DEFAULT_TRANSLATION_ID);
   const [bookModalVisible, setBookModalVisible] = useState(false);
   const [chapterModalVisible, setChapterModalVisible] = useState(false);
+  const [translationModalVisible, setTranslationModalVisible] = useState(false);
   const [highlightedVerses, setHighlightedVerses] = useState<number[]>([16]);
   const [bookmarkedVerses, setBookmarkedVerses] = useState<number[]>([]);
   const [fontSize, setFontSize] = useState(17);
   const [testament, setTestament] = useState<Testament>('NT');
 
-  const verses = SAMPLE_VERSES[`${selectedBook.id}-${selectedChapter}`] || [];
-  const filteredBooks = BOOKS.filter((book) => book.testament === testament);
+  const selectedBook = BIBLE_BOOKS_BY_ID[selectedBookId];
+  const translation = getTranslation(translationId);
+  const { verses, loading, error, origin } = useChapter(
+    translationId,
+    selectedBookId,
+    selectedChapter,
+  );
+  const filteredBooks = BIBLE_BOOKS.filter((book) => book.testament === testament);
   const today = new Date();
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -129,15 +140,56 @@ export default function BibleReaderScreen() {
               <Ionicons name="chevron-down" size={14} color={theme.primary} />
             </View>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.selectorCard,
+              styles.selectorCardNarrow,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+            ]}
+            onPress={() => setTranslationModalVisible(true)}
+            activeOpacity={0.85}>
+            <Text style={[styles.selectorLabel, { color: theme.textMuted }]}>Version</Text>
+            <View style={styles.selectorValueRow}>
+              <Text style={[styles.selectorValue, { color: theme.text }]}>{translation.abbr}</Text>
+              {origin === 'offline' ? (
+                <Ionicons name="cloud-done-outline" size={14} color={theme.primary} />
+              ) : (
+                <Ionicons name="chevron-down" size={14} color={theme.primary} />
+              )}
+            </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.verseWrap}>
-          {verses.length === 0 ? (
+          {error ? (
+            <View
+              style={[
+                styles.noticeCard,
+                { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
+              ]}>
+              <Ionicons name="cloud-offline-outline" size={16} color={theme.textSecondary} />
+              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{error}</Text>
+            </View>
+          ) : null}
+
+          {loading && verses.length === 0 ? (
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <ActivityIndicator color={theme.primary} />
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>
+                Loading {selectedBook.name} {selectedChapter}
+              </Text>
+              <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>
+                Fetching the {translation.abbr} text.
+              </Text>
+            </View>
+          ) : verses.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <Ionicons name="book-outline" size={44} color={theme.textMuted} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>Select a book and chapter</Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>
+                {selectedBook.name} {selectedChapter} is unavailable
+              </Text>
               <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>
-                Choose a passage to begin reading and highlighting.
+                Try another translation, or switch back to KJV to read offline.
               </Text>
             </View>
           ) : (
@@ -273,7 +325,7 @@ export default function BibleReaderScreen() {
                   },
                 ]}
                 onPress={() => {
-                  setSelectedBook(item);
+                  setSelectedBookId(item.id);
                   setSelectedChapter(1);
                   setTestament(item.testament);
                   setBookModalVisible(false);
@@ -326,6 +378,68 @@ export default function BibleReaderScreen() {
               </TouchableOpacity>
             )}
           />
+        </SafeAreaView>
+      </Modal>
+
+      <Modal
+        visible={translationModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setTranslationModalVisible(false)}>
+        <SafeAreaView style={[styles.modalSafe, { backgroundColor: theme.background }]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Select Version</Text>
+            <TouchableOpacity onPress={() => setTranslationModalVisible(false)}>
+              <Ionicons name="close" size={24} color={theme.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView contentContainerStyle={{ padding: SPACING.md, gap: 10 }}>
+            {TRANSLATIONS.map((item) => {
+              const isActive = item.id === translationId;
+
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.translationRow,
+                    {
+                      backgroundColor: isActive ? theme.primarySoft : theme.surface,
+                      borderColor: isActive ? theme.primary : theme.border,
+                    },
+                  ]}
+                  onPress={() => {
+                    setTranslationId(item.id);
+                    setTranslationModalVisible(false);
+                  }}
+                  activeOpacity={0.85}>
+                  <View style={styles.translationInfo}>
+                    <View style={styles.translationTitleRow}>
+                      <Text style={[styles.translationAbbr, { color: theme.text }]}>{item.abbr}</Text>
+                      {item.source === 'offline' ? (
+                        <View style={[styles.offlineChip, { backgroundColor: theme.chipBg }]}>
+                          <Ionicons name="cloud-done-outline" size={11} color={theme.primary} />
+                          <Text style={[styles.offlineChipText, { color: theme.primary }]}>Offline</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                    <Text style={[styles.translationName, { color: theme.textSecondary }]}>
+                      {item.name}
+                    </Text>
+                    <Text style={[styles.translationNote, { color: theme.textMuted }]}>{item.note}</Text>
+                  </View>
+                  {isActive ? (
+                    <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+                  ) : null}
+                </TouchableOpacity>
+              );
+            })}
+
+            <Text style={[styles.licenseNote, { color: theme.textMuted }]}>
+              All versions are in the public domain. KJV is bundled with the app; the rest
+              download once and are then cached for offline reading.
+            </Text>
+          </ScrollView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
@@ -469,6 +583,72 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 20,
     padding: 14,
+  },
+  selectorCardNarrow: {
+    flex: 0.72,
+  },
+  noticeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  noticeText: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  translationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 16,
+  },
+  translationInfo: {
+    flex: 1,
+  },
+  translationTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  translationAbbr: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  offlineChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+  },
+  offlineChipText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  translationName: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  translationNote: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  licenseNote: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 6,
+    paddingHorizontal: 4,
   },
   selectorLabel: {
     fontSize: 11,
