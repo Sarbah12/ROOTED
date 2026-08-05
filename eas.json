@@ -1,0 +1,45 @@
+{
+  "cli": {
+    "version": ">= 21.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_API_BASE_URL": "http://127.0.0.1:3333"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_API_BASE_URL": "http://127.0.0.1:3333"
+      }
+    },
+    "preview:device": {
+      "extends": "preview",
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_API_BASE_URL": "https://CHANGE-ME.example.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

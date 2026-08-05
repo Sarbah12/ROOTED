@@ -1,11 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { useIdTokenAuthRequest } from 'expo-auth-session/providers/google';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { FirebaseRecaptchaVerifierModal } from '@/components/firebase-recaptcha';
-import * as WebBrowser from 'expo-web-browser';
 import {
-  GoogleAuthProvider,
   OAuthProvider,
   signInWithCredential,
   signInWithPhoneNumber,
@@ -29,15 +25,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
-import {
-  FIREBASE_CONFIG,
-  GOOGLE_AUTH_CONFIG,
-  GOOGLE_AUTH_READY,
-} from '@/constants/firebase';
+import { FIREBASE_CONFIG } from '@/constants/firebase';
 import { getFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const AppleAuthenticationModule =
   Platform.OS === 'ios' ? AppleAuthentication : null;
@@ -127,143 +117,6 @@ function BenefitRow({
   );
 }
 
-function GoogleSignInButton({
-  theme,
-}: {
-  theme: (typeof APP_THEMES)[keyof typeof APP_THEMES];
-}) {
-  const auth = useMemo(() => getFirebaseAuth(), []);
-  const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
-  const [request, response, promptAsync] = useIdTokenAuthRequest({
-    ...GOOGLE_AUTH_CONFIG,
-    selectAccount: true,
-  }, {
-    scheme: 'com.rooted.app',
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const responseAtPromptStartRef = useRef<unknown>(null);
-  const promptActiveRef = useRef(false);
-  const handledGoogleIdTokenRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!promptActiveRef.current || !isLoading || !response || response === responseAtPromptStartRef.current) {
-      return;
-    }
-
-    if (response.type === 'error') {
-      const message =
-        response.error?.message || response.errorCode || 'Unable to sign in with Google.';
-      Alert.alert('Google sign-in failed', message);
-      promptActiveRef.current = false;
-      setIsLoading(false);
-      handledGoogleIdTokenRef.current = null;
-      responseAtPromptStartRef.current = null;
-      return;
-    }
-
-    if (response.type === 'cancel' || response.type === 'dismiss') {
-      promptActiveRef.current = false;
-      setIsLoading(false);
-      handledGoogleIdTokenRef.current = null;
-      responseAtPromptStartRef.current = null;
-      return;
-    }
-
-    if (response.type === 'opened' || response.type === 'locked') {
-      return;
-    }
-
-    if (response.type !== 'success') {
-      return;
-    }
-
-    const idToken = response.params?.id_token ?? response.authentication?.idToken;
-    if (!idToken || handledGoogleIdTokenRef.current === idToken) {
-      return;
-    }
-
-    handledGoogleIdTokenRef.current = idToken;
-    let isActive = true;
-
-    (async () => {
-      try {
-        const credential = GoogleAuthProvider.credential(
-          idToken,
-          response.authentication?.accessToken
-        );
-        await signInWithCredential(auth, credential);
-      } catch (error) {
-        if (isActive) {
-          const message = error instanceof Error ? error.message : 'Unable to sign in with Google.';
-          Alert.alert('Google sign-in failed', message);
-        }
-      } finally {
-        if (isActive) {
-          promptActiveRef.current = false;
-          setIsLoading(false);
-          handledGoogleIdTokenRef.current = null;
-          responseAtPromptStartRef.current = null;
-        }
-      }
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, [auth, isLoading, response]);
-  const canUseGoogle = GOOGLE_AUTH_READY && !isExpoGo;
-
-  const handlePress = async () => {
-    if (isExpoGo) {
-      Alert.alert(
-        'Google sign-in needs a development build',
-        'Expo Go cannot complete Google OAuth. Install a development build for this app, then try again.'
-      );
-      return;
-    }
-
-    if (!request) {
-      Alert.alert('Google sign-in is still loading', 'Please wait a moment and try again.');
-      return;
-    }
-
-    responseAtPromptStartRef.current = response;
-    promptActiveRef.current = true;
-    setIsLoading(true);
-    try {
-      await promptAsync();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to sign in with Google.';
-      Alert.alert('Google sign-in failed', message);
-      promptActiveRef.current = false;
-      setIsLoading(false);
-      handledGoogleIdTokenRef.current = null;
-      responseAtPromptStartRef.current = null;
-    }
-  };
-
-  return (
-    <TouchableOpacity
-      style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
-      onPress={handlePress}
-      disabled={!request || isLoading || !canUseGoogle}
-      activeOpacity={0.84}>
-      <View style={[styles.socialIcon, { backgroundColor: theme.primarySoft }]}>
-        {isLoading ? <ActivityIndicator size="small" color="#DB4437" /> : <Ionicons name="logo-google" size={18} color="#DB4437" />}
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.socialTitle, { color: theme.text }]}>Continue with Gmail</Text>
-        <Text style={[styles.socialSubtitle, { color: theme.textSecondary }]}>
-          {isExpoGo
-            ? 'Use a development build. Expo Go cannot complete Google sign-in.'
-            : 'Use the Google account linked to your Gmail.'}
-        </Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
-    </TouchableOpacity>
-  );
-}
-
 export default function LoginScreen() {
   const auth = useMemo(() => getFirebaseAuth(), []);
   const { isDarkMode } = useThemeMode();
@@ -282,7 +135,6 @@ export default function LoginScreen() {
 
   const digitsOnly = phoneNumber.replace(/\D/g, '');
   const canContinueWithPhone = digitsOnly.length >= 7;
-  const canUseGoogle = GOOGLE_AUTH_READY;
   const phoneE164 = formatPhoneE164(selectedCountry.code, phoneNumber);
 
   useEffect(() => {
@@ -448,10 +300,6 @@ export default function LoginScreen() {
                 <Ionicons name="logo-apple" size={12} color="#FFFFFF" />
                 <Text style={styles.heroChipText}>Apple</Text>
               </View>
-              <View style={styles.heroChip}>
-                <Ionicons name="logo-google" size={12} color="#FFFFFF" />
-                <Text style={styles.heroChipText}>Gmail</Text>
-              </View>
             </View>
           </View>
 
@@ -552,35 +400,6 @@ export default function LoginScreen() {
               </View>
               <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
             </TouchableOpacity>
-
-            {canUseGoogle ? (
-              <GoogleSignInButton theme={theme} />
-            ) : (
-              <TouchableOpacity
-                style={[
-                  styles.socialBtn,
-                  { backgroundColor: theme.surface, borderColor: theme.border },
-                  styles.socialBtnDisabled,
-                ]}
-                onPress={() => {
-                  Alert.alert(
-                    'Google sign-in is not configured yet',
-                    'Add EXPO_PUBLIC_GOOGLE_CLIENT_ID or platform-specific Google client IDs to your .env to enable this button.'
-                  );
-                }}
-                activeOpacity={0.84}>
-                <View style={[styles.socialIcon, { backgroundColor: theme.primarySoft }]}>
-                  <Ionicons name="logo-google" size={18} color="#DB4437" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.socialTitle, { color: theme.text }]}>Continue with Gmail</Text>
-                  <Text style={[styles.socialSubtitle, { color: theme.textSecondary }]}>
-                    Add your Google OAuth client ID to enable this flow.
-                  </Text>
-                </View>
-                <Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />
-              </TouchableOpacity>
-            )}
           </View>
 
           <View style={[styles.benefitCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>

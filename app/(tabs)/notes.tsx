@@ -124,20 +124,6 @@ export default function StudyNotesScreen() {
     );
   });
 
-  if (!isSignedIn) {
-    return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
-        <View style={styles.centeredState}>
-          <Ionicons name="lock-closed-outline" size={28} color={theme.textMuted} />
-          <Text style={[styles.emptyTitle, { color: theme.text }]}>Sign in to see your notes</Text>
-          <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>
-            Your study notes sync to your account once you&apos;re signed in.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   if (isLoading && notes.length === 0) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -205,14 +191,22 @@ export default function StudyNotesScreen() {
           ) : null}
         </View>
 
-        {error ? (
+        {!isSignedIn ? (
+          <View
+            style={[styles.errorBanner, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+            <Ionicons name="phone-portrait-outline" size={16} color={theme.textSecondary} />
+            <Text style={[styles.errorBannerText, { color: theme.textSecondary }]}>
+              Saved on this device. Sign in to sync across devices.
+            </Text>
+          </View>
+        ) : error ? (
           <TouchableOpacity
             onPress={refresh}
             style={[styles.errorBanner, { backgroundColor: theme.primarySoft, borderColor: theme.border }]}
             activeOpacity={0.8}>
-            <Ionicons name="refresh-outline" size={16} color={theme.primary} />
+            <Ionicons name="cloud-offline-outline" size={16} color={theme.primary} />
             <Text style={[styles.errorBannerText, { color: theme.text }]}>
-              Couldn&apos;t refresh notes. Tap to retry.
+              Saved on this device. Couldn&apos;t sync — tap to retry.
             </Text>
           </TouchableOpacity>
         ) : null}

@@ -33,7 +33,6 @@ export function loadConfig(env = process.env) {
     firebaseServiceAccountJson: env.FIREBASE_SERVICE_ACCOUNT_JSON || null,
     firebaseAuthEmulatorHost: env.FIREBASE_AUTH_EMULATOR_HOST || null,
     apiKeys: {
-      bible: env.BIBLE_API_KEY || null,
       openai: env.OPENAI_API_KEY || null,
     },
     corsOrigins: parseList(env.CORS_ORIGINS),
