@@ -78,16 +78,6 @@ export type Devotional = {
 
 export type QuizDifficulty = 'Easy' | 'Medium' | 'Hard';
 
-export type QuizQuestion = {
-  id: number;
-  question: string;
-  options: string[];
-  answer: string;
-  reference: string;
-  difficulty: QuizDifficulty;
-  category: string;
-};
-
 export type Note = {
   id: number;
   title: string;
@@ -236,80 +226,7 @@ The Greek word for "guard" here is a military term - as if peace stands as a sen
   },
 ];
 
-export const QUIZ_QUESTIONS: QuizQuestion[] = [
-  {
-    id: 1,
-    question: 'Who was the first man created according to Genesis?',
-    options: ['Abraham', 'Noah', 'Adam', 'Moses'],
-    answer: 'Adam',
-    reference: 'Genesis 2:7',
-    difficulty: 'Easy',
-    category: 'Old Testament',
-  },
-  {
-    id: 2,
-    question: 'How many days did Jesus fast in the wilderness?',
-    options: ['20 days', '40 days', '30 days', '50 days'],
-    answer: '40 days',
-    reference: 'Matthew 4:2',
-    difficulty: 'Easy',
-    category: 'New Testament',
-  },
-  {
-    id: 3,
-    question: 'Which apostle denied Jesus three times?',
-    options: ['John', 'James', 'Thomas', 'Peter'],
-    answer: 'Peter',
-    reference: 'Matthew 26:75',
-    difficulty: 'Easy',
-    category: 'New Testament',
-  },
-  {
-    id: 4,
-    question: 'What is the shortest verse in the Bible?',
-    options: ['"Jesus wept."', '"God is love."', '"Fear not."', '"Amen."'],
-    answer: '"Jesus wept."',
-    reference: 'John 11:35',
-    difficulty: 'Medium',
-    category: 'Bible Facts',
-  },
-  {
-    id: 5,
-    question: 'How many books are in the New Testament?',
-    options: ['24', '27', '29', '39'],
-    answer: '27',
-    reference: 'General Knowledge',
-    difficulty: 'Medium',
-    category: 'Bible Facts',
-  },
-  {
-    id: 6,
-    question: 'Who wrote the majority of the Psalms?',
-    options: ['Solomon', 'Moses', 'David', 'Asaph'],
-    answer: 'David',
-    reference: 'Various Psalms',
-    difficulty: 'Easy',
-    category: 'Old Testament',
-  },
-  {
-    id: 7,
-    question: 'In which city was Jesus born?',
-    options: ['Jerusalem', 'Nazareth', 'Bethlehem', 'Jericho'],
-    answer: 'Bethlehem',
-    reference: 'Luke 2:4-7',
-    difficulty: 'Easy',
-    category: 'New Testament',
-  },
-  {
-    id: 8,
-    question: "Who interpreted Pharaoh's dreams about the seven cows?",
-    options: ['Moses', 'Joseph', 'Daniel', 'Solomon'],
-    answer: 'Joseph',
-    reference: 'Genesis 41:25-32',
-    difficulty: 'Medium',
-    category: 'Old Testament',
-  },
-];
+// Quiz questions now live in constants/quiz.ts, tagged by book and topic.
 
 export const VERSE_OF_THE_DAY = {
   text: '"I can do all things through Christ who strengthens me."',

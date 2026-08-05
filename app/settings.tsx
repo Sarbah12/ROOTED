@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -14,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
 import { useFirebaseAuth } from '@/context/firebase-auth';
-import { useThemeMode } from '@/context/theme-mode';
+import { useAppSettings } from '@/context/app-settings';
 
 const REMINDER_TIMES = ['7:00 AM', '12:30 PM', '8:00 PM'] as const;
 const FONT_SIZES = [
@@ -26,23 +25,32 @@ const FONT_SIZES = [
 const ACCOUNT_ROWS = [
   { label: 'Phone number', value: 'Add a number', icon: 'call-outline' },
   { label: 'Apple ID / iCloud', value: 'Connect', icon: 'logo-apple' },
-  { label: 'Gmail account', value: 'Connect', icon: 'logo-google' },
 ] as const;
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { isDarkMode, setIsDarkMode } = useThemeMode();
+  const { settings, updateSettings } = useAppSettings();
   const { signOut } = useFirebaseAuth();
+
+  const isDarkMode = settings.darkMode;
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
-  const [remindersEnabled, setRemindersEnabled] = useState(true);
-  const [verseNotificationsEnabled, setVerseNotificationsEnabled] = useState(true);
-  const [streakBadgeEnabled, setStreakBadgeEnabled] = useState(false);
-  const [selectedReminderTime, setSelectedReminderTime] = useState<(typeof REMINDER_TIMES)[number]>(
-    REMINDER_TIMES[1],
-  );
-  const [selectedFontSize, setSelectedFontSize] = useState<(typeof FONT_SIZES)[number]['label']>(
-    'Default',
-  );
+
+  // Every toggle writes straight through to storage, so choices survive a
+  // restart instead of resetting to these defaults.
+  const setIsDarkMode = (value: boolean) => updateSettings({ darkMode: value });
+  const remindersEnabled = settings.remindersEnabled;
+  const setRemindersEnabled = (value: boolean) => updateSettings({ remindersEnabled: value });
+  const verseNotificationsEnabled = settings.verseNotificationsEnabled;
+  const setVerseNotificationsEnabled = (value: boolean) =>
+    updateSettings({ verseNotificationsEnabled: value });
+  const streakBadgeEnabled = settings.streakBadgeEnabled;
+  const setStreakBadgeEnabled = (value: boolean) => updateSettings({ streakBadgeEnabled: value });
+  const selectedReminderTime = settings.reminderTime as (typeof REMINDER_TIMES)[number];
+  const setSelectedReminderTime = (value: (typeof REMINDER_TIMES)[number]) =>
+    updateSettings({ reminderTime: value });
+  const selectedFontSize = settings.fontSize as (typeof FONT_SIZES)[number]['label'];
+  const setSelectedFontSize = (value: (typeof FONT_SIZES)[number]['label']) =>
+    updateSettings({ fontSize: value });
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>

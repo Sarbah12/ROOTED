@@ -18,12 +18,11 @@ import {
   PRAYER_CATEGORIES,
   PRAYER_STATUS_COLORS,
   PRAYER_STATUS_LABELS,
-  SAMPLE_PRAYERS,
-  type PrayerEntry,
   type PrayerStatus,
 } from '@/constants/bible-study';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
+import { usePrayers } from '@/hooks/use-prayers';
 
 type PrayerFilter = 'All' | 'Ongoing' | 'Answered' | 'Trusting';
 
@@ -34,10 +33,23 @@ type PrayerForm = {
   verse: string;
 };
 
+function formatUpdated(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60 * 24) return `${Math.floor(minutes / 60)}h ago`;
+
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export default function PrayerJournalScreen() {
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
-  const [prayers, setPrayers] = useState<PrayerEntry[]>(SAMPLE_PRAYERS);
+  const { prayers, isSignedIn, error, refresh, createPrayer, updatePrayer, deletePrayer } =
+    usePrayers();
   const [modalVisible, setModalVisible] = useState(false);
   const [filter, setFilter] = useState<PrayerFilter>('All');
   const [form, setForm] = useState<PrayerForm>({
@@ -52,36 +64,19 @@ export default function PrayerJournalScreen() {
       return;
     }
 
-    setPrayers((previous) => [
-      {
-        id: Date.now(),
-        ...form,
-        status: 'unanswered',
-        date: 'Just now',
-      },
-      ...previous,
-    ]);
-
+    void createPrayer({ ...form, status: 'unanswered' });
     setModalVisible(false);
     setForm({ title: '', content: '', category: 'Personal', verse: '' });
   };
 
-  const cycleStatus = (id: number) => {
+  const cycleStatus = (id: string, status: PrayerStatus) => {
     const nextStatus: Record<PrayerStatus, PrayerStatus> = {
       unanswered: 'ongoing',
       ongoing: 'answered',
       answered: 'unanswered',
     };
 
-    setPrayers((previous) =>
-      previous.map((prayer) =>
-        prayer.id === id ? { ...prayer, status: nextStatus[prayer.status] } : prayer,
-      ),
-    );
-  };
-
-  const deletePrayer = (id: number) => {
-    setPrayers((previous) => previous.filter((prayer) => prayer.id !== id));
+    void updatePrayer(id, { status: nextStatus[status] });
   };
 
   const filters: PrayerFilter[] = ['All', 'Ongoing', 'Answered', 'Trusting'];
@@ -153,6 +148,25 @@ export default function PrayerJournalScreen() {
           ))}
         </View>
 
+        {!isSignedIn ? (
+          <View style={[styles.syncBanner, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+            <Ionicons name="phone-portrait-outline" size={16} color={theme.textSecondary} />
+            <Text style={[styles.syncBannerText, { color: theme.textSecondary }]}>
+              Saved on this device. Sign in to sync across devices.
+            </Text>
+          </View>
+        ) : error ? (
+          <TouchableOpacity
+            onPress={refresh}
+            style={[styles.syncBanner, { backgroundColor: theme.primarySoft, borderColor: theme.border }]}
+            activeOpacity={0.8}>
+            <Ionicons name="cloud-offline-outline" size={16} color={theme.primary} />
+            <Text style={[styles.syncBannerText, { color: theme.text }]}>
+              Saved on this device. Couldn&apos;t sync — tap to retry.
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionLabel, { color: theme.text }]}>Filters</Text>
           <Text style={[styles.sectionMeta, { color: theme.textMuted }]}>Tap a chip to filter</Text>
@@ -221,7 +235,7 @@ export default function PrayerJournalScreen() {
                         borderColor: `${PRAYER_STATUS_COLORS[prayer.status]}44`,
                       },
                     ]}
-                    onPress={() => cycleStatus(prayer.id)}
+                    onPress={() => cycleStatus(prayer.id, prayer.status)}
                     activeOpacity={0.8}>
                     <View
                       style={[
@@ -244,9 +258,11 @@ export default function PrayerJournalScreen() {
                 </Text>
 
                 <View style={styles.prayerFooter}>
-                  <Text style={[styles.prayerDate, { color: theme.textMuted }]}>{prayer.date}</Text>
+                  <Text style={[styles.prayerDate, { color: theme.textMuted }]}>
+                    {formatUpdated(prayer.updatedAt)}
+                  </Text>
                   <TouchableOpacity
-                    onPress={() => deletePrayer(prayer.id)}
+                    onPress={() => void deletePrayer(prayer.id)}
                     style={[styles.deleteBtn, { backgroundColor: theme.primarySoft }]}
                     activeOpacity={0.8}>
                     <Ionicons name="trash-outline" size={14} color={theme.primary} />
@@ -484,6 +500,21 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 11,
     fontWeight: '700',
+  },
+  syncBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 12,
+  },
+  syncBannerText: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '600',
   },
   sectionHeader: {
     flexDirection: 'row',

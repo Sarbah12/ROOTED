@@ -38,11 +38,12 @@ function RootLayoutShell() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <ThemeModeProvider>
-        <FirebaseAuthProvider>
+      {/* Settings read the auth token to sync, so they nest inside auth. */}
+      <FirebaseAuthProvider>
+        <ThemeModeProvider>
           <RootLayoutShell />
-        </FirebaseAuthProvider>
-      </ThemeModeProvider>
+        </ThemeModeProvider>
+      </FirebaseAuthProvider>
     </SafeAreaProvider>
   );
 }

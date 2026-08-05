@@ -4,12 +4,12 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
-  QUIZ_QUESTIONS,
   READING_PLANS,
   SAMPLE_NOTES,
   SAMPLE_PRAYERS,
   VERSE_OF_THE_DAY,
 } from '@/constants/bible-study';
+import { QUIZ_QUESTIONS } from '@/constants/quiz';
 import { useThemeMode } from '@/context/theme-mode';
 
 type RouteHref = './bible' | './notes' | './prayer' | './quiz';
