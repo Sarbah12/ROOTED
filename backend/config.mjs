@@ -39,3 +39,9 @@ export function loadConfig(env = process.env) {
     logLevel: env.LOG_LEVEL || 'info',
   };
 }
+
+/**
+ * Shared instance for modules that just need to read config (db, migrations).
+ * server.mjs still calls loadConfig() itself so tests can inject an env.
+ */
+export const config = loadConfig();

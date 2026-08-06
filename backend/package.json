@@ -1,0 +1,19 @@
+{
+  "name": "rooted-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API for the Rooted app: Firebase-verified auth over a Postgres store.",
+  "main": "server.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "migrate": "node migrate.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.8.0",
+    "pg": "^8.13.1"
+  }
+}

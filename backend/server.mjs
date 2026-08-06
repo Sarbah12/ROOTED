@@ -11,7 +11,25 @@ import {
 import { loadConfig } from './config.mjs';
 import { AppError, badRequest, isAppError, methodNotAllowed, notFound } from './errors.mjs';
 import { createLogger } from './logger.mjs';
-import { loadStore, updateStore } from './store.mjs';
+import { checkConnection } from './db.mjs';
+import {
+  createNote,
+  createPrayer,
+  deleteNote,
+  deletePrayer,
+  getReadingProgress,
+  getSettings,
+  getUser,
+  listNotes,
+  listPrayers,
+  listQuizResults,
+  recordQuizResult,
+  setReadingProgress,
+  updateNote,
+  updatePrayer,
+  updateSettings,
+  upsertUser,
+} from './store.mjs';
 import {
   assertBody,
   optionalArrayOfStrings,
@@ -137,65 +155,52 @@ function withRoute(handler) {
   };
 }
 
-async function requireAuth(req) {
-  return verifyFirebaseRequest(req, config);
+/** Verifies the bearer token and returns the caller's normalized profile. */
+async function requireUser(req) {
+  const { decodedToken, userRecord } = await verifyFirebaseRequest(req, config);
+  return sanitizeFirebaseUserRecord(userRecord, decodedToken);
 }
+
+/** Plan definitions are static content, not user data. */
+const READING_PLANS = [
+  { id: 'plan_1', name: 'Bible in a Year', duration: '365 days', color: '#2E6A5C' },
+  { id: 'plan_2', name: 'New Testament in 90 Days', duration: '90 days', color: '#8A6236' },
+  { id: 'plan_3', name: 'Psalms & Proverbs', duration: '60 days', color: '#5D7A66' },
+];
 
 async function handleAuthLogin(req, res) {
   const body = assertBody(await readBody(req));
   rejectUnknownKeys(body, ['idToken'], 'login');
   const idToken = requiredTrimmedString(body.idToken, 'idToken');
+
   const { decodedToken, userRecord } = await verifyLoginToken(idToken, config);
   const firebaseUser = sanitizeFirebaseUserRecord(userRecord, decodedToken);
-  const response = await updateStore((draft) => {
-    const settings = draft.user?.id === firebaseUser.uid ? draft.user.settings : { ...draft.user.settings };
 
-    draft.user = {
-      id: firebaseUser.uid,
-      displayName: firebaseUser.displayName,
-      email: firebaseUser.email,
-      phone: firebaseUser.phone,
-      provider: firebaseUser.provider,
-      settings,
-      photoURL: firebaseUser.photoURL || null,
-      emailVerified: firebaseUser.emailVerified,
-    };
+  const user = await upsertUser(firebaseUser);
+  const settings = await getSettings(firebaseUser.uid);
 
-    return {
-      user: draft.user,
-      firebaseUser,
-      claims: decodedToken,
-    };
-  });
-
-  sendJson(res, 200, response);
+  sendJson(res, 200, { user: { ...user, settings }, firebaseUser, claims: decodedToken });
 }
 
 async function handleAuthLogout(req, res) {
-  const authContext = await requireAuth(req);
-
-  await revokeFirebaseUserSessions(authContext.decodedToken.uid, config);
-
+  const firebaseUser = await requireUser(req);
+  await revokeFirebaseUserSessions(firebaseUser.uid, config);
   sendJson(res, 200, { loggedOut: true });
 }
 
 async function handleMe(req, res) {
-  const store = await loadStore();
-  const authContext = await requireAuth(req);
-  const firebaseUser = sanitizeFirebaseUserRecord(authContext.userRecord, authContext.decodedToken);
+  const firebaseUser = await requireUser(req);
+  const user = (await getUser(firebaseUser.uid)) ?? (await upsertUser(firebaseUser));
+  const settings = await getSettings(firebaseUser.uid);
 
-  sendJson(res, 200, {
-    user: store.user?.id === firebaseUser.uid ? store.user : firebaseUser,
-    firebaseUser,
-  });
+  sendJson(res, 200, { user: { ...user, settings }, firebaseUser });
 }
 
 async function handleSettings(req, res) {
-  const store = await loadStore();
-  await requireAuth(req, store);
+  const firebaseUser = await requireUser(req);
 
   if (req.method === 'GET') {
-    sendJson(res, 200, store.user.settings);
+    sendJson(res, 200, await getSettings(firebaseUser.uid));
     return;
   }
 
@@ -203,29 +208,21 @@ async function handleSettings(req, res) {
     const body = assertBody(await readBody(req));
     rejectUnknownKeys(
       body,
-      ['darkMode', 'remindersEnabled', 'verseNotificationsEnabled', 'streakBadgeEnabled', 'reminderTime', 'fontSize'],
-      'settings',
+      ['darkMode', 'remindersEnabled', 'verseNotificationsEnabled', 'streakBadgeEnabled',
+       'reminderTime', 'fontSize'],
+      'settings'
     );
 
-    const nextSettings = {
+    const patch = {
       darkMode: optionalBoolean(body.darkMode, 'darkMode'),
       remindersEnabled: optionalBoolean(body.remindersEnabled, 'remindersEnabled'),
       verseNotificationsEnabled: optionalBoolean(body.verseNotificationsEnabled, 'verseNotificationsEnabled'),
       streakBadgeEnabled: optionalBoolean(body.streakBadgeEnabled, 'streakBadgeEnabled'),
       reminderTime: optionalTrimmedString(body.reminderTime),
-      fontSize: optionalEnum(body.fontSize, ['Small', 'Default', 'Large'], 'fontSize'),
+      fontSize: optionalTrimmedString(body.fontSize),
     };
 
-    const updated = await updateStore((draft) => {
-      draft.user.settings = {
-        ...draft.user.settings,
-        ...Object.fromEntries(
-          Object.entries(nextSettings).filter(([, value]) => value !== undefined),
-        ),
-      };
-    });
-
-    sendJson(res, 200, updated.user.settings);
+    sendJson(res, 200, await updateSettings(firebaseUser.uid, patch));
     return;
   }
 
@@ -233,88 +230,44 @@ async function handleSettings(req, res) {
 }
 
 async function handleNotes(req, res, id) {
-  const store = await loadStore();
-  await requireAuth(req, store);
+  const firebaseUser = await requireUser(req);
+  const userId = firebaseUser.uid;
 
   if (!id && req.method === 'GET') {
-    sendJson(res, 200, { notes: store.notes });
+    sendJson(res, 200, { notes: await listNotes(userId) });
     return;
   }
 
   if (!id && req.method === 'POST') {
     const body = assertBody(await readBody(req));
-    const created = await updateStore((draft) => {
-      const note = {
-        id: randomUUID(),
-        title: requiredTrimmedString(body.title, 'title'),
-        reference: optionalTrimmedString(body.reference) || '',
-        content: optionalTrimmedString(body.content) || '',
-        tags: optionalArrayOfStrings(body.tags, 'tags') || [],
-        updatedAt: new Date().toISOString(),
-        color: optionalTrimmedString(body.color) || '#2E6A5C',
-      };
-
-      draft.notes.unshift(note);
-      return note;
+    const created = await createNote(userId, {
+      title: requiredTrimmedString(body.title, 'title'),
+      reference: optionalTrimmedString(body.reference) || '',
+      content: optionalTrimmedString(body.content) || '',
+      tags: optionalArrayOfStrings(body.tags, 'tags') || [],
+      color: optionalTrimmedString(body.color) || '#2E6A5C',
     });
-
     sendJson(res, 201, created);
     return;
   }
 
   if (id && (req.method === 'PATCH' || req.method === 'PUT')) {
     const body = assertBody(await readBody(req));
-    const updated = await updateStore((draft) => {
-      const note = draft.notes.find((item) => item.id === id);
+    const patch = {};
+    if (body.title !== undefined) patch.title = requiredTrimmedString(body.title, 'title');
+    if (body.reference !== undefined) patch.reference = optionalTrimmedString(body.reference) || '';
+    if (body.content !== undefined) patch.content = optionalTrimmedString(body.content) || '';
+    if (body.tags !== undefined) patch.tags = optionalArrayOfStrings(body.tags, 'tags') || [];
+    if (body.color !== undefined) patch.color = optionalTrimmedString(body.color) || '#2E6A5C';
 
-      if (!note) {
-        return null;
-      }
-
-      if (body.title !== undefined) {
-        note.title = requiredTrimmedString(body.title, 'title');
-      }
-      if (body.reference !== undefined) {
-        note.reference = optionalTrimmedString(body.reference) || '';
-      }
-      if (body.content !== undefined) {
-        note.content = optionalTrimmedString(body.content) || '';
-      }
-      if (body.tags !== undefined) {
-        note.tags = optionalArrayOfStrings(body.tags, 'tags') || [];
-      }
-      if (body.color !== undefined) {
-        note.color = optionalTrimmedString(body.color) || note.color;
-      }
-
-      note.updatedAt = new Date().toISOString();
-      return note;
-    });
-
-    if (!updated) {
-      throw notFound();
-    }
-
+    const updated = await updateNote(userId, id, patch);
+    if (!updated) throw notFound();
     sendJson(res, 200, updated);
     return;
   }
 
   if (id && req.method === 'DELETE') {
-    const deleted = await updateStore((draft) => {
-      const index = draft.notes.findIndex((item) => item.id === id);
-
-      if (index === -1) {
-        return null;
-      }
-
-      const [note] = draft.notes.splice(index, 1);
-      return note;
-    });
-
-    if (!deleted) {
-      throw notFound();
-    }
-
+    if (!(await deleteNote(userId, id))) throw notFound();
     sendJson(res, 200, { deleted: true, id });
     return;
   }
@@ -323,88 +276,46 @@ async function handleNotes(req, res, id) {
 }
 
 async function handlePrayers(req, res, id) {
-  const store = await loadStore();
-  await requireAuth(req, store);
+  const firebaseUser = await requireUser(req);
+  const userId = firebaseUser.uid;
 
   if (!id && req.method === 'GET') {
-    sendJson(res, 200, { prayers: store.prayers });
+    sendJson(res, 200, { prayers: await listPrayers(userId) });
     return;
   }
 
   if (!id && req.method === 'POST') {
     const body = assertBody(await readBody(req));
-    const created = await updateStore((draft) => {
-      const prayer = {
-        id: randomUUID(),
-        title: requiredTrimmedString(body.title, 'title'),
-        category: optionalTrimmedString(body.category) || 'Personal',
-        content: optionalTrimmedString(body.content) || '',
-        status: optionalEnum(body.status, ['unanswered', 'ongoing', 'answered'], 'status') || 'unanswered',
-        verse: optionalTrimmedString(body.verse) || '',
-        updatedAt: new Date().toISOString(),
-      };
-
-      draft.prayers.unshift(prayer);
-      return prayer;
+    const created = await createPrayer(userId, {
+      title: requiredTrimmedString(body.title, 'title'),
+      category: optionalTrimmedString(body.category) || 'Personal',
+      content: optionalTrimmedString(body.content) || '',
+      status: optionalEnum(body.status, ['unanswered', 'ongoing', 'answered'], 'status') || 'unanswered',
+      verse: optionalTrimmedString(body.verse) || '',
     });
-
     sendJson(res, 201, created);
     return;
   }
 
   if (id && (req.method === 'PATCH' || req.method === 'PUT')) {
     const body = assertBody(await readBody(req));
-    const updated = await updateStore((draft) => {
-      const prayer = draft.prayers.find((item) => item.id === id);
-
-      if (!prayer) {
-        return null;
-      }
-
-      if (body.title !== undefined) {
-        prayer.title = requiredTrimmedString(body.title, 'title');
-      }
-      if (body.category !== undefined) {
-        prayer.category = optionalTrimmedString(body.category) || prayer.category;
-      }
-      if (body.content !== undefined) {
-        prayer.content = optionalTrimmedString(body.content) || '';
-      }
-      if (body.status !== undefined) {
-        prayer.status = optionalEnum(body.status, ['unanswered', 'ongoing', 'answered'], 'status') || prayer.status;
-      }
-      if (body.verse !== undefined) {
-        prayer.verse = optionalTrimmedString(body.verse) || '';
-      }
-
-      prayer.updatedAt = new Date().toISOString();
-      return prayer;
-    });
-
-    if (!updated) {
-      throw notFound();
+    const patch = {};
+    if (body.title !== undefined) patch.title = requiredTrimmedString(body.title, 'title');
+    if (body.category !== undefined) patch.category = optionalTrimmedString(body.category) || 'Personal';
+    if (body.content !== undefined) patch.content = optionalTrimmedString(body.content) || '';
+    if (body.status !== undefined) {
+      patch.status = optionalEnum(body.status, ['unanswered', 'ongoing', 'answered'], 'status');
     }
+    if (body.verse !== undefined) patch.verse = optionalTrimmedString(body.verse) || '';
 
+    const updated = await updatePrayer(userId, id, patch);
+    if (!updated) throw notFound();
     sendJson(res, 200, updated);
     return;
   }
 
   if (id && req.method === 'DELETE') {
-    const deleted = await updateStore((draft) => {
-      const index = draft.prayers.findIndex((item) => item.id === id);
-
-      if (index === -1) {
-        return null;
-      }
-
-      const [prayer] = draft.prayers.splice(index, 1);
-      return prayer;
-    });
-
-    if (!deleted) {
-      throw notFound();
-    }
-
+    if (!(await deletePrayer(userId, id))) throw notFound();
     sendJson(res, 200, { deleted: true, id });
     return;
   }
@@ -413,40 +324,104 @@ async function handlePrayers(req, res, id) {
 }
 
 async function handleDashboard(req, res) {
-  const store = await loadStore();
-  await requireAuth(req, store);
+  const firebaseUser = await requireUser(req);
+  const userId = firebaseUser.uid;
+
+  const [user, settings, notes, prayers, progress] = await Promise.all([
+    getUser(userId),
+    getSettings(userId),
+    listNotes(userId),
+    listPrayers(userId),
+    getReadingProgress(userId),
+  ]);
+
+  const progressById = new Map(progress.map((item) => [item.id, item.progress]));
 
   sendJson(res, 200, {
-    user: store.user,
-    stats: {
-      notes: store.notes.length,
-      prayers: store.prayers.length,
-      plans: store.readingPlans.length,
-      quizQuestions: store.quizQuestions.length,
+    user: { ...user, settings },
+    counts: {
+      notes: notes.length,
+      prayers: prayers.length,
+      plans: READING_PLANS.length,
     },
-    readingPlans: store.readingPlans,
-    notes: store.notes.slice(0, 3),
-    prayers: store.prayers.slice(0, 3),
+    readingPlans: READING_PLANS.map((plan) => ({
+      ...plan,
+      progress: progressById.get(plan.id) ?? 0,
+    })),
+    notes: notes.slice(0, 3),
+    prayers: prayers.slice(0, 3),
   });
 }
 
-async function handleQuestions(req, res) {
-  const store = await loadStore();
-  await requireAuth(req, store);
-  sendJson(res, 200, { questions: store.quizQuestions });
+async function handleReadingPlans(req, res) {
+  const firebaseUser = await requireUser(req);
+
+  if (req.method === 'GET') {
+    const progress = await getReadingProgress(firebaseUser.uid);
+    const progressById = new Map(progress.map((item) => [item.id, item.progress]));
+    sendJson(res, 200, {
+      readingPlans: READING_PLANS.map((plan) => ({
+        ...plan,
+        progress: progressById.get(plan.id) ?? 0,
+      })),
+    });
+    return;
+  }
+
+  if (req.method === 'PATCH' || req.method === 'PUT') {
+    const body = assertBody(await readBody(req));
+    rejectUnknownKeys(body, ['planId', 'progress'], 'reading plan');
+    const planId = requiredTrimmedString(body.planId, 'planId');
+
+    if (typeof body.progress !== 'number' || body.progress < 0 || body.progress > 1) {
+      throw badRequest('progress must be a number between 0 and 1');
+    }
+
+    sendJson(res, 200, await setReadingProgress(firebaseUser.uid, planId, body.progress));
+    return;
+  }
+
+  throw methodNotAllowed();
 }
 
-async function handleReadingPlans(req, res) {
-  const store = await loadStore();
-  await requireAuth(req, store);
-  sendJson(res, 200, { readingPlans: store.readingPlans });
+async function handleQuizResults(req, res) {
+  const firebaseUser = await requireUser(req);
+
+  if (req.method === 'GET') {
+    sendJson(res, 200, { results: await listQuizResults(firebaseUser.uid) });
+    return;
+  }
+
+  if (req.method === 'POST') {
+    const body = assertBody(await readBody(req));
+    rejectUnknownKeys(body, ['subjectKey', 'score', 'total'], 'quiz result');
+    const subjectKey = requiredTrimmedString(body.subjectKey, 'subjectKey');
+
+    if (!Number.isInteger(body.score) || !Number.isInteger(body.total) || body.total <= 0) {
+      throw badRequest('score and total must be integers, and total must be positive');
+    }
+
+    sendJson(res, 200, await recordQuizResult(firebaseUser.uid, subjectKey, body.score, body.total));
+    return;
+  }
+
+  throw methodNotAllowed();
 }
 
 async function handleVersionedHealth(req, res) {
-  sendJson(res, 200, {
-    ok: true,
+  // Report the database too, so "ok" means the service can actually serve.
+  let database = 'ok';
+  try {
+    await checkConnection();
+  } catch (error) {
+    database = `error: ${error.message}`;
+  }
+
+  sendJson(res, database === 'ok' ? 200 : 503, {
+    ok: database === 'ok',
     service: 'rooted-backend',
     version: 'v1',
+    database,
     time: new Date().toISOString(),
   });
 }
@@ -520,12 +495,12 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (parts[0] === 'v1' && parts[1] === 'quiz' && parts[2] === 'questions' && req.method === 'GET') {
-      await handleQuestions(req, res);
+    if (parts[0] === 'v1' && parts[1] === 'quiz' && parts[2] === 'results') {
+      await handleQuizResults(req, res);
       return;
     }
 
-    if (parts[0] === 'v1' && parts[1] === 'reading-plans' && req.method === 'GET') {
+    if (parts[0] === 'v1' && parts[1] === 'reading-plans') {
       await handleReadingPlans(req, res);
       return;
     }

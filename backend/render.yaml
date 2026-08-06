@@ -1,0 +1,34 @@
+# Render blueprint for the Rooted backend.
+#   1. Push this repo to GitHub (already done)
+#   2. Render dashboard -> New -> Blueprint -> pick this repo
+#   3. Set the secret env vars below in the dashboard, never in this file
+services:
+  - type: web
+    name: rooted-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      # Set these in the Render dashboard (Environment tab):
+      #   DATABASE_URL                   Supabase connection string
+      #   FIREBASE_PROJECT_ID            rooted-59912
+      #   FIREBASE_CLIENT_EMAIL          from the service account JSON
+      #   FIREBASE_PRIVATE_KEY           from the service account JSON
+      #   CORS_ORIGINS                   comma-separated allowed origins
+      - key: DATABASE_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
