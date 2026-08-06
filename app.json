@@ -51,7 +51,11 @@
       "reactCompiler": false
     },
     "extra": {
-      "router": {}
-    }
+      "router": {},
+      "eas": {
+        "projectId": "8b23b255-644d-4ab9-b3fa-b72588257ab4"
+      }
+    },
+    "owner": "accra-resource-center"
   }
 }
