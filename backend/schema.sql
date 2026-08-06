@@ -134,3 +134,156 @@ alter table notes            enable row level security;
 alter table prayers          enable row level security;
 alter table reading_progress enable row level security;
 alter table quiz_results     enable row level security;
+
+-- =====================================================================
+-- Community study plans
+-- =====================================================================
+
+-- A plan authored by a user. `visibility` decides discovery:
+--   private  only the owner
+--   link     anyone holding the join code
+--   public   listed in the directory
+create table if not exists study_plans (
+  id            uuid        primary key default gen_random_uuid(),
+  owner_id      text        not null references users(id) on delete cascade,
+  title         text        not null,
+  description   text        not null default '',
+  visibility    text        not null default 'link'
+                            check (visibility in ('private', 'link', 'public')),
+  -- Short code for share links; unique so it can be looked up directly.
+  join_code     text        unique,
+  duration_days integer     not null default 0,
+  member_count  integer     not null default 0,
+  is_archived   boolean     not null default false,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists study_plans_owner_idx  on study_plans (owner_id);
+-- Powers the public directory: newest listed plans first.
+create index if not exists study_plans_public_idx on study_plans (visibility, created_at desc)
+  where visibility = 'public' and is_archived = false;
+
+-- One row per day of reading.
+create table if not exists study_plan_days (
+  plan_id    uuid    not null references study_plans(id) on delete cascade,
+  day        integer not null check (day > 0),
+  reference  text    not null,           -- e.g. 'John 3' or 'Genesis 1-3'
+  title      text    not null default '',
+  prompt     text    not null default '', -- optional reflection question
+  primary key (plan_id, day)
+);
+
+-- Membership. current_day is a cache of "furthest consecutive day done".
+create table if not exists plan_members (
+  plan_id     uuid        not null references study_plans(id) on delete cascade,
+  user_id     text        not null references users(id) on delete cascade,
+  role        text        not null default 'member' check (role in ('owner', 'member')),
+  current_day integer     not null default 0,
+  joined_at   timestamptz not null default now(),
+  primary key (plan_id, user_id)
+);
+
+create index if not exists plan_members_user_idx on plan_members (user_id);
+
+-- One row per day a member finishes. completed_on is a date so streaks can be
+-- computed by calendar day regardless of the time of day someone reads.
+create table if not exists plan_completions (
+  plan_id      uuid        not null references study_plans(id) on delete cascade,
+  user_id      text        not null references users(id) on delete cascade,
+  day          integer     not null,
+  completed_on date        not null default current_date,
+  completed_at timestamptz not null default now(),
+  primary key (plan_id, user_id, day)
+);
+
+-- Streaks scan a user's completion dates across every plan.
+create index if not exists plan_completions_user_date_idx
+  on plan_completions (user_id, completed_on desc);
+
+-- What someone learnt that day. Visible to the rest of the plan.
+create table if not exists plan_reflections (
+  id         uuid        primary key default gen_random_uuid(),
+  plan_id    uuid        not null references study_plans(id) on delete cascade,
+  user_id    text        not null references users(id) on delete cascade,
+  day        integer     not null,
+  body       text        not null,
+  is_hidden  boolean     not null default false,  -- set by moderation
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- The feed for a given day of a plan.
+create index if not exists plan_reflections_plan_day_idx
+  on plan_reflections (plan_id, day, created_at desc);
+
+-- =====================================================================
+-- Moderation
+--
+-- Required by App Store Review Guideline 1.2 for user-generated content:
+-- a way to report objectionable content and to block abusive users.
+-- =====================================================================
+
+create table if not exists content_reports (
+  id           uuid        primary key default gen_random_uuid(),
+  reporter_id  text        not null references users(id) on delete cascade,
+  target_type  text        not null check (target_type in ('reflection', 'plan', 'user')),
+  target_id    text        not null,
+  reason       text        not null,
+  details      text        not null default '',
+  status       text        not null default 'open'
+                           check (status in ('open', 'reviewed', 'actioned', 'dismissed')),
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists content_reports_open_idx on content_reports (status, created_at desc);
+-- One report per person per item; re-reporting updates rather than piles up.
+create unique index if not exists content_reports_unique_idx
+  on content_reports (reporter_id, target_type, target_id);
+
+create table if not exists user_blocks (
+  blocker_id text        not null references users(id) on delete cascade,
+  blocked_id text        not null references users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (blocker_id, blocked_id),
+  check (blocker_id <> blocked_id)
+);
+
+-- ------------------------------------------------------- updated_at bumps
+do $$
+declare t text;
+begin
+  foreach t in array array['study_plans', 'plan_reflections']
+  loop
+    execute format('drop trigger if exists %I_set_updated_at on %I', t, t);
+    execute format(
+      'create trigger %I_set_updated_at before update on %I
+       for each row execute function set_updated_at()', t, t);
+  end loop;
+end $$;
+
+-- Keep study_plans.member_count in step with plan_members.
+create or replace function sync_plan_member_count()
+returns trigger as $$
+begin
+  if tg_op = 'INSERT' then
+    update study_plans set member_count = member_count + 1 where id = new.plan_id;
+  elsif tg_op = 'DELETE' then
+    update study_plans set member_count = greatest(member_count - 1, 0) where id = old.plan_id;
+  end if;
+  return null;
+end;
+$$ language plpgsql;
+
+drop trigger if exists plan_members_count_sync on plan_members;
+create trigger plan_members_count_sync
+  after insert or delete on plan_members
+  for each row execute function sync_plan_member_count();
+
+alter table study_plans      enable row level security;
+alter table study_plan_days  enable row level security;
+alter table plan_members     enable row level security;
+alter table plan_completions enable row level security;
+alter table plan_reflections enable row level security;
+alter table content_reports  enable row level security;
+alter table user_blocks      enable row level security;

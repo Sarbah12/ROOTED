@@ -11,6 +11,31 @@ import {
   verifyLoginToken,
 } from './auth.mjs';
 import { isEmailConfigured, sendPasswordResetEmail, sendWelcomeEmail } from './email.mjs';
+import {
+  archivePlan,
+  blockUser,
+  completeDay,
+  createPlan,
+  createReflection,
+  deleteReflection,
+  findPlanByCode,
+  getMyProgress,
+  getPlan,
+  getPlanDays,
+  getPlanMembers,
+  getStreak,
+  isPlanMember,
+  joinPlan,
+  leavePlan,
+  listBlockedUsers,
+  listMyPlans,
+  listPublicPlans,
+  listReflections,
+  reportContent,
+  unblockUser,
+  uncompleteDay,
+  updateReflection,
+} from './plans.mjs';
 import { loadConfig } from './config.mjs';
 import { AppError, badRequest, isAppError, methodNotAllowed, notFound } from './errors.mjs';
 import { createLogger } from './logger.mjs';
@@ -459,6 +484,230 @@ async function handleWelcomeEmail(req, res) {
   }
 }
 
+const MAX_REFLECTION_LENGTH = 2000;
+
+/** /v1/plans and /v1/plans/:id/... */
+async function handlePlans(req, res, parts, url) {
+  const user = await requireUser(req);
+  const userId = user.uid;
+  const planId = parts[2];
+  const section = parts[3];
+
+  // ---- collection
+  if (!planId) {
+    if (req.method === 'GET') {
+      const scope = url.searchParams.get('scope') || 'mine';
+      const code = url.searchParams.get('code');
+
+      if (code) {
+        const found = await findPlanByCode(userId, code);
+        if (!found) throw notFound();
+        sendJson(res, 200, { plan: found });
+        return;
+      }
+
+      const plans = scope === 'public' ? await listPublicPlans(userId) : await listMyPlans(userId);
+      sendJson(res, 200, { plans });
+      return;
+    }
+
+    if (req.method === 'POST') {
+      const body = assertBody(await readBody(req));
+      rejectUnknownKeys(body, ['title', 'description', 'visibility', 'days'], 'plan');
+
+      const days = Array.isArray(body.days) ? body.days : [];
+      if (days.length === 0) throw badRequest('A plan needs at least one day.');
+      if (days.length > 400) throw badRequest('A plan cannot exceed 400 days.');
+
+      for (const day of days) {
+        if (!day || typeof day.reference !== 'string' || !day.reference.trim()) {
+          throw badRequest('Every day needs a passage reference.');
+        }
+      }
+
+      const plan = await createPlan(userId, {
+        title: requiredTrimmedString(body.title, 'title'),
+        description: optionalTrimmedString(body.description) || '',
+        visibility: optionalEnum(body.visibility, ['private', 'link', 'public'], 'visibility') || 'link',
+        days: days.map((day) => ({
+          reference: day.reference.trim(),
+          title: typeof day.title === 'string' ? day.title.trim() : '',
+          prompt: typeof day.prompt === 'string' ? day.prompt.trim() : '',
+        })),
+      });
+
+      sendJson(res, 201, plan);
+      return;
+    }
+
+    throw methodNotAllowed();
+  }
+
+  // ---- single plan
+  const plan = await getPlan(userId, planId);
+  if (!plan) throw notFound();
+
+  if (!section) {
+    if (req.method === 'GET') {
+      const [days, progress, members] = await Promise.all([
+        getPlanDays(planId),
+        getMyProgress(userId, planId),
+        getPlanMembers(userId, planId),
+      ]);
+      sendJson(res, 200, { plan, days, completedDays: progress, members });
+      return;
+    }
+
+    if (req.method === 'DELETE') {
+      if (!(await archivePlan(userId, planId))) throw notFound();
+      sendJson(res, 200, { archived: true });
+      return;
+    }
+
+    throw methodNotAllowed();
+  }
+
+  if (section === 'join' && req.method === 'POST') {
+    sendJson(res, 200, { plan: await joinPlan(userId, planId) });
+    return;
+  }
+
+  if (section === 'leave' && req.method === 'POST') {
+    if (!(await leavePlan(userId, planId))) {
+      throw badRequest('Plan owners cannot leave their own plan; archive it instead.');
+    }
+    sendJson(res, 200, { left: true });
+    return;
+  }
+
+  if (section === 'members' && req.method === 'GET') {
+    sendJson(res, 200, { members: await getPlanMembers(userId, planId) });
+    return;
+  }
+
+  // Everything below is for members only.
+  if (!(await isPlanMember(userId, planId))) {
+    throw new AppError(403, 'not_a_member', 'Join this plan first.');
+  }
+
+  if (section === 'days' && parts[4]) {
+    const day = Number(parts[4]);
+    if (!Number.isInteger(day) || day < 1) throw badRequest('Invalid day.');
+
+    if (parts[5] === 'complete') {
+      if (req.method === 'POST') {
+        sendJson(res, 200, await completeDay(userId, planId, day));
+        return;
+      }
+      if (req.method === 'DELETE') {
+        await uncompleteDay(userId, planId, day);
+        sendJson(res, 200, { completedDays: await getMyProgress(userId, planId) });
+        return;
+      }
+      throw methodNotAllowed();
+    }
+
+    if (parts[5] === 'reflections') {
+      if (req.method === 'GET') {
+        sendJson(res, 200, { reflections: await listReflections(userId, planId, day) });
+        return;
+      }
+
+      if (req.method === 'POST') {
+        const body = assertBody(await readBody(req));
+        rejectUnknownKeys(body, ['body'], 'reflection');
+        const text = requiredTrimmedString(body.body, 'body');
+        if (text.length > MAX_REFLECTION_LENGTH) {
+          throw badRequest(`Keep reflections under ${MAX_REFLECTION_LENGTH} characters.`);
+        }
+        sendJson(res, 201, await createReflection(userId, planId, day, text));
+        return;
+      }
+
+      throw methodNotAllowed();
+    }
+  }
+
+  throw notFound();
+}
+
+async function handleReflection(req, res, id) {
+  const user = await requireUser(req);
+
+  if (req.method === 'PATCH' || req.method === 'PUT') {
+    const body = assertBody(await readBody(req));
+    rejectUnknownKeys(body, ['body'], 'reflection');
+    const text = requiredTrimmedString(body.body, 'body');
+    if (text.length > MAX_REFLECTION_LENGTH) {
+      throw badRequest(`Keep reflections under ${MAX_REFLECTION_LENGTH} characters.`);
+    }
+    const updated = await updateReflection(user.uid, id, text);
+    if (!updated) throw notFound();
+    sendJson(res, 200, updated);
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    if (!(await deleteReflection(user.uid, id))) throw notFound();
+    sendJson(res, 200, { deleted: true });
+    return;
+  }
+
+  throw methodNotAllowed();
+}
+
+async function handleStreak(req, res) {
+  const user = await requireUser(req);
+  sendJson(res, 200, await getStreak(user.uid));
+}
+
+/** Report objectionable content — App Store Guideline 1.2. */
+async function handleReport(req, res) {
+  const user = await requireUser(req);
+  const body = assertBody(await readBody(req));
+  rejectUnknownKeys(body, ['targetType', 'targetId', 'reason', 'details'], 'report');
+
+  const targetType = optionalEnum(body.targetType, ['reflection', 'plan', 'user'], 'targetType');
+  if (!targetType) throw badRequest('targetType is required.');
+
+  const result = await reportContent(
+    user.uid,
+    targetType,
+    requiredTrimmedString(body.targetId, 'targetId'),
+    requiredTrimmedString(body.reason, 'reason'),
+    optionalTrimmedString(body.details) || ''
+  );
+
+  sendJson(res, 201, result);
+}
+
+/** Block and unblock users — App Store Guideline 1.2. */
+async function handleBlocks(req, res, targetId) {
+  const user = await requireUser(req);
+
+  if (!targetId && req.method === 'GET') {
+    sendJson(res, 200, { blocked: await listBlockedUsers(user.uid) });
+    return;
+  }
+
+  if (!targetId && req.method === 'POST') {
+    const body = assertBody(await readBody(req));
+    rejectUnknownKeys(body, ['userId'], 'block');
+    const blockedId = requiredTrimmedString(body.userId, 'userId');
+    if (!(await blockUser(user.uid, blockedId))) throw badRequest('You cannot block yourself.');
+    sendJson(res, 201, { blocked: true });
+    return;
+  }
+
+  if (targetId && req.method === 'DELETE') {
+    await unblockUser(user.uid, targetId);
+    sendJson(res, 200, { blocked: false });
+    return;
+  }
+
+  throw methodNotAllowed();
+}
+
 async function handleVersionedHealth(req, res) {
   // Report the database too, so "ok" means the service can actually serve.
   let database = 'ok';
@@ -553,6 +802,31 @@ const server = http.createServer(async (req, res) => {
 
     if (parts[0] === 'v1' && parts[1] === 'prayers') {
       await handlePrayers(req, res, parts[2]);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'plans') {
+      await handlePlans(req, res, parts, url);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'reflections' && parts[2]) {
+      await handleReflection(req, res, parts[2]);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'me' && parts[2] === 'streak' && req.method === 'GET') {
+      await handleStreak(req, res);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'reports' && req.method === 'POST') {
+      await handleReport(req, res);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'blocks') {
+      await handleBlocks(req, res, parts[2]);
       return;
     }
 
