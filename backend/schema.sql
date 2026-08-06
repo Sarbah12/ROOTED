@@ -16,11 +16,18 @@ create table if not exists users (
   phone_country_code  text        not null default '',
   phone_number        text        not null default '',
   provider            text        not null default 'firebase',
+  username            text        unique,
+  recovery_email      text,
   photo_url           text,
   email_verified      boolean     not null default false,
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now()
 );
+
+-- Sign-in identifiers resolve to a Firebase email; keep a lookup for support
+-- tooling and to spot collisions early.
+create index if not exists users_username_idx on users (lower(username));
+create index if not exists users_email_idx    on users (lower(email));
 
 -- ------------------------------------------------------------- settings
 create table if not exists user_settings (

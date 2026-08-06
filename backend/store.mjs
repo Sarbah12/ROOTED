@@ -18,6 +18,7 @@ function mapUser(row) {
     id: row.id,
     displayName: row.display_name,
     email: row.email,
+    username: row.username ?? null,
     phone: {
       countryCode: row.phone_country_code || '',
       number: row.phone_number || '',
@@ -66,13 +67,33 @@ function mapPrayer(row) {
   };
 }
 
+// Sign-in identifiers are mapped onto synthetic addresses by the app (see
+// constants/identity.ts). Unpick them so the real username or phone number is
+// stored rather than the internal address.
+const USERNAME_DOMAIN = '@users.rootedbible.app';
+const PHONE_DOMAIN = '@phone.rootedbible.app';
+
+function splitIdentity(email) {
+  if (!email) return { username: null, phoneDigits: null, realEmail: null };
+  if (email.endsWith(USERNAME_DOMAIN)) {
+    return { username: email.slice(0, -USERNAME_DOMAIN.length), phoneDigits: null, realEmail: null };
+  }
+  if (email.endsWith(PHONE_DOMAIN)) {
+    return { username: null, phoneDigits: email.slice(0, -PHONE_DOMAIN.length), realEmail: null };
+  }
+  return { username: null, phoneDigits: null, realEmail: email };
+}
+
 // -------------------------------------------------------------------- users
 /** Upserts the profile on every login so Firebase stays the source of truth. */
 export async function upsertUser(firebaseUser) {
+  const identity = splitIdentity(firebaseUser.email);
+
   const row = await queryOne(
-    `insert into users (id, display_name, email, phone_country_code, phone_number,
-                        provider, photo_url, email_verified)
-     values ($1, $2, $3, $4, $5, $6, $7, $8)
+    `insert into users
+     (id, display_name, email, phone_country_code, phone_number,
+      provider, photo_url, email_verified, username)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      on conflict (id) do update set
        display_name       = excluded.display_name,
        email              = excluded.email,
@@ -80,17 +101,19 @@ export async function upsertUser(firebaseUser) {
        phone_number       = excluded.phone_number,
        provider           = excluded.provider,
        photo_url          = excluded.photo_url,
-       email_verified     = excluded.email_verified
+       email_verified     = excluded.email_verified,
+       username           = coalesce(excluded.username, users.username)
      returning *`,
     [
       firebaseUser.uid,
       firebaseUser.displayName || 'Guest Reader',
-      firebaseUser.email,
+      identity.realEmail,
       firebaseUser.phone?.countryCode || '',
-      firebaseUser.phone?.number || '',
+      identity.phoneDigits || firebaseUser.phone?.number || '',
       firebaseUser.provider || 'firebase',
       firebaseUser.photoURL,
       Boolean(firebaseUser.emailVerified),
+      identity.username,
     ]
   );
 

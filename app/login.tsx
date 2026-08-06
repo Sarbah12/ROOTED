@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { FirebaseRecaptchaVerifierModal } from '@/components/firebase-recaptcha';
 import {
   OAuthProvider,
   signInWithCredential,
-  signInWithPhoneNumber,
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -25,7 +25,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
-import { FIREBASE_CONFIG } from '@/constants/firebase';
+import { resolveIdentifier } from '@/constants/identity';
 import { getFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 
@@ -66,33 +66,6 @@ const COUNTRIES: CountryOption[] = [
   { name: 'Kenya', code: '+254', flag: '🇰🇪' },
 ];
 
-type PhoneConfirmation = Awaited<ReturnType<typeof signInWithPhoneNumber>>;
-
-function formatPhoneE164(countryCode: string, rawInput: string) {
-  const countryDigits = countryCode.replace(/\D/g, '');
-  const compactInput = rawInput.trim().replace(/\s+/g, '');
-  const digits = compactInput.replace(/\D/g, '');
-
-  if (!digits) {
-    return '';
-  }
-
-  // Allow users to paste a full international number, but also support local
-  // numbers where the leading trunk zero should be removed before adding the
-  // selected country code.
-  if (compactInput.startsWith('+')) {
-    if (digits.startsWith(countryDigits)) {
-      const nationalDigits = digits.slice(countryDigits.length).replace(/^0+/, '');
-      return `+${countryDigits}${nationalDigits}`;
-    }
-
-    return `+${digits}`;
-  }
-
-  const nationalDigits = digits.replace(/^0+/, '');
-  return `+${countryDigits}${nationalDigits}`;
-}
-
 function BenefitRow({
   icon,
   title,
@@ -121,21 +94,19 @@ export default function LoginScreen() {
   const auth = useMemo(() => getFirebaseAuth(), []);
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const router = useRouter();
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryOption>(COUNTRIES[0]);
-  const [phoneConfirmation, setPhoneConfirmation] = useState<PhoneConfirmation | null>(null);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [isSendingPhoneCode, setIsSendingPhoneCode] = useState(false);
-  const [isVerifyingPhoneCode, setIsVerifyingPhoneCode] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [isAppleAvailable, setIsAppleAvailable] = useState(false);
   const [isAppleChecking, setIsAppleChecking] = useState(true);
   const [isAppleSigningIn, setIsAppleSigningIn] = useState(false);
-  const recaptchaVerifier = useRef<FirebaseRecaptchaVerifierModal | null>(null);
 
-  const digitsOnly = phoneNumber.replace(/\D/g, '');
-  const canContinueWithPhone = digitsOnly.length >= 7;
-  const phoneE164 = formatPhoneE164(selectedCountry.code, phoneNumber);
+  const canSubmit = identifier.trim().length > 0 && password.length > 0;
 
   useEffect(() => {
     let isMounted = true;
@@ -170,51 +141,45 @@ export default function LoginScreen() {
     };
   }, []);
 
-  const handlePhoneContinue = async () => {
-    if (!canContinueWithPhone) {
-      Alert.alert('Enter a phone number', 'Add a valid phone number to continue.');
+  const handleSignIn = async () => {
+    setFormError(null);
+
+    // One field accepts an email, a username, or a phone number; this works out
+    // which was typed and maps it to the address Firebase authenticates.
+    const resolved = resolveIdentifier(identifier, selectedCountry.code);
+    if (!resolved.ok) {
+      setFormError(resolved.message);
       return;
     }
 
-    if (!recaptchaVerifier.current) {
-      Alert.alert('Phone sign-in is not ready', 'Please try again in a moment.');
+    if (!password) {
+      setFormError('Enter your password.');
       return;
     }
 
-    setIsSendingPhoneCode(true);
+    setIsSigningIn(true);
     try {
-      const confirmation = await signInWithPhoneNumber(auth, phoneE164, recaptchaVerifier.current);
-      setPhoneConfirmation(confirmation);
-      setVerificationCode('');
+      await signInWithEmailAndPassword(auth, resolved.email, password);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to send a verification code.';
-      Alert.alert('Phone sign-in failed', message);
+      const code = (error as { code?: string })?.code ?? '';
+
+      // Firebase returns a deliberately vague code here; keep it vague so the
+      // screen does not confirm whether an account exists.
+      if (
+        code === 'auth/invalid-credential' ||
+        code === 'auth/wrong-password' ||
+        code === 'auth/user-not-found'
+      ) {
+        setFormError('That sign-in did not match. Check your details and try again.');
+      } else if (code === 'auth/too-many-requests') {
+        setFormError('Too many attempts. Wait a moment before trying again.');
+      } else if (code === 'auth/network-request-failed') {
+        setFormError('No connection. Check your network and try again.');
+      } else {
+        setFormError(error instanceof Error ? error.message : 'Unable to sign in.');
+      }
     } finally {
-      setIsSendingPhoneCode(false);
-    }
-  };
-
-  const handleVerifyPhoneCode = async () => {
-    if (!phoneConfirmation) {
-      Alert.alert('No code request found', 'Please request a verification code first.');
-      return;
-    }
-
-    if (verificationCode.trim().length < 4) {
-      Alert.alert('Enter your code', 'Type the verification code texted to your phone.');
-      return;
-    }
-
-    setIsVerifyingPhoneCode(true);
-    try {
-      await phoneConfirmation.confirm(verificationCode.trim());
-      setPhoneConfirmation(null);
-      setVerificationCode('');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to verify the phone code.';
-      Alert.alert('Verification failed', message);
-    } finally {
-      setIsVerifyingPhoneCode(false);
+      setIsSigningIn(false);
     }
   };
 
@@ -307,12 +272,101 @@ export default function LoginScreen() {
             <View style={styles.formHeader}>
               <View>
                 <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Secure sign in</Text>
-                <Text style={[styles.formTitle, { color: theme.text }]}>Use your phone number</Text>
+                <Text style={[styles.formTitle, { color: theme.text }]}>Welcome back</Text>
               </View>
               <View style={[styles.formMark, { backgroundColor: theme.primarySoft }]}>
                 <Ionicons name="lock-closed-outline" size={14} color={theme.primary} />
               </View>
             </View>
+
+            <TextInput
+              style={[
+                styles.input,
+                { color: theme.text, backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+              ]}
+              value={identifier}
+              onChangeText={(value) => {
+                setIdentifier(value);
+                setFormError(null);
+              }}
+              placeholder="Email, username, or phone"
+              placeholderTextColor={theme.textMuted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="username"
+              textContentType="username"
+            />
+
+            <View style={styles.passwordRow}>
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.passwordInput,
+                  { color: theme.text, backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+                ]}
+                value={password}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  setFormError(null);
+                }}
+                placeholder="Password"
+                placeholderTextColor={theme.textMuted}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="current-password"
+                textContentType="password"
+                onSubmitEditing={handleSignIn}
+                returnKeyType="go"
+              />
+              <TouchableOpacity
+                style={styles.passwordToggle}
+                onPress={() => setShowPassword((value) => !value)}
+                activeOpacity={0.7}>
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color={theme.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {formError ? (
+              <View style={styles.formErrorRow}>
+                <Ionicons name="alert-circle-outline" size={14} color="#C46A54" />
+                <Text style={styles.formErrorText}>{formError}</Text>
+              </View>
+            ) : null}
+
+            <TouchableOpacity
+              style={[
+                styles.primaryBtn,
+                { backgroundColor: theme.primary },
+                (!canSubmit || isSigningIn) && styles.primaryBtnDisabled,
+              ]}
+              disabled={!canSubmit || isSigningIn}
+              onPress={handleSignIn}
+              activeOpacity={0.85}>
+              {isSigningIn ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.primaryBtnText}>Sign in</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.authLinksRow}>
+              <TouchableOpacity onPress={() => router.push('/forgot-password')} activeOpacity={0.7}>
+                <Text style={[styles.authLink, { color: theme.primary }]}>Forgot password?</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/signup')} activeOpacity={0.7}>
+                <Text style={[styles.authLink, { color: theme.primary }]}>Create account</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.helperText, { color: theme.textMuted }]}>
+              Signing in with a phone number? Set your calling code with the picker below.
+            </Text>
+
             <TouchableOpacity
               style={[
                 styles.countryPicker,
@@ -324,7 +378,7 @@ export default function LoginScreen() {
                 <Text style={styles.countryFlag}>{selectedCountry.flag}</Text>
                 <View>
                   <Text style={[styles.countryName, { color: theme.text }]}>{selectedCountry.name}</Text>
-                  <Text style={[styles.countryHint, { color: theme.textMuted }]}>Tap to change calling code</Text>
+                  <Text style={[styles.countryHint, { color: theme.textMuted }]}>Calling code for phone sign-in</Text>
                 </View>
               </View>
               <View style={styles.countryRight}>
@@ -332,37 +386,6 @@ export default function LoginScreen() {
                 <Ionicons name="chevron-down" size={16} color={theme.primary} />
               </View>
             </TouchableOpacity>
-            <TextInput
-              style={[
-                styles.input,
-                { color: theme.text, backgroundColor: theme.surfaceSoft, borderColor: theme.border },
-              ]}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="Enter your phone number"
-              placeholderTextColor={theme.textMuted}
-              keyboardType="phone-pad"
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-            />
-            <TouchableOpacity
-              style={[
-                styles.primaryBtn,
-                { backgroundColor: theme.primary },
-                (!canContinueWithPhone || isSendingPhoneCode) && styles.primaryBtnDisabled,
-              ]}
-              disabled={!canContinueWithPhone || isSendingPhoneCode}
-              onPress={handlePhoneContinue}
-              activeOpacity={0.85}>
-              {isSendingPhoneCode ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.primaryBtnText}>Continue</Text>
-              )}
-            </TouchableOpacity>
-            <Text style={[styles.helperText, { color: theme.textMuted }]}>
-              Use the number tied to your study profile to get back into your saved content.
-            </Text>
           </View>
 
           <View style={styles.dividerRow}>
@@ -417,73 +440,6 @@ export default function LoginScreen() {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={FIREBASE_CONFIG}
-        attemptInvisibleVerification
-      />
-
-      <Modal
-        visible={Boolean(phoneConfirmation)}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setPhoneConfirmation(null)}>
-        <SafeAreaView style={[styles.codeModalSafe, { backgroundColor: theme.background }]}>
-          <View style={styles.codeModalHeader}>
-            <TouchableOpacity
-              onPress={() => {
-                setPhoneConfirmation(null);
-                setVerificationCode('');
-              }}
-              activeOpacity={0.8}>
-              <Text style={[styles.modalAction, { color: theme.textSecondary }]}>Close</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Enter code</Text>
-            <TouchableOpacity onPress={handlePhoneContinue} activeOpacity={0.8}>
-              <Text style={[styles.modalAction, { color: theme.primary }]}>Resend</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.codeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.codeTitle, { color: theme.text }]}>Check your phone</Text>
-            <Text style={[styles.codeBody, { color: theme.textSecondary }]}>
-              We sent a verification code to {phoneE164}. Enter it below to finish signing in.
-            </Text>
-
-            <TextInput
-              style={[
-                styles.codeInput,
-                { backgroundColor: theme.surfaceSoft, borderColor: theme.border, color: theme.text },
-              ]}
-              value={verificationCode}
-              onChangeText={setVerificationCode}
-              placeholder="123456"
-              placeholderTextColor={theme.textMuted}
-              keyboardType="number-pad"
-              autoComplete="sms-otp"
-              textContentType="oneTimeCode"
-              maxLength={8}
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.primaryBtn,
-                { backgroundColor: theme.primary },
-                isVerifyingPhoneCode && styles.primaryBtnDisabled,
-              ]}
-              disabled={isVerifyingPhoneCode}
-              onPress={handleVerifyPhoneCode}
-              activeOpacity={0.85}>
-              {isVerifyingPhoneCode ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.primaryBtnText}>Verify and continue</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
 
       <Modal
         visible={countryPickerVisible}
@@ -725,6 +681,42 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '900',
+  },
+  passwordRow: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 14,
+    height: 40,
+    width: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  formErrorText: {
+    flex: 1,
+    color: '#C46A54',
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  authLinksRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  authLink: {
+    fontSize: 13.5,
+    fontWeight: '700',
   },
   helperText: {
     fontSize: 12,
