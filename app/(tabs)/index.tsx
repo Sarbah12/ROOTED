@@ -1,16 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  READING_PLANS,
-  SAMPLE_NOTES,
-  SAMPLE_PRAYERS,
-  VERSE_OF_THE_DAY,
-} from '@/constants/bible-study';
+
 import { QUIZ_QUESTIONS } from '@/constants/quiz';
+import { getVerseOfTheDay } from '@/constants/verse-of-the-day';
 import { useThemeMode } from '@/context/theme-mode';
+import { useNotes } from '@/hooks/use-notes';
+import { usePlans } from '@/hooks/use-plans';
+import { usePrayers } from '@/hooks/use-prayers';
 
 type RouteHref = './bible' | './notes' | './prayer' | './quiz';
 
@@ -99,33 +99,6 @@ const FEATURE_CARDS: {
   },
 ];
 
-const SNAPSHOT_ITEMS = [
-  {
-    label: 'Plans',
-    value: String(READING_PLANS.length),
-    detail: 'reading plans ready',
-    icon: 'layers' as const,
-  },
-  {
-    label: 'Notes',
-    value: String(SAMPLE_NOTES.length),
-    detail: 'study notes saved',
-    icon: 'create' as const,
-  },
-  {
-    label: 'Prayers',
-    value: String(SAMPLE_PRAYERS.length),
-    detail: 'prayer entries stored',
-    icon: 'heart' as const,
-  },
-  {
-    label: 'Quiz',
-    value: String(QUIZ_QUESTIONS.length),
-    detail: 'questions to try',
-    icon: 'help-circle' as const,
-  },
-];
-
 const FEATURE_HIGHLIGHTS = [
   {
     title: 'Continue where you left off',
@@ -147,6 +120,30 @@ const FEATURE_HIGHLIGHTS = [
 export default function HomeScreen() {
   const router = useRouter();
   const { isDarkMode } = useThemeMode();
+  const { notes } = useNotes();
+  const { prayers } = usePrayers();
+  const { plans, streak } = usePlans();
+
+  // Rotates by calendar day, with the text read from the bundled KJV.
+  const verseOfTheDay = useMemo(() => getVerseOfTheDay(), []);
+
+  // Counts and progress come from the user's own data. Nothing here is a
+  // placeholder: with no plans joined the tiles read zero rather than inventing
+  // a number.
+  const snapshotItems = [
+    { label: 'Plans', value: String(plans.length), detail: plans.length === 1 ? 'plan joined' : 'plans joined', icon: 'layers' as const },
+    { label: 'Notes', value: String(notes.length), detail: notes.length === 1 ? 'study note saved' : 'study notes saved', icon: 'create' as const },
+    { label: 'Prayers', value: String(prayers.length), detail: prayers.length === 1 ? 'prayer entry' : 'prayer entries', icon: 'heart' as const },
+    { label: 'Streak', value: String(streak.current), detail: streak.current === 1 ? 'day in a row' : 'days in a row', icon: 'flame' as const },
+  ];
+
+  // The plan furthest along, for the "keep going" card.
+  const activePlan = plans
+    .filter((plan) => plan.durationDays > 0)
+    .sort((a, b) => (b.currentDay ?? 0) / b.durationDays - (a.currentDay ?? 0) / a.durationDays)[0];
+  const activeProgress = activePlan
+    ? Math.min(1, (activePlan.currentDay ?? 0) / activePlan.durationDays)
+    : 0;
   const theme = isDarkMode ? HOME_THEMES.dark : HOME_THEMES.light;
   const today = new Date();
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -230,13 +227,13 @@ export default function HomeScreen() {
             <View style={[styles.previewAccent, { backgroundColor: '#2E6A5C' }]} />
             <Text style={[styles.previewKicker, { color: theme.textMuted }]}>Verse focus</Text>
             <Text style={[styles.previewTitle, { color: theme.text }]}>
-              {VERSE_OF_THE_DAY.theme}
+              {verseOfTheDay.theme}
             </Text>
             <Text style={[styles.previewVerse, { color: theme.primary }]}>
-              {VERSE_OF_THE_DAY.text}
+              {verseOfTheDay.text}
             </Text>
             <Text style={[styles.previewRef, { color: theme.textSecondary }]}>
-              {VERSE_OF_THE_DAY.reference}
+              {verseOfTheDay.reference}
             </Text>
             <TouchableOpacity
               style={[styles.previewButton, { backgroundColor: theme.primarySoft }]}
@@ -250,33 +247,34 @@ export default function HomeScreen() {
 
           <View style={[styles.previewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={[styles.previewAccent, { backgroundColor: '#8A6236' }]} />
-            <Text style={[styles.previewKicker, { color: theme.textMuted }]}>Reading plans</Text>
-            <Text style={[styles.previewTitle, { color: theme.text }]}>Your next stop</Text>
-            <Text style={[styles.previewVerse, { color: theme.textSecondary }]}>
-              {READING_PLANS[0].name}
+            <Text style={[styles.previewKicker, { color: theme.textMuted }]}>Study plans</Text>
+            <Text style={[styles.previewTitle, { color: theme.text }]}>
+              {activePlan ? 'Keep going' : 'No plan yet'}
             </Text>
-            <View style={styles.previewProgressBlock}>
-              <Text style={[styles.previewProgressValue, { color: theme.text }]}>
-                {Math.round(READING_PLANS[0].progress * 100)}%
-              </Text>
-              <View style={[styles.previewProgressTrack, { backgroundColor: theme.surfaceAlt }]}>
-                <View
-                  style={[
-                    styles.previewProgressFill,
-                    {
-                      width: `${READING_PLANS[0].progress * 100}%`,
-                      backgroundColor: READING_PLANS[0].color,
-                    },
-                  ]}
-                />
+            <Text style={[styles.previewVerse, { color: theme.textSecondary }]}>
+              {activePlan ? activePlan.title : 'Join or create a plan to track your reading.'}
+            </Text>
+            {activePlan ? (
+              <View style={styles.previewProgressBlock}>
+                <Text style={[styles.previewProgressValue, { color: theme.text }]}>
+                  Day {activePlan.currentDay ?? 0} of {activePlan.durationDays}
+                </Text>
+                <View style={[styles.previewProgressTrack, { backgroundColor: theme.surfaceAlt }]}>
+                  <View
+                    style={[
+                      styles.previewProgressFill,
+                      { width: `${activeProgress * 100}%`, backgroundColor: theme.primary },
+                    ]}
+                  />
+                </View>
               </View>
-            </View>
+            ) : null}
           </View>
         </ScrollView>
 
         <Text style={[styles.sectionLabel, { color: theme.text }]}>At a glance</Text>
         <View style={styles.snapshotGrid}>
-          {SNAPSHOT_ITEMS.map((item, index) => (
+          {snapshotItems.map((item, index) => (
             <View
               key={item.label}
               style={[
@@ -351,40 +349,62 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        <Text style={[styles.sectionLabel, { color: theme.text }]}>Reading plans</Text>
+        <Text style={[styles.sectionLabel, { color: theme.text }]}>Study plans</Text>
         <View style={styles.planStack}>
-          {READING_PLANS.map((plan) => (
-            <TouchableOpacity
-              key={plan.id}
-              style={[
-                styles.planCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-              ]}
-              activeOpacity={0.86}>
+          {plans.length === 0 ? (
+            <View style={[styles.planCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <View style={styles.planLeft}>
-                <View style={[styles.planDot, { backgroundColor: plan.color }]} />
+                <View style={[styles.planDot, { backgroundColor: theme.border }]} />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.planName, { color: theme.text }]}>{plan.name}</Text>
+                  <Text style={[styles.planName, { color: theme.text }]}>No plans yet</Text>
                   <Text style={[styles.planDuration, { color: theme.textMuted }]}>
-                    {plan.duration}
+                    Join or create a plan to see progress here
                   </Text>
                 </View>
               </View>
-              <View style={styles.planRight}>
-                <Text style={[styles.planPercent, { color: plan.color }]}>
-                  {Math.round(plan.progress * 100)}%
-                </Text>
-                <View style={[styles.planTrack, { backgroundColor: theme.surfaceAlt }]}>
-                  <View
-                    style={[
-                      styles.planFill,
-                      { width: `${plan.progress * 100}%`, backgroundColor: plan.color },
-                    ]}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+            </View>
+          ) : (
+            plans.map((plan) => {
+              const ratio =
+                plan.durationDays > 0
+                  ? Math.min(1, (plan.currentDay ?? 0) / plan.durationDays)
+                  : 0;
+
+              return (
+                <TouchableOpacity
+                  key={plan.id}
+                  style={[
+                    styles.planCard,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                  ]}
+                  activeOpacity={0.86}>
+                  <View style={styles.planLeft}>
+                    <View style={[styles.planDot, { backgroundColor: theme.primary }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.planName, { color: theme.text }]}>{plan.title}</Text>
+                      <Text style={[styles.planDuration, { color: theme.textMuted }]}>
+                        {plan.durationDays} days · {plan.memberCount}{' '}
+                        {plan.memberCount === 1 ? 'member' : 'members'}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.planRight}>
+                    <Text style={[styles.planPercent, { color: theme.primary }]}>
+                      {Math.round(ratio * 100)}%
+                    </Text>
+                    <View style={[styles.planTrack, { backgroundColor: theme.surfaceAlt }]}>
+                      <View
+                        style={[
+                          styles.planFill,
+                          { width: `${ratio * 100}%`, backgroundColor: theme.primary },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
 
         <TouchableOpacity

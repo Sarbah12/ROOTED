@@ -228,52 +228,7 @@ The Greek word for "guard" here is a military term - as if peace stands as a sen
 
 // Quiz questions now live in constants/quiz.ts, tagged by book and topic.
 
-export const VERSE_OF_THE_DAY = {
-  text: '"I can do all things through Christ who strengthens me."',
-  reference: 'Philippians 4:13',
-  theme: 'Strength',
-} as const;
-
-export const READING_PLANS = [
-  { id: 1, name: 'Bible in a Year', duration: '365 days', progress: 0.23, color: '#2E6A5C' },
-  { id: 2, name: 'New Testament in 90 Days', duration: '90 days', progress: 0.58, color: '#8A6236' },
-  { id: 3, name: 'Psalms & Proverbs', duration: '60 days', progress: 0.12, color: '#5D7A66' },
-] as const;
-
 export const NOTE_COLORS = ['#2E6A5C', '#8A6236', '#5D7A66', '#B98D49', '#C46A54'] as const;
-
-export const SAMPLE_NOTES: Note[] = [
-  {
-    id: 1,
-    title: 'Faith Without Works',
-    reference: 'James 2:14-26',
-    content:
-      'James argues that genuine faith is evidenced by action. This is not salvation by works but the fruit of true saving faith. A dead faith produces no fruit.',
-    tags: ['Faith', 'Works', 'James'],
-    date: 'Apr 7, 2026',
-    color: '#2E6A5C',
-  },
-  {
-    id: 2,
-    title: 'The Armor of God',
-    reference: 'Ephesians 6:10-18',
-    content:
-      'Paul uses Roman soldier imagery to describe spiritual readiness. Each piece of armor corresponds to a spiritual virtue: truth, righteousness, readiness, faith, salvation, the Word, and prayer.',
-    tags: ['Spiritual Warfare', 'Prayer', 'Ephesians'],
-    date: 'Apr 3, 2026',
-    color: '#8A6236',
-  },
-  {
-    id: 3,
-    title: 'Sermon on the Mount - Beatitudes',
-    reference: 'Matthew 5:1-12',
-    content:
-      'The Beatitudes describe the character of citizens of God\'s kingdom. Counterintuitive by worldly standards - the poor in spirit, mourning, and meek are declared "blessed." Kingdom values invert cultural expectations.',
-    tags: ['Sermon', 'Kingdom', 'Matthew'],
-    date: 'Mar 29, 2026',
-    color: '#5D7A66',
-  },
-];
 
 export const PRAYER_CATEGORIES = [
   'Praise',
@@ -295,39 +250,6 @@ export const PRAYER_STATUS_COLORS: Record<PrayerStatus, string> = {
   ongoing: COLORS.info,
   unanswered: COLORS.textMuted,
 };
-
-export const SAMPLE_PRAYERS: PrayerEntry[] = [
-  {
-    id: 1,
-    title: 'Healing for a friend',
-    category: 'Intercession',
-    content:
-      "Lord, I pray for Michael's recovery. Bring Your healing touch upon him and give his family peace during this time.",
-    status: 'ongoing',
-    date: 'Apr 8, 2026',
-    verse: 'James 5:15',
-  },
-  {
-    id: 2,
-    title: 'Gratitude for new job',
-    category: 'Thanksgiving',
-    content:
-      'Thank You Lord for opening this door. I see Your provision clearly and I am grateful for Your faithfulness.',
-    status: 'answered',
-    date: 'Apr 1, 2026',
-    verse: 'Philippians 4:6',
-  },
-  {
-    id: 3,
-    title: 'Wisdom for a decision',
-    category: 'Guidance',
-    content:
-      'Father, I need Your wisdom regarding the next steps in my career. Guide me by Your Spirit and confirm Your will.',
-    status: 'unanswered',
-    date: 'Mar 30, 2026',
-    verse: 'James 1:5',
-  },
-];
 
 export const QUIZ_DIFFICULTY_COLORS: Record<QuizDifficulty, string> = {
   Easy: COLORS.success,

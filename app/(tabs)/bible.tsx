@@ -32,7 +32,7 @@ export default function BibleReaderScreen() {
   const [bookModalVisible, setBookModalVisible] = useState(false);
   const [chapterModalVisible, setChapterModalVisible] = useState(false);
   const [translationModalVisible, setTranslationModalVisible] = useState(false);
-  const [highlightedVerses, setHighlightedVerses] = useState<number[]>([16]);
+  const [highlightedVerses, setHighlightedVerses] = useState<number[]>([]);
   const [bookmarkedVerses, setBookmarkedVerses] = useState<number[]>([]);
   const [fontSize, setFontSize] = useState(17);
   const [testament, setTestament] = useState<Testament>('NT');
