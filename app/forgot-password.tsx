@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,8 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
+import { BACKEND_API_BASE_URL } from '@/constants/firebase';
 import { resolveIdentifier } from '@/constants/identity';
-import { getFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 
 /**
@@ -28,7 +27,6 @@ import { useThemeMode } from '@/context/theme-mode';
  * a synthetic address that nobody receives mail at.
  */
 export default function ForgotPasswordScreen() {
-  const auth = useMemo(() => getFirebaseAuth(), []);
   const router = useRouter();
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
@@ -49,19 +47,24 @@ export default function ForgotPasswordScreen() {
 
     setIsSending(true);
     try {
-      await sendPasswordResetEmail(auth, result.email);
-      setSent(true);
-    } catch (err) {
-      const code = (err as { code?: string })?.code ?? '';
+      // The backend generates the Firebase reset link and delivers it in a
+      // Rooted-branded email, rather than Firebase's default template.
+      const response = await fetch(`${BACKEND_API_BASE_URL}/v1/auth/password-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: result.email }),
+      });
 
-      // Don't reveal whether the address is registered.
-      if (code === 'auth/user-not-found' || code === 'auth/invalid-email') {
-        setSent(true);
-      } else if (code === 'auth/network-request-failed') {
-        setError('No connection. Check your network and try again.');
-      } else {
-        setError(err instanceof Error ? err.message : 'Unable to send the reset email.');
+      if (response.status === 503) {
+        setError('Password reset is unavailable right now. Please try again later.');
+        return;
       }
+
+      // Any other outcome reports success, so this cannot be used to discover
+      // which addresses have accounts.
+      setSent(true);
+    } catch {
+      setError('No connection. Check your network and try again.');
     } finally {
       setIsSending(false);
     }

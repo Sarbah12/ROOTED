@@ -3,11 +3,14 @@ import { randomUUID } from 'node:crypto';
 import { URL } from 'node:url';
 
 import {
+  createPasswordResetLink,
+  findUserByEmail,
   revokeFirebaseUserSessions,
   sanitizeFirebaseUserRecord,
   verifyFirebaseRequest,
   verifyLoginToken,
 } from './auth.mjs';
+import { isEmailConfigured, sendPasswordResetEmail, sendWelcomeEmail } from './email.mjs';
 import { loadConfig } from './config.mjs';
 import { AppError, badRequest, isAppError, methodNotAllowed, notFound } from './errors.mjs';
 import { createLogger } from './logger.mjs';
@@ -408,6 +411,54 @@ async function handleQuizResults(req, res) {
   throw methodNotAllowed();
 }
 
+/**
+ * Sends a branded password-reset email.
+ *
+ * Always answers 200, whether or not the address is registered — a different
+ * response would turn this into an account-existence oracle.
+ */
+async function handlePasswordReset(req, res) {
+  const body = assertBody(await readBody(req));
+  rejectUnknownKeys(body, ['email'], 'password reset');
+  const email = requiredTrimmedString(body.email, 'email').toLowerCase();
+
+  if (!isEmailConfigured()) {
+    throw new AppError(503, 'email_unavailable', 'Email delivery is not configured.');
+  }
+
+  const link = await createPasswordResetLink(email, config);
+
+  if (link) {
+    const user = await findUserByEmail(email, config);
+    try {
+      await sendPasswordResetEmail(email, link, user?.displayName || '');
+    } catch (error) {
+      // Log, but keep the response uniform.
+      logger.error('Failed to send reset email', { message: error.message });
+    }
+  }
+
+  sendJson(res, 200, { sent: true });
+}
+
+/** Fire-and-forget welcome mail; failure must not fail the request. */
+async function handleWelcomeEmail(req, res) {
+  const firebaseUser = await requireUser(req);
+
+  if (!isEmailConfigured() || !firebaseUser.email) {
+    sendJson(res, 200, { sent: false });
+    return;
+  }
+
+  try {
+    await sendWelcomeEmail(firebaseUser.email, firebaseUser.displayName || '');
+    sendJson(res, 200, { sent: true });
+  } catch (error) {
+    logger.error('Failed to send welcome email', { message: error.message });
+    sendJson(res, 200, { sent: false });
+  }
+}
+
 async function handleVersionedHealth(req, res) {
   // Report the database too, so "ok" means the service can actually serve.
   let database = 'ok';
@@ -462,6 +513,16 @@ const server = http.createServer(async (req, res) => {
 
     if (parts[0] === 'v1' && parts[1] === 'auth' && parts[2] === 'login' && req.method === 'POST') {
       await handleAuthLogin(req, res);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'auth' && parts[2] === 'password-reset' && req.method === 'POST') {
+      await handlePasswordReset(req, res);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'auth' && parts[2] === 'welcome' && req.method === 'POST') {
+      await handleWelcomeEmail(req, res);
       return;
     }
 

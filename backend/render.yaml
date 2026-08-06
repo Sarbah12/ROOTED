@@ -22,6 +22,9 @@ services:
       #   FIREBASE_CLIENT_EMAIL          from the service account JSON
       #   FIREBASE_PRIVATE_KEY           from the service account JSON
       #   CORS_ORIGINS                   comma-separated allowed origins
+      #   RESEND_API_KEY                 Resend key for transactional email
+      #   RESEND_FROM                    verified sender, e.g. Rooted <noreply@...>
+      #   APP_PUBLIC_URL                 used in email links
       - key: DATABASE_URL
         sync: false
       - key: FIREBASE_PROJECT_ID
@@ -31,4 +34,10 @@ services:
       - key: FIREBASE_PRIVATE_KEY
         sync: false
       - key: CORS_ORIGINS
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        sync: false
+      - key: APP_PUBLIC_URL
         sync: false

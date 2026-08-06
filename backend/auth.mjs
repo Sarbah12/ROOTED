@@ -84,6 +84,36 @@ export async function verifyLoginToken(idToken, config) {
   return { decodedToken, userRecord };
 }
 
+/**
+ * Asks Firebase for a password-reset link without sending Firebase's own email,
+ * so the backend can deliver it in a branded message instead.
+ * Returns null when no account uses the address — callers must not reveal that.
+ */
+export async function createPasswordResetLink(email, config) {
+  const app = createFirebaseAdminApp(config);
+  const auth = getAuth(app);
+
+  try {
+    return await auth.generatePasswordResetLink(email);
+  } catch (error) {
+    if (error?.code === 'auth/user-not-found' || error?.code === 'auth/email-not-found') {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function findUserByEmail(email, config) {
+  const app = createFirebaseAdminApp(config);
+  const auth = getAuth(app);
+
+  try {
+    return await auth.getUserByEmail(email);
+  } catch {
+    return null;
+  }
+}
+
 export async function revokeFirebaseUserSessions(uid, config) {
   const app = createFirebaseAdminApp(config);
   const auth = getAuth(app);
