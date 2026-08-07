@@ -253,7 +253,7 @@ export default function LoginScreen() {
             </View>
             <Text style={styles.heroTitle}>Root your reading, notes, and prayers in one place.</Text>
             <Text style={styles.heroBody}>
-              Use your phone number, Apple ID, or Gmail account to keep reading plans, notes, and
+              Sign in with your email, username, or phone number to keep study plans, notes, and
               prayer requests together.
             </Text>
             <View style={styles.heroChipRow}>
