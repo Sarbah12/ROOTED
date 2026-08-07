@@ -122,7 +122,7 @@ export default function HomeScreen() {
   const { isDarkMode } = useThemeMode();
   const { notes } = useNotes();
   const { prayers } = usePrayers();
-  const { plans, streak } = usePlans();
+  const { plans, streak, isSignedIn } = usePlans();
 
   // Rotates by calendar day, with the text read from the bundled KJV.
   const verseOfTheDay = useMemo(() => getVerseOfTheDay(), []);
@@ -271,6 +271,24 @@ export default function HomeScreen() {
             ) : null}
           </View>
         </ScrollView>
+
+        {!isSignedIn ? (
+          <TouchableOpacity
+            style={[styles.guestCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push('/login')}
+            activeOpacity={0.86}>
+            <View style={[styles.guestMark, { backgroundColor: theme.primarySoft }]}>
+              <Ionicons name="person-add-outline" size={20} color={theme.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.guestTitle, { color: theme.text }]}>Sign in for everything else</Text>
+              <Text style={[styles.guestBody, { color: theme.textSecondary }]}>
+                Notes, prayers, quizzes and study plans need an account. Reading stays free.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+          </TouchableOpacity>
+        ) : null}
 
         <Text style={[styles.sectionLabel, { color: theme.text }]}>At a glance</Text>
         <View style={styles.snapshotGrid}>
@@ -774,6 +792,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
   },
+  guestCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 20,
+  },
+  guestMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestTitle: { fontSize: 15, fontWeight: '800' },
+  guestBody: { fontSize: 12.5, lineHeight: 18, marginTop: 3 },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'baseline',

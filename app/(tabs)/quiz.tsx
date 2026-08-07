@@ -14,6 +14,8 @@ import {
   type QuizSubject,
 } from '@/constants/quiz';
 import { useThemeMode } from '@/context/theme-mode';
+import { SignInRequired } from '@/components/sign-in-required';
+import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useQuizResults } from '@/hooks/use-quiz-results';
 
 type Phase = 'browse' | 'quiz' | 'results';
@@ -31,6 +33,7 @@ export default function QuizScreen() {
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
   const { getResult, recordResult } = useQuizResults();
+  const { firebaseUser } = useFirebaseAuth();
 
   const [phase, setPhase] = useState<Phase>('browse');
   const [mode, setMode] = useState<Mode>('book');
@@ -103,6 +106,16 @@ export default function QuizScreen() {
     setSelected(null);
     setRevealed(false);
   };
+
+  if (!firebaseUser) {
+    return (
+      <SignInRequired
+        icon="help-circle-outline"
+        title="Sign in to take quizzes"
+        body="Scores are saved against your account so you can see how a subject is going over time."
+      />
+    );
+  }
 
   // ---------------------------------------------------------------- browse
   if (phase === 'browse') {

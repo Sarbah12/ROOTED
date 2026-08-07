@@ -88,7 +88,9 @@ export default function SplashScreen() {
         return;
       }
 
-      router.replace(firebaseUser ? '/(tabs)' : '/login');
+      // Everyone lands in the app. Reading the Bible needs no account; the
+      // tabs that store something about a person gate themselves.
+      router.replace('/(tabs)');
     }, 1800);
 
     return () => {

@@ -30,7 +30,7 @@ const ACCOUNT_ROWS = [
 export default function SettingsScreen() {
   const router = useRouter();
   const { settings, updateSettings } = useAppSettings();
-  const { signOut } = useFirebaseAuth();
+  const { signOut, firebaseUser } = useFirebaseAuth();
 
   const isDarkMode = settings.darkMode;
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
@@ -257,16 +257,27 @@ export default function SettingsScreen() {
           ))}
         </View>
 
-        <TouchableOpacity
-          style={[styles.signOutBtn, { borderColor: theme.border }]}
-          activeOpacity={0.8}
-          onPress={async () => {
-            await signOut();
-            router.replace('/login');
-          }}>
-          <Ionicons name="log-out-outline" size={16} color="#C46A54" />
-          <Text style={styles.signOutText}>Sign out</Text>
-        </TouchableOpacity>
+        {firebaseUser ? (
+          <TouchableOpacity
+            style={[styles.signOutBtn, { borderColor: theme.border }]}
+            activeOpacity={0.8}
+            onPress={async () => {
+              await signOut();
+              // Back to the app, not the login wall — reading stays open.
+              router.replace('/(tabs)');
+            }}>
+            <Ionicons name="log-out-outline" size={16} color="#C46A54" />
+            <Text style={styles.signOutText}>Sign out</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.signOutBtn, { borderColor: theme.primary, backgroundColor: theme.primarySoft }]}
+            activeOpacity={0.8}
+            onPress={() => router.push('/login')}>
+            <Ionicons name="log-in-outline" size={16} color={theme.primary} />
+            <Text style={[styles.signOutText, { color: theme.primary }]}>Sign in</Text>
+          </TouchableOpacity>
+        )}
 
         <Text style={[styles.footerText, { color: theme.textMuted }]}>
           Changes here shape how Rooted feels every time you open the app.

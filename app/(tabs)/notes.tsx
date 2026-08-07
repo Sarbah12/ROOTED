@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NOTE_COLORS } from '@/constants/bible-study';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
+import { SignInRequired } from '@/components/sign-in-required';
 import { useNotes, type BackendNote, type NoteKind } from '@/hooks/use-notes';
 
 type NoteForm = {
@@ -177,6 +178,16 @@ export default function StudyNotesScreen() {
       note.series.toLowerCase().includes(query)
     );
   });
+
+  if (!isSignedIn) {
+    return (
+      <SignInRequired
+        icon="create-outline"
+        title="Sign in to keep notes"
+        body="Study and sermon notes are tied to your account, so they follow you to any device you sign in on."
+      />
+    );
+  }
 
   if (isLoading && notes.length === 0) {
     return (

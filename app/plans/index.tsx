@@ -18,6 +18,7 @@ import { APP_THEMES } from '@/constants/app-theme';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { planRequest } from '@/hooks/use-plan';
+import { SignInRequired } from '@/components/sign-in-required';
 import { usePlans, type StudyPlan } from '@/hooks/use-plans';
 
 type Tab = 'mine' | 'discover';
@@ -81,6 +82,16 @@ export default function PlansScreen() {
     if (tab === 'discover') await loadPublic();
     setIsRefreshing(false);
   };
+
+  if (!idToken) {
+    return (
+      <SignInRequired
+        icon="layers-outline"
+        title="Sign in to join study plans"
+        body="Plans are read alongside other people, so they need an account to track your progress and share what you learnt."
+      />
+    );
+  }
 
   const list = tab === 'mine' ? plans : publicPlans;
   const busy = tab === 'mine' ? isLoading : isLoadingPublic;

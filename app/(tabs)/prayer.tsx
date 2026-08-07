@@ -22,6 +22,7 @@ import {
 } from '@/constants/bible-study';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
+import { SignInRequired } from '@/components/sign-in-required';
 import { usePrayers } from '@/hooks/use-prayers';
 
 type PrayerFilter = 'All' | 'Ongoing' | 'Answered' | 'Trusting';
@@ -91,6 +92,16 @@ export default function PrayerJournalScreen() {
   const answeredCount = prayers.filter((prayer) => prayer.status === 'answered').length;
   const ongoingCount = prayers.filter((prayer) => prayer.status === 'ongoing').length;
   const trustCount = prayers.filter((prayer) => prayer.status === 'unanswered').length;
+
+  if (!isSignedIn) {
+    return (
+      <SignInRequired
+        icon="heart-outline"
+        title="Sign in to keep a prayer journal"
+        body="Your requests and answered prayers are private to your account."
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
