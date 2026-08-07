@@ -50,6 +50,12 @@ function mapNote(row) {
     content: row.content,
     tags: row.tags ?? [],
     color: row.color,
+    kind: row.kind ?? 'study',
+    preacher: row.preacher ?? '',
+    church: row.church ?? '',
+    series: row.series ?? '',
+    // Date column, so send back a plain YYYY-MM-DD rather than a timestamp.
+    sermonDate: row.sermon_date ? row.sermon_date.toISOString().slice(0, 10) : null,
     updatedAt: row.updated_at.toISOString(),
   };
 }
@@ -186,8 +192,10 @@ export async function listNotes(userId) {
 
 export async function createNote(userId, input) {
   const row = await queryOne(
-    `insert into notes (user_id, title, reference, content, tags, color)
-     values ($1, $2, $3, $4, $5, $6)
+    `insert into notes
+     (user_id, title, reference, content, tags, color,
+      kind, preacher, church, series, sermon_date)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      returning *`,
     [
       userId,
@@ -196,13 +204,29 @@ export async function createNote(userId, input) {
       input.content ?? '',
       input.tags ?? [],
       input.color ?? '#2E6A5C',
+      input.kind ?? 'study',
+      input.preacher ?? '',
+      input.church ?? '',
+      input.series ?? '',
+      input.sermonDate || null,
     ]
   );
   return mapNote(row);
 }
 
 export async function updateNote(userId, id, patch) {
-  const columns = { title: 'title', reference: 'reference', content: 'content', tags: 'tags', color: 'color' };
+  const columns = {
+    title: 'title',
+    reference: 'reference',
+    content: 'content',
+    tags: 'tags',
+    color: 'color',
+    kind: 'kind',
+    preacher: 'preacher',
+    church: 'church',
+    series: 'series',
+    sermonDate: 'sermon_date',
+  };
   const sets = [];
   const values = [userId, id];
 

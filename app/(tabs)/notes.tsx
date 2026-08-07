@@ -18,13 +18,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NOTE_COLORS } from '@/constants/bible-study';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
-import { useNotes, type BackendNote } from '@/hooks/use-notes';
+import { useNotes, type BackendNote, type NoteKind } from '@/hooks/use-notes';
 
 type NoteForm = {
   title: string;
   reference: string;
   content: string;
   tags: string;
+  kind: NoteKind;
+  preacher: string;
+  church: string;
+  series: string;
+  sermonDate: string;
+};
+
+const EMPTY_FORM: NoteForm = {
+  title: '',
+  reference: '',
+  content: '',
+  tags: '',
+  kind: 'study',
+  preacher: '',
+  church: '',
+  series: '',
+  sermonDate: '',
 };
 
 function formatDate(iso: string) {
@@ -45,17 +62,14 @@ export default function StudyNotesScreen() {
   const [search, setSearch] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [form, setForm] = useState<NoteForm>({
-    title: '',
-    reference: '',
-    content: '',
-    tags: '',
-  });
+  const [form, setForm] = useState<NoteForm>(EMPTY_FORM);
+  const [filter, setFilter] = useState<'all' | NoteKind>('all');
 
   const openCreate = () => {
     setEditingNote(null);
     setSaveError(null);
-    setForm({ title: '', reference: '', content: '', tags: '' });
+    // Default to whatever the list is filtered to, so the common case is one tap.
+    setForm({ ...EMPTY_FORM, kind: filter === 'sermon' ? 'sermon' : 'study' });
     setModalVisible(true);
   };
 
@@ -67,6 +81,11 @@ export default function StudyNotesScreen() {
       reference: note.reference,
       content: note.content,
       tags: note.tags.join(', '),
+      kind: note.kind,
+      preacher: note.preacher,
+      church: note.church,
+      series: note.series,
+      sermonDate: note.sermonDate ?? '',
     });
     setModalVisible(true);
   };
@@ -90,6 +109,11 @@ export default function StudyNotesScreen() {
           title: form.title,
           reference: form.reference,
           content: form.content,
+          kind: form.kind,
+          preacher: form.preacher,
+          church: form.church,
+          series: form.series,
+          sermonDate: form.sermonDate || null,
           tags,
         });
       } else {
@@ -99,6 +123,11 @@ export default function StudyNotesScreen() {
           content: form.content,
           tags,
           color: NOTE_COLORS[notes.length % NOTE_COLORS.length],
+          kind: form.kind,
+          preacher: form.preacher,
+          church: form.church,
+          series: form.series,
+          sermonDate: form.sermonDate || null,
         });
       }
       setModalVisible(false);
@@ -116,11 +145,18 @@ export default function StudyNotesScreen() {
   };
 
   const filtered = notes.filter((note) => {
+    if (filter !== 'all' && note.kind !== filter) return false;
+
     const query = search.toLowerCase();
+    if (!query) return true;
+
     return (
       note.title.toLowerCase().includes(query) ||
       note.reference.toLowerCase().includes(query) ||
-      note.content.toLowerCase().includes(query)
+      note.content.toLowerCase().includes(query) ||
+      note.preacher.toLowerCase().includes(query) ||
+      note.church.toLowerCase().includes(query) ||
+      note.series.toLowerCase().includes(query)
     );
   });
 
@@ -179,7 +215,7 @@ export default function StudyNotesScreen() {
           <Ionicons name="search-outline" size={18} color={theme.textMuted} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search notes by title, verse, or content"
+            placeholder="Search by title, verse, preacher, or church"
             placeholderTextColor={theme.textMuted}
             value={search}
             onChangeText={setSearch}
@@ -211,8 +247,32 @@ export default function StudyNotesScreen() {
           </TouchableOpacity>
         ) : null}
 
+        <View style={[styles.kindFilterRow, { backgroundColor: theme.surfaceAlt }]}>
+          {([
+            { value: 'all' as const, label: 'All' },
+            { value: 'study' as const, label: 'Study' },
+            { value: 'sermon' as const, label: 'Sermons' },
+          ]).map((option) => {
+            const active = filter === option.value;
+            return (
+              <TouchableOpacity
+                key={option.value}
+                style={[styles.kindFilterBtn, active && { backgroundColor: theme.surface }]}
+                onPress={() => setFilter(option.value)}
+                activeOpacity={0.85}>
+                <Text
+                  style={[styles.kindFilterText, { color: active ? theme.primary : theme.textMuted }]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionLabel, { color: theme.text }]}>Recent notes</Text>
+          <Text style={[styles.sectionLabel, { color: theme.text }]}>
+            {filter === 'sermon' ? 'Sermon notes' : filter === 'study' ? 'Study notes' : 'Recent notes'}
+          </Text>
           <Text style={[styles.sectionMeta, { color: theme.textMuted }]}>
             Tap a card to edit
           </Text>
@@ -258,6 +318,15 @@ export default function StudyNotesScreen() {
                       <Ionicons name="trash-outline" size={14} color={theme.primary} />
                     </TouchableOpacity>
                   </View>
+                  {note.kind === 'sermon' && (note.preacher || note.church) ? (
+                    <View style={styles.sermonMetaRow}>
+                      <Ionicons name="mic-outline" size={13} color={theme.textMuted} />
+                      <Text style={[styles.sermonMetaText, { color: theme.textMuted }]} numberOfLines={1}>
+                        {[note.preacher, note.church, note.series].filter(Boolean).join(' · ')}
+                      </Text>
+                    </View>
+                  ) : null}
+
                   <Text style={[styles.noteBody, { color: theme.textSecondary }]} numberOfLines={3}>
                     {note.content}
                   </Text>
@@ -312,6 +381,36 @@ export default function StudyNotesScreen() {
                 <Text style={[styles.saveErrorText, { color: theme.text }]}>{saveError}</Text>
               ) : null}
               <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Text style={[styles.formLabel, { color: theme.textMuted }]}>Note type</Text>
+                <View style={[styles.kindToggle, { backgroundColor: theme.surfaceAlt }]}>
+                  {([
+                    { value: 'study' as const, label: 'Study note', icon: 'book-outline' },
+                    { value: 'sermon' as const, label: 'Sermon', icon: 'mic-outline' },
+                  ]).map((option) => {
+                    const active = form.kind === option.value;
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        style={[styles.kindToggleBtn, active && { backgroundColor: theme.surface }]}
+                        onPress={() => setForm((current) => ({ ...current, kind: option.value }))}
+                        activeOpacity={0.85}>
+                        <Ionicons
+                          name={option.icon as never}
+                          size={15}
+                          color={active ? theme.primary : theme.textMuted}
+                        />
+                        <Text
+                          style={[
+                            styles.kindToggleText,
+                            { color: active ? theme.primary : theme.textMuted },
+                          ]}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
                 <Text style={[styles.formLabel, { color: theme.textMuted }]}>Title</Text>
                 <TextInput
                   style={[styles.formInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft }]}
@@ -332,7 +431,52 @@ export default function StudyNotesScreen() {
                   placeholderTextColor={theme.textMuted}
                 />
 
-                <Text style={[styles.formLabel, { color: theme.textMuted }]}>Note</Text>
+                {form.kind === 'sermon' ? (
+                  <>
+                    <Text style={[styles.formLabel, { color: theme.textMuted }]}>Preacher</Text>
+                    <TextInput
+                      style={[styles.formInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft }]}
+                      value={form.preacher}
+                      onChangeText={(value) => setForm((current) => ({ ...current, preacher: value }))}
+                      placeholder="Rev. Eric Mensah"
+                      placeholderTextColor={theme.textMuted}
+                      autoCapitalize="words"
+                    />
+
+                    <Text style={[styles.formLabel, { color: theme.textMuted }]}>Church or event</Text>
+                    <TextInput
+                      style={[styles.formInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft }]}
+                      value={form.church}
+                      onChangeText={(value) => setForm((current) => ({ ...current, church: value }))}
+                      placeholder="Accra Chapel · Sunday service"
+                      placeholderTextColor={theme.textMuted}
+                      autoCapitalize="words"
+                    />
+
+                    <Text style={[styles.formLabel, { color: theme.textMuted }]}>Series (optional)</Text>
+                    <TextInput
+                      style={[styles.formInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft }]}
+                      value={form.series}
+                      onChangeText={(value) => setForm((current) => ({ ...current, series: value }))}
+                      placeholder="Walking in Faith, part 3"
+                      placeholderTextColor={theme.textMuted}
+                    />
+
+                    <Text style={[styles.formLabel, { color: theme.textMuted }]}>Date preached</Text>
+                    <TextInput
+                      style={[styles.formInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft }]}
+                      value={form.sermonDate}
+                      onChangeText={(value) => setForm((current) => ({ ...current, sermonDate: value }))}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor={theme.textMuted}
+                      keyboardType="numbers-and-punctuation"
+                    />
+                  </>
+                ) : null}
+
+                <Text style={[styles.formLabel, { color: theme.textMuted }]}>
+                  {form.kind === 'sermon' ? 'Sermon notes' : 'Note'}
+                </Text>
                 <TextInput
                   style={[
                     styles.formInput,
@@ -341,7 +485,11 @@ export default function StudyNotesScreen() {
                   ]}
                   value={form.content}
                   onChangeText={(value) => setForm((current) => ({ ...current, content: value }))}
-                  placeholder="Write your reflection here..."
+                  placeholder={
+                    form.kind === 'sermon'
+                      ? 'Main points, verses referenced, what stood out…'
+                      : 'Write your reflection here...'
+                  }
                   placeholderTextColor={theme.textMuted}
                   multiline
                   numberOfLines={8}
@@ -518,6 +666,54 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
+  },
+  kindToggle: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: 999,
+    gap: 4,
+    marginTop: 6,
+  },
+  kindToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: 999,
+  },
+  kindToggleText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  kindFilterRow: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: 999,
+    gap: 4,
+    marginTop: 14,
+  },
+  kindFilterBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  kindFilterText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  sermonMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 6,
+  },
+  sermonMetaText: {
+    fontSize: 12,
+    fontWeight: '700',
+    flex: 1,
   },
   sectionHeader: {
     flexDirection: 'row',

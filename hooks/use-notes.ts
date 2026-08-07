@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 
 import { newLocalRecord, useSyncedCollection } from '@/hooks/use-synced-collection';
 
+export type NoteKind = 'study' | 'sermon';
+
 export type BackendNote = {
   id: string;
   title: string;
@@ -9,6 +11,13 @@ export type BackendNote = {
   content: string;
   tags: string[];
   color: string;
+  /** 'sermon' notes carry the preacher fields below. */
+  kind: NoteKind;
+  preacher: string;
+  church: string;
+  series: string;
+  /** YYYY-MM-DD, or null. */
+  sermonDate: string | null;
   updatedAt: string;
 };
 
@@ -18,6 +27,11 @@ export type NoteInput = {
   content: string;
   tags: string[];
   color?: string;
+  kind?: NoteKind;
+  preacher?: string;
+  church?: string;
+  series?: string;
+  sermonDate?: string | null;
 };
 
 const DEFAULT_COLOR = '#2E6A5C';
@@ -32,6 +46,11 @@ export function useNotes() {
         content: input.content,
         tags: input.tags,
         color: input.color ?? DEFAULT_COLOR,
+        kind: input.kind ?? 'study',
+        preacher: input.preacher ?? '',
+        church: input.church ?? '',
+        series: input.series ?? '',
+        sermonDate: input.sermonDate ?? null,
       }),
     [],
   );
@@ -43,12 +62,17 @@ export function useNotes() {
       content: note.content,
       tags: note.tags,
       color: note.color,
+      kind: note.kind,
+      preacher: note.preacher,
+      church: note.church,
+      series: note.series,
+      sermonDate: note.sermonDate,
     }),
     [],
   );
 
   const collection = useSyncedCollection<BackendNote, NoteInput>({
-    storageKey: 'rooted:notes:v1',
+    storageKey: 'rooted:notes:v2',
     endpoint: '/v1/notes',
     listKey: 'notes',
     createLocal,

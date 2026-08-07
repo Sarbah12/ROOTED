@@ -16,8 +16,8 @@ import { BIBLE_BOOKS, BIBLE_BOOKS_BY_ID, type Testament } from '@/constants/bibl
 import { SPACING } from '@/constants/bible-study';
 import {
   DEFAULT_TRANSLATION_ID,
-  TRANSLATIONS,
   getTranslation,
+  getTranslationsByLanguage,
 } from '@/constants/bible-translations';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
@@ -395,49 +395,72 @@ export default function BibleReaderScreen() {
           </View>
 
           <ScrollView contentContainerStyle={{ padding: SPACING.md, gap: 10 }}>
-            {TRANSLATIONS.map((item) => {
-              const isActive = item.id === translationId;
+            {getTranslationsByLanguage().map((group) => (
+              <View key={group.language} style={{ gap: 10 }}>
+                <Text style={[styles.languageHeading, { color: theme.textMuted }]}>
+                  {group.language}
+                </Text>
 
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[
-                    styles.translationRow,
-                    {
-                      backgroundColor: isActive ? theme.primarySoft : theme.surface,
-                      borderColor: isActive ? theme.primary : theme.border,
-                    },
-                  ]}
-                  onPress={() => {
-                    setTranslationId(item.id);
-                    setTranslationModalVisible(false);
-                  }}
-                  activeOpacity={0.85}>
-                  <View style={styles.translationInfo}>
-                    <View style={styles.translationTitleRow}>
-                      <Text style={[styles.translationAbbr, { color: theme.text }]}>{item.abbr}</Text>
-                      {item.source === 'offline' ? (
-                        <View style={[styles.offlineChip, { backgroundColor: theme.chipBg }]}>
-                          <Ionicons name="cloud-done-outline" size={11} color={theme.primary} />
-                          <Text style={[styles.offlineChipText, { color: theme.primary }]}>Offline</Text>
+                {group.translations.map((item) => {
+                  const isActive = item.id === translationId;
+                  const ntOnly = item.coverage === 'nt';
+
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.translationRow,
+                        {
+                          backgroundColor: isActive ? theme.primarySoft : theme.surface,
+                          borderColor: isActive ? theme.primary : theme.border,
+                        },
+                      ]}
+                      onPress={() => {
+                        setTranslationId(item.id);
+                        setTranslationModalVisible(false);
+                      }}
+                      activeOpacity={0.85}>
+                      <View style={styles.translationInfo}>
+                        <View style={styles.translationTitleRow}>
+                          <Text style={[styles.translationAbbr, { color: theme.text }]}>
+                            {item.abbr}
+                          </Text>
+                          {item.source === 'offline' ? (
+                            <View style={[styles.offlineChip, { backgroundColor: theme.chipBg }]}>
+                              <Ionicons name="cloud-done-outline" size={11} color={theme.primary} />
+                              <Text style={[styles.offlineChipText, { color: theme.primary }]}>
+                                Offline
+                              </Text>
+                            </View>
+                          ) : null}
+                          {ntOnly ? (
+                            <View style={[styles.offlineChip, { backgroundColor: theme.surfaceAlt }]}>
+                              <Text style={[styles.offlineChipText, { color: theme.textMuted }]}>
+                                NT only
+                              </Text>
+                            </View>
+                          ) : null}
                         </View>
+                        <Text style={[styles.translationName, { color: theme.textSecondary }]}>
+                          {item.name}
+                        </Text>
+                        <Text style={[styles.translationNote, { color: theme.textMuted }]}>
+                          {item.note}
+                        </Text>
+                      </View>
+                      {isActive ? (
+                        <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
                       ) : null}
-                    </View>
-                    <Text style={[styles.translationName, { color: theme.textSecondary }]}>
-                      {item.name}
-                    </Text>
-                    <Text style={[styles.translationNote, { color: theme.textMuted }]}>{item.note}</Text>
-                  </View>
-                  {isActive ? (
-                    <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
-                  ) : null}
-                </TouchableOpacity>
-              );
-            })}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
 
             <Text style={[styles.licenseNote, { color: theme.textMuted }]}>
               All versions are in the public domain. KJV is bundled with the app; the rest
-              download once and are then cached for offline reading.
+              download once and are then cached for offline reading. Versions marked NT only
+              fall back to KJV for Old Testament books.
             </Text>
           </ScrollView>
         </SafeAreaView>
@@ -601,6 +624,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12.5,
     fontWeight: '600',
+  },
+  languageHeading: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginTop: 6,
   },
   translationRow: {
     flexDirection: 'row',

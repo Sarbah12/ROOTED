@@ -274,6 +274,11 @@ async function handleNotes(req, res, id) {
       content: optionalTrimmedString(body.content) || '',
       tags: optionalArrayOfStrings(body.tags, 'tags') || [],
       color: optionalTrimmedString(body.color) || '#2E6A5C',
+      kind: optionalEnum(body.kind, ['study', 'sermon'], 'kind') || 'study',
+      preacher: optionalTrimmedString(body.preacher) || '',
+      church: optionalTrimmedString(body.church) || '',
+      series: optionalTrimmedString(body.series) || '',
+      sermonDate: optionalTrimmedString(body.sermonDate) || null,
     });
     sendJson(res, 201, created);
     return;
@@ -287,6 +292,11 @@ async function handleNotes(req, res, id) {
     if (body.content !== undefined) patch.content = optionalTrimmedString(body.content) || '';
     if (body.tags !== undefined) patch.tags = optionalArrayOfStrings(body.tags, 'tags') || [];
     if (body.color !== undefined) patch.color = optionalTrimmedString(body.color) || '#2E6A5C';
+    if (body.kind !== undefined) patch.kind = optionalEnum(body.kind, ['study', 'sermon'], 'kind');
+    if (body.preacher !== undefined) patch.preacher = optionalTrimmedString(body.preacher) || '';
+    if (body.church !== undefined) patch.church = optionalTrimmedString(body.church) || '';
+    if (body.series !== undefined) patch.series = optionalTrimmedString(body.series) || '';
+    if (body.sermonDate !== undefined) patch.sermonDate = optionalTrimmedString(body.sermonDate) || null;
 
     const updated = await updateNote(userId, id, patch);
     if (!updated) throw notFound();

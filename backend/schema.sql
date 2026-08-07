@@ -50,6 +50,13 @@ create table if not exists notes (
   content     text        not null default '',
   tags        text[]      not null default '{}',
   color       text        not null default '#2E6A5C',
+  -- 'study' is a personal note; 'sermon' carries the preacher fields below.
+  kind        text        not null default 'study'
+                          check (kind in ('study', 'sermon')),
+  preacher    text        not null default '',
+  church      text        not null default '',
+  series      text        not null default '',
+  sermon_date date,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
@@ -57,6 +64,11 @@ create table if not exists notes (
 -- Every list query is "this user's rows, newest first".
 create index if not exists notes_user_updated_idx
   on notes (user_id, updated_at desc);
+
+-- Filtering the Notes tab by kind, and looking up a preacher's sermons.
+create index if not exists notes_user_kind_idx on notes (user_id, kind);
+create index if not exists notes_preacher_idx  on notes (user_id, lower(preacher))
+  where preacher <> '';
 
 -- -------------------------------------------------------------- prayers
 create table if not exists prayers (

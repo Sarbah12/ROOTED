@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { BIBLE_BOOKS_BY_ID } from '@/constants/bible-books';
 import { getOfflineChapter } from '@/constants/bible-offline';
-import { getTranslation } from '@/constants/bible-translations';
+import { getTranslation, isUnavailableFor } from '@/constants/bible-translations';
 
 export type ChapterVerse = {
   verse: number;
@@ -85,13 +85,16 @@ export function useChapter(
   const translation = getTranslation(translationId);
   const book = BIBLE_BOOKS_BY_ID[bookId];
 
+  const willFetch =
+    translation.source === 'remote' && !(book && isUnavailableFor(translation, book.testament));
+
   const offlineVerses =
-    translation.source === 'offline' ? getOfflineChapter(bookId, chapter) : null;
+    translation.source === 'offline' || !willFetch ? getOfflineChapter(bookId, chapter) : null;
 
   const [state, setState] = useState<ChapterState>(() =>
     offlineVerses
       ? { verses: toVerses(offlineVerses), loading: false, error: null, origin: 'offline' }
-      : { verses: [], loading: translation.source === 'remote', error: null, origin: null }
+      : { verses: [], loading: willFetch, error: null, origin: null }
   );
 
   // Guards against a slow response for a chapter the reader already left.
@@ -103,6 +106,19 @@ export function useChapter(
 
     if (!book) {
       setState({ verses: [], loading: false, error: 'Unknown book.', origin: null });
+      return;
+    }
+
+    // Several public-domain translations carry only the New Testament. Say so
+    // and fall back, rather than letting the request 404 with no explanation.
+    if (isUnavailableFor(translation, book.testament)) {
+      const fallback = getOfflineChapter(bookId, chapter);
+      setState({
+        verses: fallback ? toVerses(fallback) : [],
+        loading: false,
+        error: `${translation.abbr} covers the New Testament only — showing KJV.`,
+        origin: fallback ? 'offline' : null,
+      });
       return;
     }
 
@@ -163,7 +179,16 @@ export function useChapter(
     return () => {
       controller.abort();
     };
-  }, [translation.id, translation.source, translation.apiId, translation.abbr, bookId, chapter, book]);
+  }, [
+    translation.id,
+    translation.source,
+    translation.apiId,
+    translation.abbr,
+    translation.coverage,
+    bookId,
+    chapter,
+    book,
+  ]);
 
   return state;
 }
