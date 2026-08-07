@@ -349,20 +349,31 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        <Text style={[styles.sectionLabel, { color: theme.text }]}>Study plans</Text>
+        <TouchableOpacity
+          style={styles.sectionHeaderRow}
+          onPress={() => router.push('/plans')}
+          activeOpacity={0.7}>
+          <Text style={[styles.sectionLabel, { color: theme.text, marginBottom: 0 }]}>
+            Study plans
+          </Text>
+          <Text style={[styles.sectionAction, { color: theme.primary }]}>See all</Text>
+        </TouchableOpacity>
         <View style={styles.planStack}>
           {plans.length === 0 ? (
-            <View style={[styles.planCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <TouchableOpacity
+              style={[styles.planCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/plans')}
+              activeOpacity={0.86}>
               <View style={styles.planLeft}>
                 <View style={[styles.planDot, { backgroundColor: theme.border }]} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.planName, { color: theme.text }]}>No plans yet</Text>
                   <Text style={[styles.planDuration, { color: theme.textMuted }]}>
-                    Join or create a plan to see progress here
+                    Tap to join or create one
                   </Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ) : (
             plans.map((plan) => {
               const ratio =
@@ -377,6 +388,7 @@ export default function HomeScreen() {
                     styles.planCard,
                     { backgroundColor: theme.surface, borderColor: theme.border },
                   ]}
+                  onPress={() => router.push(`/plans/${plan.id}`)}
                   activeOpacity={0.86}>
                   <View style={styles.planLeft}>
                     <View style={[styles.planDot, { backgroundColor: theme.primary }]} />
@@ -761,6 +773,17 @@ const styles = StyleSheet.create({
   highlightBody: {
     fontSize: 12,
     lineHeight: 17,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    marginBottom: 10,
+  },
+  sectionAction: {
+    fontSize: 13,
+    fontWeight: '800',
   },
   planStack: {
     paddingHorizontal: 16,

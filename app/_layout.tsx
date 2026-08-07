@@ -27,6 +27,10 @@ function RootLayoutShell() {
         }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="plans/index" options={{ headerShown: false }} />
+        <Stack.Screen name="plans/new" options={{ headerShown: false }} />
+        <Stack.Screen name="plans/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="plans/[id]/day/[day]" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
