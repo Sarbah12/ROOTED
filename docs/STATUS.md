@@ -33,7 +33,9 @@ live system. Expect some of it to need adjustment on first contact.
 - **Everything touching Postgres.** No database exists yet; the schema has never
   been applied.
 - **Resend email.** No message has been sent. Sender domain unverified.
-- **Study plans, streaks, reflections, moderation.** Whole API surface untested.
+- **Study plans, streaks, reflections, moderation.** Whole API surface
+  untested, and the four screens over it have never rendered against real
+  data.
 - **Notes and prayer sync.** The offline half works on device; the sync half has
   never reached a server.
 - **Sign in with Apple.** Entitlement and provisioning profile are correct, but
@@ -43,16 +45,13 @@ live system. Expect some of it to need adjustment on first contact.
 
 ## Not built
 
-- **Study plan screens.** The backend is complete; there is no UI to browse,
-  create, join, or view a plan, and no reflection feed. This is the largest
-  remaining piece of app work.
-- **Report and block UI.** Endpoints exist. Apple requires the controls to be
-  reachable from the interface, so this is **required before App Store review**
-  once reflections are visible in the app.
 - **Reading plan progress writes.** `PATCH /v1/reading-plans` exists; nothing
-  calls it.
+  calls it. Superseded in practice by study plans, so it may be dead weight.
 - **Welcome email trigger.** `POST /v1/auth/welcome` exists; sign-up does not
   call it.
+- **Editing a plan after creation.** Plans can be created and archived, but
+  days cannot be changed once saved.
+- **Plan search.** The directory lists public plans; there is no query.
 
 ---
 
@@ -119,7 +118,7 @@ persistence for notes, prayers, and settings.
 | Category | **Not set** — suggest Reference / Education |
 | Content rights | **Not set** — answer "no third-party content" (KJV is public domain) |
 | Age rating | **Not set** — answering "none" throughout gives 4+ |
-| UGC report/block UI | **Not built** — required by Guideline 1.2 |
+| UGC report/block UI | Done — report and block on every reflection |
 | Privacy policy URL | **Not written** — required |
 | macOS platform entry | Should be **deleted** from App Store Connect; iOS only |
 
