@@ -39,7 +39,7 @@ export default function BibleReaderScreen() {
 
   const selectedBook = BIBLE_BOOKS_BY_ID[selectedBookId];
   const translation = getTranslation(translationId);
-  const { verses, loading, error, origin } = useChapter(
+  const { verses, loading, error, origin, copyright } = useChapter(
     translationId,
     selectedBookId,
     selectedChapter,
@@ -230,6 +230,11 @@ export default function BibleReaderScreen() {
           )}
           {verses.length > 0 ? (
             <Text style={[styles.tip, { color: theme.textMuted }]}>Long-press a verse to highlight it.</Text>
+          ) : null}
+
+          {/* Publishers require their copyright line shown with licensed text. */}
+          {copyright ? (
+            <Text style={[styles.copyright, { color: theme.textMuted }]}>{copyright}</Text>
           ) : null}
         </View>
 
@@ -624,6 +629,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12.5,
     fontWeight: '600',
+  },
+  copyright: {
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    marginTop: 10,
+    paddingHorizontal: 8,
   },
   languageHeading: {
     fontSize: 11,

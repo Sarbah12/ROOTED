@@ -16,6 +16,14 @@
 export type TranslationSource = 'offline' | 'remote';
 export type TranslationCoverage = 'full' | 'nt';
 
+/**
+ * Where the text comes from.
+ *   bundled    shipped with the app
+ *   public     bible-api.com, fetched straight from the device
+ *   licensed   API.Bible, proxied through our backend so the key stays private
+ */
+export type TranslationProvider = 'bundled' | 'public' | 'licensed';
+
 export type Translation = {
   id: string;
   /** Short label shown in the picker. */
@@ -23,10 +31,15 @@ export type Translation = {
   name: string;
   source: TranslationSource;
   coverage: TranslationCoverage;
-  /** bible-api.com identifier — remote translations only. */
+  provider: TranslationProvider;
+  /** bible-api.com identifier — public remote translations only. */
   apiId?: string;
+  /** API.Bible id — licensed translations only. Set once you have a key. */
+  bibleId?: string;
   language: string;
   note: string;
+  /** Copyright line publishers require to be displayed alongside the text. */
+  copyright?: string;
 };
 
 export const TRANSLATIONS: Translation[] = [
@@ -37,6 +50,7 @@ export const TRANSLATIONS: Translation[] = [
     name: 'King James Version',
     source: 'offline',
     coverage: 'full',
+    provider: 'bundled',
     language: 'English',
     note: 'Bundled — works offline',
   },
@@ -45,6 +59,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'WEB',
     name: 'World English Bible',
     source: 'remote',
+    provider: 'public',
     apiId: 'web',
     coverage: 'full',
     language: 'English',
@@ -55,6 +70,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'WEBBE',
     name: 'World English Bible, British Edition',
     source: 'remote',
+    provider: 'public',
     apiId: 'webbe',
     coverage: 'full',
     language: 'English',
@@ -65,6 +81,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'ASV',
     name: 'American Standard Version',
     source: 'remote',
+    provider: 'public',
     apiId: 'asv',
     coverage: 'full',
     language: 'English',
@@ -75,6 +92,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'DRA',
     name: 'Douay-Rheims 1899',
     source: 'remote',
+    provider: 'public',
     apiId: 'dra',
     coverage: 'full',
     language: 'English',
@@ -85,6 +103,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'DBY',
     name: 'Darby Bible',
     source: 'remote',
+    provider: 'public',
     apiId: 'darby',
     coverage: 'full',
     language: 'English',
@@ -95,6 +114,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'BBE',
     name: 'Bible in Basic English',
     source: 'remote',
+    provider: 'public',
     apiId: 'bbe',
     coverage: 'full',
     language: 'English',
@@ -105,6 +125,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'YLT',
     name: "Young's Literal Translation",
     source: 'remote',
+    provider: 'public',
     apiId: 'ylt',
     coverage: 'nt',
     language: 'English',
@@ -115,6 +136,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'OEB',
     name: 'Open English Bible, US',
     source: 'remote',
+    provider: 'public',
     apiId: 'oeb-us',
     coverage: 'nt',
     language: 'English',
@@ -125,6 +147,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'OEB-CW',
     name: 'Open English Bible, Commonwealth',
     source: 'remote',
+    provider: 'public',
     apiId: 'oeb-cw',
     coverage: 'nt',
     language: 'English',
@@ -137,6 +160,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'VUL',
     name: 'Clementine Latin Vulgate',
     source: 'remote',
+    provider: 'public',
     apiId: 'clementine',
     coverage: 'full',
     language: 'Latin',
@@ -147,6 +171,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'ALM',
     name: 'João Ferreira de Almeida',
     source: 'remote',
+    provider: 'public',
     apiId: 'almeida',
     coverage: 'full',
     language: 'Português',
@@ -157,6 +182,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'RCCV',
     name: 'Cornilescu Corrected',
     source: 'remote',
+    provider: 'public',
     apiId: 'rccv',
     coverage: 'full',
     language: 'Română',
@@ -167,6 +193,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'BKR',
     name: 'Bible kralická',
     source: 'remote',
+    provider: 'public',
     apiId: 'bkr',
     coverage: 'full',
     language: 'Čeština',
@@ -177,6 +204,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'SYN',
     name: 'Russian Synodal Translation',
     source: 'remote',
+    provider: 'public',
     apiId: 'synodal',
     coverage: 'nt',
     language: 'Русский',
@@ -187,6 +215,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'CUV',
     name: 'Chinese Union Version',
     source: 'remote',
+    provider: 'public',
     apiId: 'cuv',
     coverage: 'nt',
     language: '中文',
@@ -197,6 +226,7 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'CHR',
     name: 'Cherokee New Testament',
     source: 'remote',
+    provider: 'public',
     apiId: 'cherokee',
     coverage: 'nt',
     language: 'ᏣᎳᎩ',
@@ -204,10 +234,68 @@ export const TRANSLATIONS: Translation[] = [
   },
 ];
 
+/**
+ * Copyrighted translations, licensed through API.Bible.
+ *
+ * These are inert until two things are true: the backend has API_BIBLE_KEY set,
+ * and `bibleId` below is filled in with the id from your account. The free
+ * Starter plan allows three copyrighted Bibles and is non-commercial only — the
+ * moment the app carries ads or charges money it needs a paid plan, and NIV
+ * commercial use is not offered at all.
+ *
+ * Get ids from GET /v1/bible/versions once the key is configured.
+ */
+export const LICENSED_TRANSLATIONS: Translation[] = [
+  {
+    id: 'nkjv',
+    abbr: 'NKJV',
+    name: 'New King James Version',
+    source: 'remote',
+    provider: 'licensed',
+    coverage: 'full',
+    language: 'English',
+    note: 'Requires a licence',
+    copyright: '© Thomas Nelson',
+  },
+  {
+    id: 'nlt',
+    abbr: 'NLT',
+    name: 'New Living Translation',
+    source: 'remote',
+    provider: 'licensed',
+    coverage: 'full',
+    language: 'English',
+    note: 'Requires a licence',
+    copyright: '© Tyndale House Publishers',
+  },
+  {
+    id: 'amp',
+    abbr: 'AMP',
+    name: 'Amplified Bible',
+    source: 'remote',
+    provider: 'licensed',
+    coverage: 'full',
+    language: 'English',
+    note: 'Requires a licence',
+    copyright: '© The Lockman Foundation',
+  },
+];
+
+/** A licensed translation only works once its API.Bible id is set. */
+export function isLicensedAndReady(translation: Translation) {
+  return translation.provider !== 'licensed' || Boolean(translation.bibleId);
+}
+
+/** Licensed entries appear in the picker only when actually usable. */
+export const ALL_TRANSLATIONS: Translation[] = [
+  ...TRANSLATIONS,
+  ...LICENSED_TRANSLATIONS.filter(isLicensedAndReady),
+];
+
 export const DEFAULT_TRANSLATION_ID = 'kjv';
 
 export const TRANSLATIONS_BY_ID: Record<string, Translation> = Object.fromEntries(
-  TRANSLATIONS.map((translation) => [translation.id, translation])
+  ALL_TRANSLATIONS.map((translation) => [translation.id, translation])
 );
 
 export function getTranslation(id: string): Translation {
@@ -218,7 +306,7 @@ export function getTranslation(id: string): Translation {
 export function getTranslationsByLanguage() {
   const groups = new Map<string, Translation[]>();
 
-  for (const translation of TRANSLATIONS) {
+  for (const translation of ALL_TRANSLATIONS) {
     const existing = groups.get(translation.language) ?? [];
     existing.push(translation);
     groups.set(translation.language, existing);

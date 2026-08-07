@@ -10,6 +10,7 @@ import {
   verifyFirebaseRequest,
   verifyLoginToken,
 } from './auth.mjs';
+import { getChapter, isBibleApiConfigured, listBibles } from './bible.mjs';
 import { isEmailConfigured, sendPasswordResetEmail, sendWelcomeEmail } from './email.mjs';
 import {
   archivePlan,
@@ -718,6 +719,41 @@ async function handleBlocks(req, res, targetId) {
   throw methodNotAllowed();
 }
 
+/**
+ * Licensed Bible text, proxied so the API.Bible key stays server-side.
+ *   GET /v1/bible/versions
+ *   GET /v1/bible/:bibleId/:bookId/:chapter
+ */
+async function handleBible(req, res, parts) {
+  await requireUser(req);
+
+  if (!isBibleApiConfigured()) {
+    throw new AppError(
+      503,
+      'bible_api_unavailable',
+      'Licensed translations are not configured on this server.'
+    );
+  }
+
+  if (parts[2] === 'versions' && req.method === 'GET') {
+    sendJson(res, 200, { versions: await listBibles() });
+    return;
+  }
+
+  const [, , bibleId, bookId, chapter] = parts;
+  if (bibleId && bookId && chapter && req.method === 'GET') {
+    const chapterNumber = Number(chapter);
+    if (!Number.isInteger(chapterNumber) || chapterNumber < 1) {
+      throw badRequest('Invalid chapter.');
+    }
+
+    sendJson(res, 200, await getChapter(bibleId, bookId, chapterNumber));
+    return;
+  }
+
+  throw notFound();
+}
+
 async function handleVersionedHealth(req, res) {
   // Report the database too, so "ok" means the service can actually serve.
   let database = 'ok';
@@ -812,6 +848,11 @@ const server = http.createServer(async (req, res) => {
 
     if (parts[0] === 'v1' && parts[1] === 'prayers') {
       await handlePrayers(req, res, parts[2]);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'bible') {
+      await handleBible(req, res, parts);
       return;
     }
 

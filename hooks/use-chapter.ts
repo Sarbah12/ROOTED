@@ -1,8 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useRef, useState } from 'react';
 
+import { useFirebaseAuth } from '@/context/firebase-auth';
+
 import { BIBLE_BOOKS_BY_ID } from '@/constants/bible-books';
 import { getOfflineChapter } from '@/constants/bible-offline';
+import { BACKEND_API_BASE_URL } from '@/constants/firebase';
 import { getTranslation, isUnavailableFor } from '@/constants/bible-translations';
 
 export type ChapterVerse = {
@@ -17,6 +20,8 @@ export type ChapterState = {
   error: string | null;
   /** Where the text came from, for the "offline" badge in the UI. */
   origin: 'offline' | 'network' | 'cache' | null;
+  /** Publishers require this shown alongside licensed text. */
+  copyright: string | null;
 };
 
 const API_BASE = 'https://bible-api.com';
@@ -45,6 +50,30 @@ async function writeCache(key: string, verses: ChapterVerse[]) {
   } catch {
     // A cache write failure should never break reading.
   }
+}
+
+/**
+ * Licensed text is proxied by our backend so the API.Bible key is never in the
+ * app bundle. Returns the copyright line the publisher requires.
+ */
+async function fetchLicensedChapter(
+  bibleId: string,
+  bookId: string,
+  chapter: number,
+  idToken: string,
+  signal: AbortSignal
+): Promise<{ verses: ChapterVerse[]; copyright: string }> {
+  const response = await fetch(
+    `${BACKEND_API_BASE_URL}/v1/bible/${encodeURIComponent(bibleId)}/${bookId}/${chapter}`,
+    { signal, headers: { Authorization: `Bearer ${idToken}` } }
+  );
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(payload?.message || 'Licensed translation unavailable');
+  }
+
+  return { verses: payload.verses ?? [], copyright: payload.copyright ?? '' };
 }
 
 async function fetchChapter(
@@ -82,6 +111,7 @@ export function useChapter(
   bookId: string,
   chapter: number
 ): ChapterState {
+  const { idToken } = useFirebaseAuth();
   const translation = getTranslation(translationId);
   const book = BIBLE_BOOKS_BY_ID[bookId];
 
@@ -93,8 +123,8 @@ export function useChapter(
 
   const [state, setState] = useState<ChapterState>(() =>
     offlineVerses
-      ? { verses: toVerses(offlineVerses), loading: false, error: null, origin: 'offline' }
-      : { verses: [], loading: willFetch, error: null, origin: null }
+      ? { verses: toVerses(offlineVerses), loading: false, error: null, origin: 'offline', copyright: null }
+      : { verses: [], loading: willFetch, error: null, origin: null, copyright: null }
   );
 
   // Guards against a slow response for a chapter the reader already left.
@@ -105,7 +135,7 @@ export function useChapter(
     const isCurrent = () => requestId.current === currentRequest;
 
     if (!book) {
-      setState({ verses: [], loading: false, error: 'Unknown book.', origin: null });
+      setState({ verses: [], loading: false, error: 'Unknown book.', origin: null, copyright: null });
       return;
     }
 
@@ -118,6 +148,7 @@ export function useChapter(
         loading: false,
         error: `${translation.abbr} covers the New Testament only — showing KJV.`,
         origin: fallback ? 'offline' : null,
+        copyright: null,
       });
       return;
     }
@@ -126,12 +157,13 @@ export function useChapter(
       const verses = getOfflineChapter(bookId, chapter);
       setState(
         verses
-          ? { verses: toVerses(verses), loading: false, error: null, origin: 'offline' }
+          ? { verses: toVerses(verses), loading: false, error: null, origin: 'offline', copyright: null }
           : {
               verses: [],
               loading: false,
               error: `${book.name} ${chapter} is not in the bundled text.`,
               origin: null,
+              copyright: null,
             }
       );
       return;
@@ -140,12 +172,70 @@ export function useChapter(
     const controller = new AbortController();
     const key = cacheKey(translation.id, bookId, chapter);
 
+    if (translation.provider === 'licensed') {
+      if (!idToken) {
+        setState({
+          verses: [],
+          loading: false,
+          error: 'Sign in to read licensed translations.',
+          origin: null,
+          copyright: null,
+        });
+        return;
+      }
+
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+
+      (async () => {
+        const cached = await readCache(key);
+        if (cached && isCurrent()) {
+          setState({ verses: cached, loading: false, error: null, origin: 'cache', copyright: null });
+          return;
+        }
+
+        try {
+          const result = await fetchLicensedChapter(
+            translation.bibleId as string,
+            bookId,
+            chapter,
+            idToken,
+            controller.signal
+          );
+          if (!isCurrent()) return;
+
+          setState({
+            verses: result.verses,
+            loading: false,
+            error: null,
+            origin: 'network',
+            copyright: result.copyright || translation.copyright || null,
+          });
+          void writeCache(key, result.verses);
+        } catch (error) {
+          if (!isCurrent() || controller.signal.aborted) return;
+
+          const fallback = getOfflineChapter(bookId, chapter);
+          setState({
+            verses: fallback ? toVerses(fallback) : [],
+            loading: false,
+            error: fallback
+              ? `Couldn't load ${translation.abbr} — showing KJV instead.`
+              : `Couldn't load ${translation.abbr}.`,
+            origin: fallback ? 'offline' : null,
+            copyright: null,
+          });
+        }
+      })();
+
+      return () => controller.abort();
+    }
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     (async () => {
       const cached = await readCache(key);
       if (cached && isCurrent()) {
-        setState({ verses: cached, loading: false, error: null, origin: 'cache' });
+        setState({ verses: cached, loading: false, error: null, origin: 'cache', copyright: null });
         return;
       }
 
@@ -158,7 +248,7 @@ export function useChapter(
         );
         if (!isCurrent()) return;
 
-        setState({ verses, loading: false, error: null, origin: 'network' });
+        setState({ verses, loading: false, error: null, origin: 'network', copyright: null });
         void writeCache(key, verses);
       } catch (error) {
         if (!isCurrent() || controller.signal.aborted) return;
@@ -172,6 +262,7 @@ export function useChapter(
             ? `Couldn't load ${translation.abbr} — showing KJV instead.`
             : `Couldn't load ${book.name} ${chapter}. Check your connection.`,
           origin: fallback ? 'offline' : null,
+          copyright: null,
         });
       }
     })();
@@ -185,6 +276,10 @@ export function useChapter(
     translation.apiId,
     translation.abbr,
     translation.coverage,
+    translation.provider,
+    translation.bibleId,
+    translation.copyright,
+    idToken,
     bookId,
     chapter,
     book,
