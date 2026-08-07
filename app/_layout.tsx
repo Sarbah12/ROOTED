@@ -27,6 +27,7 @@ function RootLayoutShell() {
         }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="bible-search" options={{ headerShown: false }} />
         <Stack.Screen name="plans/index" options={{ headerShown: false }} />
         <Stack.Screen name="plans/new" options={{ headerShown: false }} />
         <Stack.Screen name="plans/[id]" options={{ headerShown: false }} />

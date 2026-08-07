@@ -13,6 +13,7 @@ import { useColorScheme } from 'react-native';
 
 import { BACKEND_API_BASE_URL } from '@/constants/firebase';
 import { useFirebaseAuth } from '@/context/firebase-auth';
+import { useReminders } from '@/hooks/use-reminders';
 
 /**
  * User settings, persisted on device and mirrored to /v1/me/settings when
@@ -54,6 +55,7 @@ const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
 export function AppSettingsProvider({ children }: { children: ReactNode }) {
   const systemColorScheme = useColorScheme();
   const { idToken, isReady } = useFirebaseAuth();
+  const { sync: syncReminders } = useReminders();
 
   const [settings, setSettings] = useState<AppSettings>(DEFAULTS);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -108,6 +110,14 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
         // Best-effort; the in-memory value still drives the UI.
       });
 
+      // Reminder settings only mean something once notifications are actually
+      // scheduled; this is what makes the toggles do anything.
+      void syncReminders({
+        remindersEnabled: next.remindersEnabled,
+        verseNotificationsEnabled: next.verseNotificationsEnabled,
+        reminderTime: next.reminderTime,
+      });
+
       if (!idToken) return;
 
       // Fire-and-forget: a failed sync must not undo the local change.
@@ -120,7 +130,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(next),
       }).catch(() => {});
     },
-    [idToken],
+    [idToken, syncReminders],
   );
 
   const updateSettings = useCallback(
@@ -161,6 +171,17 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [isReady, idToken, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    void syncReminders({
+      remindersEnabled: settings.remindersEnabled,
+      verseNotificationsEnabled: settings.verseNotificationsEnabled,
+      reminderTime: settings.reminderTime,
+    });
+    // Re-applied on launch so a reinstall or OS clear-out restores the schedule.
+  }, [isLoaded, settings.remindersEnabled, settings.verseNotificationsEnabled,
+      settings.reminderTime, syncReminders]);
 
   const setIsDarkMode = useCallback(
     (value: boolean) => updateSettings({ darkMode: value }),

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -64,6 +65,23 @@ export default function StudyNotesScreen() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState<NoteForm>(EMPTY_FORM);
   const [filter, setFilter] = useState<'all' | NoteKind>('all');
+
+  // The Bible reader can hand a verse over to start a note from it.
+  const params = useLocalSearchParams<{ reference?: string; seed?: string }>();
+
+  useEffect(() => {
+    if (!params.reference) return;
+    setEditingNote(null);
+    setSaveError(null);
+    setForm({
+      ...EMPTY_FORM,
+      reference: params.reference,
+      content: params.seed ? `"${params.seed}"\n\n` : '',
+    });
+    setModalVisible(true);
+    // Only when arriving with a reference attached.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.reference, params.seed]);
 
   const openCreate = () => {
     setEditingNote(null);

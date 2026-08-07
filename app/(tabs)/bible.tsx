@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
+  Share,
   Modal,
   ScrollView,
   StyleSheet,
@@ -22,18 +25,33 @@ import {
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
 import { useChapter } from '@/hooks/use-chapter';
+import { useBibleMarks, useReadingPosition } from '@/hooks/use-bible-marks';
 
 export default function BibleReaderScreen() {
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
+  const router = useRouter();
+  // Search results deep-link straight to a chapter.
+  const params = useLocalSearchParams<{ bookId?: string; chapter?: string }>();
+
   const [selectedBookId, setSelectedBookId] = useState('jhn');
   const [selectedChapter, setSelectedChapter] = useState(3);
   const [translationId, setTranslationId] = useState(DEFAULT_TRANSLATION_ID);
   const [bookModalVisible, setBookModalVisible] = useState(false);
   const [chapterModalVisible, setChapterModalVisible] = useState(false);
   const [translationModalVisible, setTranslationModalVisible] = useState(false);
-  const [highlightedVerses, setHighlightedVerses] = useState<number[]>([]);
-  const [bookmarkedVerses, setBookmarkedVerses] = useState<number[]>([]);
+  // Marks are keyed by book and chapter and persisted; they used to be bare
+  // verse numbers in component state, so they vanished on restart and bled
+  // across chapters.
+  const {
+    highlightedVerses,
+    bookmarkedVerses,
+    toggleHighlight,
+    toggleBookmark,
+    totalHighlights,
+    totalBookmarks,
+  } = useBibleMarks(selectedBookId, selectedChapter);
+  const { position, isLoaded: positionLoaded, record } = useReadingPosition();
   const [fontSize, setFontSize] = useState(17);
   const [testament, setTestament] = useState<Testament>('NT');
 
@@ -45,22 +63,69 @@ export default function BibleReaderScreen() {
     selectedChapter,
   );
   const filteredBooks = BIBLE_BOOKS.filter((book) => book.testament === testament);
+
+  // Open where the reader left off, unless a search result asked for a chapter.
+  useEffect(() => {
+    if (params.bookId && params.chapter) {
+      setSelectedBookId(params.bookId);
+      setSelectedChapter(Number(params.chapter));
+      return;
+    }
+    if (positionLoaded && position) {
+      setSelectedBookId(position.bookId);
+      setSelectedChapter(position.chapter);
+    }
+    // Runs once per deep link; later navigation is user-driven.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.bookId, params.chapter, positionLoaded]);
+
+  /**
+   * Long-pressing a verse opens the actions. Reading and writing were
+   * previously disconnected: there was no way to get from a verse to a note.
+   */
+  const openVerseActions = (verse: number, text: string) => {
+    const reference = `${selectedBook.name} ${selectedChapter}:${verse}`;
+    const quoted = `"${text}" — ${reference} (${translation.abbr})`;
+    const isHighlighted = highlightedVerses.includes(verse);
+    const isBookmarked = bookmarkedVerses.includes(verse);
+
+    Alert.alert(reference, text.length > 120 ? `${text.slice(0, 120)}…` : text, [
+      {
+        text: isHighlighted ? 'Remove highlight' : 'Highlight',
+        onPress: () => toggleHighlight(verse),
+      },
+      {
+        text: isBookmarked ? 'Remove bookmark' : 'Bookmark',
+        onPress: () => toggleBookmark(verse),
+      },
+      {
+        text: 'Share',
+        onPress: () => {
+          Share.share({ message: quoted }).catch(() => {});
+        },
+      },
+      {
+        text: 'Write a note',
+        onPress: () =>
+          router.push({
+            pathname: '/(tabs)/notes',
+            params: { reference, seed: text },
+          }),
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  // Remember the chapter so "resume reading" is real.
+  useEffect(() => {
+    record(selectedBookId, selectedChapter);
+  }, [selectedBookId, selectedChapter, record]);
   const today = new Date();
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const dateLabel = `${dayNames[today.getDay()]}, ${monthNames[today.getMonth()]} ${today.getDate()}`;
 
-  const toggleHighlight = (verse: number) => {
-    setHighlightedVerses((prev) =>
-      prev.includes(verse) ? prev.filter((item) => item !== verse) : [...prev, verse],
-    );
-  };
 
-  const toggleBookmark = (verse: number) => {
-    setBookmarkedVerses((prev) =>
-      prev.includes(verse) ? prev.filter((item) => item !== verse) : [...prev, verse],
-    );
-  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -88,6 +153,7 @@ export default function BibleReaderScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/bible-search')}
               activeOpacity={0.8}>
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -109,11 +175,11 @@ export default function BibleReaderScreen() {
             <View style={styles.heroStats}>
               <View style={styles.heroStatChip}>
                 <Ionicons name="bookmark-outline" size={14} color="#FFFFFF" />
-                <Text style={styles.heroStatText}>{bookmarkedVerses.length} saved</Text>
+                <Text style={styles.heroStatText}>{totalBookmarks} saved</Text>
               </View>
               <View style={styles.heroStatChip}>
                 <Ionicons name="color-wand-outline" size={14} color="#FFFFFF" />
-                <Text style={styles.heroStatText}>{highlightedVerses.length} highlighted</Text>
+                <Text style={styles.heroStatText}>{totalHighlights} highlighted</Text>
               </View>
             </View>
           </View>
@@ -207,7 +273,7 @@ export default function BibleReaderScreen() {
                       borderColor: isHighlighted ? theme.primary : theme.border,
                     },
                   ]}
-                  onLongPress={() => toggleHighlight(verseItem.verse)}
+                  onLongPress={() => openVerseActions(verseItem.verse, verseItem.text)}
                   activeOpacity={0.78}>
                   <View style={styles.verseTopRow}>
                     <View style={[styles.verseNumberChip, { backgroundColor: theme.chipBg }]}>
@@ -215,7 +281,7 @@ export default function BibleReaderScreen() {
                         {verseItem.verse}
                       </Text>
                     </View>
-                    <TouchableOpacity onPress={() => toggleBookmark(verseItem.verse)}>
+                    <TouchableOpacity onPress={() => toggleBookmark(verseItem.verse)} hitSlop={8}>
                       <Ionicons
                         name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
                         size={18}
@@ -229,7 +295,9 @@ export default function BibleReaderScreen() {
             })
           )}
           {verses.length > 0 ? (
-            <Text style={[styles.tip, { color: theme.textMuted }]}>Long-press a verse to highlight it.</Text>
+            <Text style={[styles.tip, { color: theme.textMuted }]}>
+              Long-press a verse to highlight, share, or turn it into a note.
+            </Text>
           ) : null}
 
           {/* Publishers require their copyright line shown with licensed text. */}
