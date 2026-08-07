@@ -13,6 +13,20 @@ import {
 import { getChapter, isBibleApiConfigured, listBibles } from './bible.mjs';
 import { isEmailConfigured, sendPasswordResetEmail, sendWelcomeEmail } from './email.mjs';
 import {
+  createComment,
+  createPost,
+  deleteComment,
+  deletePost,
+  getPost,
+  hideIfHeavilyReported,
+  likePost,
+  listComments,
+  listFeed,
+  listMyPosts,
+  unlikePost,
+  updatePost,
+} from './posts.mjs';
+import {
   archivePlan,
   blockUser,
   completeDay,
@@ -678,7 +692,11 @@ async function handleReport(req, res) {
   const body = assertBody(await readBody(req));
   rejectUnknownKeys(body, ['targetType', 'targetId', 'reason', 'details'], 'report');
 
-  const targetType = optionalEnum(body.targetType, ['reflection', 'plan', 'user'], 'targetType');
+  const targetType = optionalEnum(
+    body.targetType,
+    ['reflection', 'plan', 'user', 'post', 'comment'],
+    'targetType'
+  );
   if (!targetType) throw badRequest('targetType is required.');
 
   const result = await reportContent(
@@ -688,6 +706,11 @@ async function handleReport(req, res) {
     requiredTrimmedString(body.reason, 'reason'),
     optionalTrimmedString(body.details) || ''
   );
+
+  // Posts and comments auto-hide on repeated reports, as reflections do.
+  if (targetType === 'post' || targetType === 'comment') {
+    await hideIfHeavilyReported(targetType, requiredTrimmedString(body.targetId, 'targetId'));
+  }
 
   sendJson(res, 201, result);
 }
@@ -752,6 +775,155 @@ async function handleBible(req, res, parts) {
   }
 
   throw notFound();
+}
+
+const MAX_POST_BODY = 40000;
+const MAX_COMMENT = 2000;
+
+/** /v1/posts and /v1/posts/:id/... */
+async function handlePosts(req, res, parts, url) {
+  const user = await requireUser(req);
+  const userId = user.uid;
+  const postId = parts[2];
+  const section = parts[3];
+
+  // ---- collection
+  if (!postId) {
+    if (req.method === 'GET') {
+      const scope = url.searchParams.get('scope') || 'feed';
+      const tag = url.searchParams.get('tag');
+
+      const posts =
+        scope === 'mine' ? await listMyPosts(userId) : await listFeed(userId, { tag });
+      sendJson(res, 200, { posts });
+      return;
+    }
+
+    if (req.method === 'POST') {
+      const body = assertBody(await readBody(req));
+      rejectUnknownKeys(
+        body,
+        ['title', 'body', 'excerpt', 'coverImageUrl', 'tags', 'status'],
+        'post'
+      );
+
+      const text = optionalTrimmedString(body.body) || '';
+      if (text.length > MAX_POST_BODY) {
+        throw badRequest('That post is too long.');
+      }
+
+      const created = await createPost(userId, {
+        title: requiredTrimmedString(body.title, 'title'),
+        body: text,
+        excerpt: optionalTrimmedString(body.excerpt) || '',
+        coverImageUrl: optionalTrimmedString(body.coverImageUrl) || '',
+        tags: optionalArrayOfStrings(body.tags, 'tags') || [],
+        status: optionalEnum(body.status, ['draft', 'published'], 'status') || 'draft',
+      });
+
+      sendJson(res, 201, created);
+      return;
+    }
+
+    throw methodNotAllowed();
+  }
+
+  // ---- single post
+  if (!section) {
+    if (req.method === 'GET') {
+      const post = await getPost(userId, postId);
+      if (!post) throw notFound();
+      sendJson(res, 200, post);
+      return;
+    }
+
+    if (req.method === 'PATCH' || req.method === 'PUT') {
+      const body = assertBody(await readBody(req));
+      rejectUnknownKeys(
+        body,
+        ['title', 'body', 'excerpt', 'coverImageUrl', 'tags', 'status'],
+        'post'
+      );
+
+      const patch = {};
+      if (body.title !== undefined) patch.title = requiredTrimmedString(body.title, 'title');
+      if (body.body !== undefined) {
+        patch.body = optionalTrimmedString(body.body) || '';
+        if (patch.body.length > MAX_POST_BODY) throw badRequest('That post is too long.');
+      }
+      if (body.excerpt !== undefined) patch.excerpt = optionalTrimmedString(body.excerpt) || '';
+      if (body.coverImageUrl !== undefined) {
+        patch.coverImageUrl = optionalTrimmedString(body.coverImageUrl) || '';
+      }
+      if (body.tags !== undefined) patch.tags = optionalArrayOfStrings(body.tags, 'tags') || [];
+      if (body.status !== undefined) {
+        patch.status = optionalEnum(body.status, ['draft', 'published'], 'status');
+      }
+
+      const updated = await updatePost(userId, postId, patch);
+      if (!updated) throw notFound();
+      sendJson(res, 200, updated);
+      return;
+    }
+
+    if (req.method === 'DELETE') {
+      if (!(await deletePost(userId, postId))) throw notFound();
+      sendJson(res, 200, { deleted: true });
+      return;
+    }
+
+    throw methodNotAllowed();
+  }
+
+  // A post must be readable before it can be liked or commented on.
+  const post = await getPost(userId, postId);
+  if (!post) throw notFound();
+
+  if (section === 'like') {
+    if (req.method === 'POST') {
+      sendJson(res, 200, await likePost(userId, postId));
+      return;
+    }
+    if (req.method === 'DELETE') {
+      sendJson(res, 200, await unlikePost(userId, postId));
+      return;
+    }
+    throw methodNotAllowed();
+  }
+
+  if (section === 'comments') {
+    if (req.method === 'GET') {
+      sendJson(res, 200, { comments: await listComments(userId, postId) });
+      return;
+    }
+
+    if (req.method === 'POST') {
+      const body = assertBody(await readBody(req));
+      rejectUnknownKeys(body, ['body'], 'comment');
+      const text = requiredTrimmedString(body.body, 'body');
+      if (text.length > MAX_COMMENT) {
+        throw badRequest(`Keep comments under ${MAX_COMMENT} characters.`);
+      }
+      sendJson(res, 201, await createComment(userId, postId, text));
+      return;
+    }
+
+    throw methodNotAllowed();
+  }
+
+  throw notFound();
+}
+
+async function handleComment(req, res, commentId) {
+  const user = await requireUser(req);
+
+  if (req.method === 'DELETE') {
+    if (!(await deleteComment(user.uid, commentId))) throw notFound();
+    sendJson(res, 200, { deleted: true });
+    return;
+  }
+
+  throw methodNotAllowed();
 }
 
 async function handleVersionedHealth(req, res) {
@@ -853,6 +1025,16 @@ const server = http.createServer(async (req, res) => {
 
     if (parts[0] === 'v1' && parts[1] === 'bible') {
       await handleBible(req, res, parts);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'posts') {
+      await handlePosts(req, res, parts, url);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'comments' && parts[2]) {
+      await handleComment(req, res, parts[2]);
       return;
     }
 

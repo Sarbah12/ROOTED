@@ -239,7 +239,8 @@ create index if not exists plan_reflections_plan_day_idx
 create table if not exists content_reports (
   id           uuid        primary key default gen_random_uuid(),
   reporter_id  text        not null references users(id) on delete cascade,
-  target_type  text        not null check (target_type in ('reflection', 'plan', 'user')),
+  target_type  text        not null
+                           check (target_type in ('reflection', 'plan', 'user', 'post', 'comment')),
   target_id    text        not null,
   reason       text        not null,
   details      text        not null default '',
@@ -299,3 +300,110 @@ alter table plan_completions enable row level security;
 alter table plan_reflections enable row level security;
 alter table content_reports  enable row level security;
 alter table user_blocks      enable row level security;
+
+
+-- =====================================================================
+-- Community blog
+-- =====================================================================
+
+-- Long-form posts written by users. Drafts are visible only to their author.
+create table if not exists posts (
+  id            uuid        primary key default gen_random_uuid(),
+  author_id     text        not null references users(id) on delete cascade,
+  title         text        not null,
+  body          text        not null default '',
+  -- Short summary for the feed; derived from the body when left empty.
+  excerpt       text        not null default '',
+  cover_image_url text,
+  tags          text[]      not null default '{}',
+  status        text        not null default 'draft'
+                            check (status in ('draft', 'published')),
+  -- Denormalised so the feed does not count rows per post on every read.
+  like_count    integer     not null default 0,
+  comment_count integer     not null default 0,
+  is_hidden     boolean     not null default false,   -- set by moderation
+  published_at  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- The feed: published, not hidden, newest first.
+create index if not exists posts_feed_idx on posts (published_at desc)
+  where status = 'published' and is_hidden = false;
+
+create index if not exists posts_author_idx on posts (author_id, updated_at desc);
+create index if not exists posts_tags_idx   on posts using gin (tags);
+
+create table if not exists post_likes (
+  post_id    uuid        not null references posts(id) on delete cascade,
+  user_id    text        not null references users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (post_id, user_id)
+);
+
+create index if not exists post_likes_user_idx on post_likes (user_id);
+
+create table if not exists post_comments (
+  id         uuid        primary key default gen_random_uuid(),
+  post_id    uuid        not null references posts(id) on delete cascade,
+  user_id    text        not null references users(id) on delete cascade,
+  body       text        not null,
+  is_hidden  boolean     not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists post_comments_post_idx
+  on post_comments (post_id, created_at desc);
+
+-- ------------------------------------------------------- updated_at bumps
+do $$
+declare t text;
+begin
+  foreach t in array array['posts', 'post_comments']
+  loop
+    execute format('drop trigger if exists %I_set_updated_at on %I', t, t);
+    execute format(
+      'create trigger %I_set_updated_at before update on %I
+       for each row execute function set_updated_at()', t, t);
+  end loop;
+end $$;
+
+-- Keep the denormalised counts honest.
+create or replace function sync_post_like_count()
+returns trigger as $$
+begin
+  if tg_op = 'INSERT' then
+    update posts set like_count = like_count + 1 where id = new.post_id;
+  elsif tg_op = 'DELETE' then
+    update posts set like_count = greatest(like_count - 1, 0) where id = old.post_id;
+  end if;
+  return null;
+end;
+$$ language plpgsql;
+
+drop trigger if exists post_likes_count_sync on post_likes;
+create trigger post_likes_count_sync
+  after insert or delete on post_likes
+  for each row execute function sync_post_like_count();
+
+create or replace function sync_post_comment_count()
+returns trigger as $$
+begin
+  if tg_op = 'INSERT' then
+    update posts set comment_count = comment_count + 1 where id = new.post_id;
+  elsif tg_op = 'DELETE' then
+    update posts set comment_count = greatest(comment_count - 1, 0) where id = old.post_id;
+  end if;
+  return null;
+end;
+$$ language plpgsql;
+
+drop trigger if exists post_comments_count_sync on post_comments;
+create trigger post_comments_count_sync
+  after insert or delete on post_comments
+  for each row execute function sync_post_comment_count();
+
+alter table posts         enable row level security;
+alter table post_likes    enable row level security;
+alter table post_comments enable row level security;

@@ -290,6 +290,22 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ) : null}
 
+        <TouchableOpacity
+          style={[styles.blogCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={() => router.push('/blog')}
+          activeOpacity={0.86}>
+          <View style={[styles.blogMark, { backgroundColor: theme.primarySoft }]}>
+            <Ionicons name="newspaper-outline" size={20} color={theme.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.blogTitle, { color: theme.text }]}>Community blog</Text>
+            <Text style={[styles.blogBody, { color: theme.textSecondary }]}>
+              Read what others are learning, or write your own.
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+        </TouchableOpacity>
+
         <Text style={[styles.sectionLabel, { color: theme.text }]}>At a glance</Text>
         <View style={styles.snapshotGrid}>
           {snapshotItems.map((item, index) => (
@@ -792,6 +808,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
   },
+  blogCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 20,
+  },
+  blogMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  blogTitle: { fontSize: 15, fontWeight: '800' },
+  blogBody: { fontSize: 12.5, lineHeight: 18, marginTop: 3 },
   guestCard: {
     flexDirection: 'row',
     alignItems: 'center',
