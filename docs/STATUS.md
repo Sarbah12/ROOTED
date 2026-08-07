@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-08-06
+Last updated: 2026-08-07
 
 A candid account of what works, what is built but unverified, and what is still
 missing. See [README](../README.md) for how the app is put together.
@@ -14,11 +14,20 @@ Things that have actually been run and observed to work.
 | | Evidence |
 |---|---|
 | TypeScript compiles clean | `tsc --noEmit`, 0 errors |
-| iOS build succeeds | EAS build 9, signed `.ipa` |
+| iOS build succeeds | EAS build 10, signed `.ipa` |
 | TestFlight upload | "Submitted your app to Apple App Store Connect" |
-| Offline Bible bundle | 66 books / 1,189 chapters / 31,100 verses, spot-checked |
-| Bible API reachable | `bible-api.com` returns chapters for numbered books |
-| App icon and splash | Generated from the Rooted logo, inspected |
+| Offline Bible bundle | 66 books / 1,189 chapters / 31,100 verses |
+| Bible reader | John 3 and Psalms 23 rendered from the bundle in a running app |
+| Translation coverage | Genesis 1 requested from all 17; six are NT-only and badged |
+| Translation picker | 8 language groups render, offline and NT-only badges shown |
+| Offline verse search | "good shepherd" returns John 10:11 and 10:14; full scan 160 ms |
+| Phrase search | Loose "born again" gives Genesis 29:34; quoted gives only John 3:3 and 3:7 |
+| Mark persistence | Highlights survive reload, stay keyed per chapter, no cross-chapter bleed |
+| Resume reading | A saved position reopened Psalms 23 rather than the default chapter |
+| Verse to note | Reference and quoted text carried into the note editor |
+| Identifier detection | Username, phone and email each classified correctly at sign-up |
+| Sermon note fields | Preacher fields appear only in sermon mode |
+| App icon and splash | Generated from the Rooted mark, inspected |
 | Backend syntax | `node --check` on every `.mjs` |
 
 ---
