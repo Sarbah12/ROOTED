@@ -5,11 +5,12 @@ import { Platform } from 'react-native';
 import { getVerseOfTheDay } from '@/constants/verse-of-the-day';
 
 /**
- * Daily reading reminders.
+ * Daily reading reminders and the verse of the day.
  *
- * The settings screen has offered a reminders toggle and a time picker since
- * the beginning, but nothing was ever scheduled — the switches persisted and
- * synced, and did nothing. This wires them to real local notifications.
+ * A repeating DAILY trigger carries one fixed body, so the same verse would
+ * arrive every morning forever. Instead this schedules a rolling window of
+ * individual dated notifications, each carrying that day's verse, and tops the
+ * window back up every time the app opens.
  *
  * Local notifications only: they fire from the device on a schedule, so no
  * push certificate or server is involved.
@@ -17,6 +18,12 @@ import { getVerseOfTheDay } from '@/constants/verse-of-the-day';
 
 const REMINDER_ID = 'rooted-daily-reading';
 const VERSE_ID = 'rooted-daily-verse';
+
+/**
+ * How far ahead to schedule. iOS keeps at most 64 pending local notifications,
+ * and this uses two per day, so 14 days sits comfortably inside that.
+ */
+const WINDOW_DAYS = 14;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -26,6 +33,17 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+/** Varied so the nudge does not read like the same robot every morning. */
+const READING_PROMPTS = [
+  { title: 'Time to read', body: 'A few minutes in the Word today.' },
+  { title: 'Your reading is waiting', body: 'Pick up where you left off.' },
+  { title: 'A moment in Scripture', body: 'Even a short passage counts.' },
+  { title: 'Back to the Word', body: 'Today’s reading is ready when you are.' },
+  { title: 'Keep your streak', body: 'One chapter is enough to keep going.' },
+  { title: 'Time with God', body: 'Open Rooted and read a little.' },
+  { title: 'Today’s reading', body: 'A few quiet minutes in Scripture.' },
+];
 
 /** "7:00 AM" -> { hour: 7, minute: 0 } */
 export function parseReminderTime(value: string): { hour: number; minute: number } {
@@ -53,13 +71,24 @@ async function ensurePermission(): Promise<boolean> {
   return requested.granted;
 }
 
-async function cancel(identifier: string) {
+async function cancelOurs() {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
     scheduled
-      .filter((item) => item.content.data?.id === identifier)
+      .filter((item) => {
+        const id = item.content.data?.id;
+        return id === REMINDER_ID || id === VERSE_ID;
+      })
       .map((item) => Notifications.cancelScheduledNotificationAsync(item.identifier)),
   );
+}
+
+/** The next occurrence of hour:minute on `dayOffset` days from today. */
+function occurrence(dayOffset: number, hour: number, minute: number) {
+  const when = new Date();
+  when.setDate(when.getDate() + dayOffset);
+  when.setHours(hour, minute, 0, 0);
+  return when;
 }
 
 export function useReminders() {
@@ -80,8 +109,9 @@ export function useReminders() {
   }, []);
 
   /**
-   * Re-applies the whole schedule from the current settings. Called after any
-   * change, so there is one code path rather than separate add/remove logic.
+   * Re-applies the whole schedule from the current settings. Called on every
+   * change and on launch, so there is one code path and the rolling window
+   * refills itself as days pass.
    */
   const sync = useCallback(
     async (settings: {
@@ -89,14 +119,13 @@ export function useReminders() {
       verseNotificationsEnabled: boolean;
       reminderTime: string;
     }) => {
-      // Notifications are unavailable in Expo Go on Android and on web.
+      // Notifications are unavailable on web.
       if (Platform.OS === 'web') return;
 
       const wanted = settings.remindersEnabled || settings.verseNotificationsEnabled;
 
       if (!wanted) {
-        await cancel(REMINDER_ID);
-        await cancel(VERSE_ID);
+        await cancelOurs();
         return;
       }
 
@@ -104,45 +133,58 @@ export function useReminders() {
       setPermission(allowed ? 'granted' : 'denied');
       if (!allowed) return;
 
+      // Clear the old window before laying down a fresh one, so re-running does
+      // not stack duplicates.
+      await cancelOurs();
+
       const { hour, minute } = parseReminderTime(settings.reminderTime);
+      const now = Date.now();
 
-      await cancel(REMINDER_ID);
-      if (settings.remindersEnabled) {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'Time to read',
-            body: 'A few minutes in the Word today.',
-            data: { id: REMINDER_ID },
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DAILY,
-            hour,
-            minute,
-          },
-        });
-      }
+      for (let offset = 0; offset <= WINDOW_DAYS; offset += 1) {
+        if (settings.remindersEnabled) {
+          const when = occurrence(offset, hour, minute);
+          // Today's slot may already have passed.
+          if (when.getTime() > now) {
+            const prompt = READING_PROMPTS[
+              Math.floor(when.getTime() / 86_400_000) % READING_PROMPTS.length
+            ];
+            await Notifications.scheduleNotificationAsync({
+              content: { title: prompt.title, body: prompt.body, data: { id: REMINDER_ID } },
+              trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: when },
+            });
+          }
+        }
 
-      await cancel(VERSE_ID);
-      if (settings.verseNotificationsEnabled) {
-        const verse = getVerseOfTheDay();
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: `Verse of the day — ${verse.reference}`,
-            // Trim so the banner is not a wall of text.
-            body: verse.text.replace(/[“”]/g, '').slice(0, 140),
-            data: { id: VERSE_ID },
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DAILY,
-            // An hour after the reading nudge, so they do not stack.
-            hour: (hour + 1) % 24,
-            minute,
-          },
-        });
+        if (settings.verseNotificationsEnabled) {
+          // An hour after the reading nudge, so the two do not arrive together.
+          const when = occurrence(offset, (hour + 1) % 24, minute);
+          if (when.getTime() > now) {
+            // The verse for that specific day, not today's repeated forever.
+            const verse = getVerseOfTheDay(when);
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: `Verse of the day — ${verse.reference}`,
+                body: verse.text.replace(/[“”]/g, '').slice(0, 140),
+                data: { id: VERSE_ID },
+              },
+              trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: when },
+            });
+          }
+        }
       }
     },
     [],
   );
 
-  return { permission, sync };
+  /** Exposed for a settings screen that wants to show what is queued. */
+  const pendingCount = useCallback(async () => {
+    if (Platform.OS === 'web') return 0;
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    return scheduled.filter((item) => {
+      const id = item.content.data?.id;
+      return id === REMINDER_ID || id === VERSE_ID;
+    }).length;
+  }, []);
+
+  return { permission, sync, pendingCount };
 }

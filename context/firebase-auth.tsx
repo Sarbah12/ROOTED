@@ -1,11 +1,51 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut as firebaseSignOut, type User } from 'firebase/auth';
+import {
+  getAuth,
+  initializeAuth,
+  onAuthStateChanged,
+  signOut as firebaseSignOut,
+  type Auth,
+  type User,
+} from 'firebase/auth';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
 
 import { BACKEND_API_BASE_URL, FIREBASE_CONFIG } from '@/constants/firebase';
 
 const firebaseApp = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
-const firebaseAuth = getAuth(firebaseApp);
+
+/**
+ * On React Native, getAuth() gives in-memory persistence only — the session is
+ * gone the moment the app is closed, so the user is asked to sign in on every
+ * launch. Persisting to AsyncStorage is what keeps them signed in.
+ *
+ * The web build already persists to browser storage, so getAuth is right there.
+ */
+function createAuth(): Auth {
+  if (Platform.OS === 'web') {
+    return getAuth(firebaseApp);
+  }
+
+  try {
+    // Not in the web type surface, so it is resolved off the module at runtime.
+    const { getReactNativePersistence } = require('firebase/auth') as {
+      getReactNativePersistence?: (storage: unknown) => unknown;
+    };
+
+    if (getReactNativePersistence) {
+      return initializeAuth(firebaseApp, {
+        persistence: getReactNativePersistence(AsyncStorage) as never,
+      });
+    }
+  } catch {
+    // initializeAuth throws if it already ran, e.g. after a fast refresh.
+  }
+
+  return getAuth(firebaseApp);
+}
+
+const firebaseAuth = createAuth();
 
 export function getFirebaseAuth() {
   return firebaseAuth;
