@@ -28,6 +28,7 @@ import { APP_THEMES } from '@/constants/app-theme';
 import { resolveIdentifier } from '@/constants/identity';
 import { getFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
+import { useAuthRedirect } from '@/hooks/use-auth-redirect';
 
 const AppleAuthenticationModule =
   Platform.OS === 'ios' ? AppleAuthentication : null;
@@ -95,6 +96,7 @@ export default function LoginScreen() {
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
   const router = useRouter();
+  const goAfterAuth = useAuthRedirect();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -160,6 +162,8 @@ export default function LoginScreen() {
     setIsSigningIn(true);
     try {
       await signInWithEmailAndPassword(auth, resolved.email, password);
+      goAfterAuth();
+      return;
     } catch (error) {
       const code = (error as { code?: string })?.code ?? '';
 
@@ -217,6 +221,8 @@ export default function LoginScreen() {
         idToken: credential.identityToken,
       });
       await signInWithCredential(auth, firebaseCredential);
+      goAfterAuth();
+      return;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to sign in with Apple.';
       Alert.alert('Apple sign-in failed', message);

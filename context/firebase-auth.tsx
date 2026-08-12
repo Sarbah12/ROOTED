@@ -82,20 +82,30 @@ type FirebaseAuthContextValue = {
 const FirebaseAuthContext = createContext<FirebaseAuthContextValue | null>(null);
 
 async function syncUserToBackend(token: string) {
-  const response = await fetch(`${BACKEND_API_BASE_URL}/v1/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ idToken: token }),
-  });
+  // Signing in must not hang on an unreachable server, so this gives up rather
+  // than waiting on the platform's default, which can be a minute or more.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
 
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    throw new Error(payload?.message || 'Unable to sync Firebase user to backend');
+  try {
+    const response = await fetch(`${BACKEND_API_BASE_URL}/v1/auth/login`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idToken: token }),
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new Error(payload?.message || 'Unable to sync Firebase user to backend');
+    }
+
+    return (await response.json()) as { user: BackendUser };
+  } finally {
+    clearTimeout(timer);
   }
-
-  return response.json() as Promise<{ user: BackendUser }>;
 }
 
 export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
@@ -117,15 +127,20 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
       }
 
       const token = await nextUser.getIdToken();
+
+      // Being signed in is a fact about Firebase, not about our server. Publish
+      // it straight away so screens react the moment sign-in succeeds; the
+      // backend profile is an enrichment that arrives when it arrives. Awaiting
+      // it here is what used to leave the app looking signed out until the user
+      // touched something.
       setIdToken(token);
+      setIsReady(true);
 
       try {
         const payload = await syncUserToBackend(token);
         setBackendUser(payload.user);
       } catch {
         setBackendUser(null);
-      } finally {
-        setIsReady(true);
       }
     });
   }, [auth]);

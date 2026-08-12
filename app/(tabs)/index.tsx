@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 import { getVerseOfTheDay } from '@/constants/verse-of-the-day';
+import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { useNotes } from '@/hooks/use-notes';
 import { usePlans } from '@/hooks/use-plans';
@@ -122,6 +123,11 @@ export default function HomeScreen() {
   const { notes } = useNotes();
   const { prayers } = usePrayers();
   const { plans, streak, isSignedIn } = usePlans();
+  const { firebaseUser } = useFirebaseAuth();
+
+  // Firebase carries the display name itself, so the greeting appears the
+  // instant sign-in succeeds and does not wait on the backend profile.
+  const firstName = firebaseUser?.displayName?.trim().split(/\s+/)[0] || null;
 
   // Rotates by calendar day, with the text read from the bundled KJV.
   const verseOfTheDay = useMemo(() => getVerseOfTheDay(), []);
@@ -173,7 +179,10 @@ export default function HomeScreen() {
             </View>
             <View>
               <Text style={[styles.brandKicker, { color: theme.textMuted }]}>Rooted</Text>
-              <Text style={[styles.brandTitle, { color: theme.text }]}>Study dashboard</Text>
+              {/* Signing in should be visible without hunting for it. */}
+              <Text style={[styles.brandTitle, { color: theme.text }]} numberOfLines={1}>
+                {firstName ? `Welcome back, ${firstName}` : 'Study dashboard'}
+              </Text>
             </View>
           </View>
 

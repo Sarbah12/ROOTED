@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,6 +26,10 @@ export function SignInRequired({
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
 
+  // Carry where the user was heading, so signing in returns them to the thing
+  // they wanted rather than dropping them on the home tab.
+  const pathname = usePathname();
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
       <View pointerEvents="none" style={[styles.glow, { backgroundColor: theme.glow }]} />
@@ -40,14 +44,14 @@ export function SignInRequired({
 
         <TouchableOpacity
           style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
-          onPress={() => router.push('/login')}
+          onPress={() => router.push({ pathname: '/login', params: { next: pathname } })}
           activeOpacity={0.85}>
           <Text style={styles.primaryBtnText}>Sign in</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.secondaryBtn}
-          onPress={() => router.push('/signup')}
+          onPress={() => router.push({ pathname: '/signup', params: { next: pathname } })}
           activeOpacity={0.7}>
           <Text style={[styles.secondaryText, { color: theme.primary }]}>Create an account</Text>
         </TouchableOpacity>

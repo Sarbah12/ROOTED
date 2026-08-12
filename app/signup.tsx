@@ -24,6 +24,7 @@ import {
 } from '@/constants/identity';
 import { getFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
+import { useAuthRedirect } from '@/hooks/use-auth-redirect';
 
 /**
  * Account creation.
@@ -36,6 +37,7 @@ import { useThemeMode } from '@/context/theme-mode';
 export default function SignUpScreen() {
   const auth = useMemo(() => getFirebaseAuth(), []);
   const router = useRouter();
+  const goAfterAuth = useAuthRedirect();
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
 
@@ -88,7 +90,8 @@ export default function SignUpScreen() {
     try {
       const credential = await createUserWithEmailAndPassword(auth, result.email, password);
       await updateProfile(credential.user, { displayName: displayName.trim() });
-      // The auth listener in context/firebase-auth routes onward from here.
+      goAfterAuth();
+      return;
     } catch (err) {
       const code = (err as { code?: string })?.code ?? '';
 
