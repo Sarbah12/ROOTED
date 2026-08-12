@@ -5,7 +5,6 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
-import { QUIZ_QUESTIONS } from '@/constants/quiz';
 import { getVerseOfTheDay } from '@/constants/verse-of-the-day';
 import { useThemeMode } from '@/context/theme-mode';
 import { useNotes } from '@/hooks/use-notes';

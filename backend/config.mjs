@@ -39,9 +39,6 @@ export function loadConfig(env = process.env) {
     resendApiKey: env.RESEND_API_KEY || null,
     resendFrom: env.RESEND_FROM || 'Rooted <onboarding@resend.dev>',
     appPublicUrl: env.APP_PUBLIC_URL || 'https://rootedbible.app',
-    apiKeys: {
-      openai: env.OPENAI_API_KEY || null,
-    },
     corsOrigins: parseList(env.CORS_ORIGINS),
     logLevel: env.LOG_LEVEL || 'info',
   };

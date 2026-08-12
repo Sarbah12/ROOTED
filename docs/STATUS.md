@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-08-07
+Last updated: 2026-08-12
 
 A candid account of what works, what is built but unverified, and what is still
 missing. See [README](../README.md) for how the app is put together.
@@ -14,8 +14,11 @@ Things that have actually been run and observed to work.
 | | Evidence |
 |---|---|
 | TypeScript compiles clean | `tsc --noEmit`, 0 errors |
-| iOS build succeeds | EAS build 10, signed `.ipa` |
+| Lint clean | `expo lint`, 0 errors and 0 warnings |
+| iOS build succeeds | EAS build `4baa7982`, signed `.ipa`, five minutes |
 | TestFlight upload | "Submitted your app to Apple App Store Connect" |
+| Verse rotation never repeats | 2,011 pool entries, full cycle walked: 2,011 distinct, 0 consecutive repeats, cycle 2 shares no position with cycle 1 |
+| Backend boots in a container | Clean `npm ci --omit=dev` of `backend/` alone serves `/health` 200 on `0.0.0.0` |
 | Offline Bible bundle | 66 books / 1,189 chapters / 31,100 verses |
 | Bible reader | John 3 and Psalms 23 rendered from the bundle in a running app |
 | Translation coverage | Genesis 1 requested from all 17; six are NT-only and badged |
@@ -57,10 +60,12 @@ live system. Expect some of it to need adjustment on first contact.
 - **Reading plan progress writes.** `PATCH /v1/reading-plans` exists; nothing
   calls it. Superseded in practice by study plans, so it may be dead weight.
 - **Welcome email trigger.** `POST /v1/auth/welcome` exists; sign-up does not
-  call it.
-- **Editing a plan after creation.** Plans can be created and archived, but
-  days cannot be changed once saved.
-- **Plan search.** The directory lists public plans; there is no query.
+  call it. Not a one-line fix: username and phone sign-ups are mapped onto
+  synthetic addresses (`@users.rootedbible.app`, `@phone.rootedbible.app`), so
+  sending blindly would hard-bounce and cost sender reputation. Both the caller
+  and the handler need to skip addresses that are not real inboxes.
+- **Blog cover images.** `posts.cover_image_url` exists in the schema; there is
+  no upload path and no storage bucket.
 
 ---
 
@@ -107,12 +112,22 @@ outside the project directory.
 
 ## TestFlight
 
-Build 9 is uploaded and processing. **It is already out of date** — it contains
-the phone-OTP login, which has since been replaced by password sign-in. A new
-build is needed once the Firebase provider is enabled.
+Build 13 (`4baa7982`, version 1.0.0) is uploaded and processing.
 
-What build 9 can usefully exercise: the Bible reader, quiz, and on-device
-persistence for notes, prayers, and settings.
+**It was built against the placeholder backend URL.** `eas.json` still points
+the production profile at `https://CHANGE-ME.example.com`, which does not
+resolve, so every server call fails at the network layer and the screens fall
+back to their cached-or-empty states rather than crashing. This was a deliberate
+choice — the on-device half was worth testing before the backend exists.
+
+What build 13 exercises honestly: the Bible reader and search, verse of the day
+and its rotation, staying signed in across restarts, highlights and reading
+position, the quiz, and on-device notes and prayers.
+
+What will fail in it: study plans, the blog, notes and prayer sync, streaks,
+reflections, and the licensed translations (NKJV, NLT, AMP).
+
+The next build must set that URL to the real Railway domain first.
 
 ---
 

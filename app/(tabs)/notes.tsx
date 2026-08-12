@@ -81,7 +81,6 @@ export default function StudyNotesScreen() {
     });
     setModalVisible(true);
     // Only when arriving with a reference attached.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.reference, params.seed]);
 
   const openCreate = () => {
