@@ -155,6 +155,27 @@ export function usePlan(planId: string | undefined) {
     await refresh();
   }, [planId, idToken, refresh]);
 
+  /**
+   * Owner-only edit. Sending `days` replaces the whole schedule, so callers
+   * pass every day back, not just the changed one.
+   */
+  const update = useCallback(
+    async (input: {
+      title?: string;
+      description?: string;
+      visibility?: StudyPlan['visibility'];
+      days?: { reference: string; title?: string; prompt?: string }[];
+    }) => {
+      if (!planId || !idToken) return;
+      await planRequest(`/v1/plans/${planId}`, idToken, {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+      });
+      await refresh();
+    },
+    [planId, idToken, refresh],
+  );
+
   return {
     plan,
     days,
@@ -166,6 +187,7 @@ export function usePlan(planId: string | undefined) {
     toggleDay,
     join,
     leave,
+    update,
     isSignedIn: Boolean(idToken),
   };
 }

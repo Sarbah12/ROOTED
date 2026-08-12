@@ -36,24 +36,36 @@ export default function PlansScreen() {
   const [joinCode, setJoinCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
 
-  const loadPublic = useCallback(async () => {
-    if (!idToken) return;
-    setIsLoadingPublic(true);
-    try {
-      const payload = await planRequest<{ plans: StudyPlan[] }>('/v1/plans?scope=public', idToken);
-      setPublicPlans(payload.plans ?? []);
-    } catch {
-      // Leave the list empty rather than showing anything invented.
-      setPublicPlans([]);
-    } finally {
-      setIsLoadingPublic(false);
-    }
-  }, [idToken]);
+  const loadPublic = useCallback(
+    async (term: string) => {
+      if (!idToken) return;
+      setIsLoadingPublic(true);
+      try {
+        const query = term.trim() ? `&q=${encodeURIComponent(term.trim())}` : '';
+        const payload = await planRequest<{ plans: StudyPlan[] }>(
+          `/v1/plans?scope=public${query}`,
+          idToken,
+        );
+        setPublicPlans(payload.plans ?? []);
+      } catch {
+        // Leave the list empty rather than showing anything invented.
+        setPublicPlans([]);
+      } finally {
+        setIsLoadingPublic(false);
+      }
+    },
+    [idToken],
+  );
 
+  // Wait for a pause in typing before searching, so a six-letter word is one
+  // request rather than six.
   useEffect(() => {
-    if (tab === 'discover') void loadPublic();
-  }, [tab, loadPublic]);
+    if (tab !== 'discover') return;
+    const timer = setTimeout(() => void loadPublic(search), search ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [tab, search, loadPublic]);
 
   const handleJoinByCode = async () => {
     const code = joinCode.trim().toUpperCase();
@@ -79,7 +91,7 @@ export default function PlansScreen() {
   const onRefresh = async () => {
     setIsRefreshing(true);
     await refresh();
-    if (tab === 'discover') await loadPublic();
+    if (tab === 'discover') await loadPublic(search);
     setIsRefreshing(false);
   };
 
@@ -183,6 +195,28 @@ export default function PlansScreen() {
           })}
         </View>
 
+        {tab === 'discover' ? (
+          <View style={[styles.searchRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Ionicons name="search" size={16} color={theme.textMuted} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.text }]}
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search plans, topics or people"
+              placeholderTextColor={theme.textMuted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+              clearButtonMode="while-editing"
+            />
+            {search ? (
+              <TouchableOpacity onPress={() => setSearch('')} hitSlop={10} activeOpacity={0.7}>
+                <Ionicons name="close-circle" size={17} color={theme.textMuted} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        ) : null}
+
         {error && tab === 'mine' ? (
           <TouchableOpacity
             onPress={refresh}
@@ -205,12 +239,18 @@ export default function PlansScreen() {
               <Ionicons name="layers-outline" size={24} color={theme.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: theme.text }]}>
-              {tab === 'mine' ? 'No plans yet' : 'Nothing public yet'}
+              {tab === 'mine'
+                ? 'No plans yet'
+                : search.trim()
+                  ? 'No matches'
+                  : 'Nothing public yet'}
             </Text>
             <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>
               {tab === 'mine'
                 ? 'Create a plan or join one with a code to start reading with others.'
-                : 'When people publish plans, they will show up here.'}
+                : search.trim()
+                  ? `Nothing public matches “${search.trim()}”. Try a shorter word, or a book of the Bible.`
+                  : 'When people publish plans, they will show up here.'}
             </Text>
             {tab === 'mine' ? (
               <TouchableOpacity
@@ -302,6 +342,8 @@ const styles = StyleSheet.create({
   joinBtn: { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 999, minWidth: 64, alignItems: 'center' },
   joinBtnText: { fontSize: 13.5, fontWeight: '800' },
   disabled: { opacity: 0.5 },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 9, borderWidth: 1, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 11, marginBottom: 14 },
+  searchInput: { flex: 1, fontSize: 14 },
   segRow: { flexDirection: 'row', padding: 4, borderRadius: 999, gap: 4, marginBottom: 16 },
   segBtn: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 999 },
   segText: { fontSize: 13, fontWeight: '800' },

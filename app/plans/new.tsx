@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -19,7 +19,7 @@ import { APP_THEMES } from '@/constants/app-theme';
 import { BIBLE_BOOKS } from '@/constants/bible-books';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
-import { planRequest } from '@/hooks/use-plan';
+import { planRequest, type PlanDay } from '@/hooks/use-plan';
 import type { StudyPlan } from '@/hooks/use-plans';
 
 type Visibility = 'private' | 'link' | 'public';
@@ -27,6 +27,8 @@ type Visibility = 'private' | 'link' | 'public';
 type DraftDay = {
   reference: string;
   prompt: string;
+  /** Carried through untouched; nothing sets it yet, but editing must not wipe it. */
+  title: string;
 };
 
 const VISIBILITY_OPTIONS: { value: Visibility; label: string; blurb: string; icon: string }[] = [
@@ -35,25 +37,69 @@ const VISIBILITY_OPTIONS: { value: Visibility; label: string; blurb: string; ico
   { value: 'public', label: 'Public', blurb: 'Listed for anyone to find', icon: 'globe-outline' },
 ];
 
+/** Creates a plan, or edits one when ?edit=<id> is passed. */
 export default function NewPlanScreen() {
   const router = useRouter();
+  const { edit } = useLocalSearchParams<{ edit?: string }>();
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
   const { idToken } = useFirebaseAuth();
 
+  const isEditing = Boolean(edit);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState<Visibility>('link');
-  const [days, setDays] = useState<DraftDay[]>([{ reference: '', prompt: '' }]);
+  const [days, setDays] = useState<DraftDay[]>([{ reference: '', prompt: '', title: '' }]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(edit));
+  const [originalDayCount, setOriginalDayCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Load the plan being edited.
+  useEffect(() => {
+    if (!edit || !idToken) return;
+    let active = true;
+
+    (async () => {
+      try {
+        const payload = await planRequest<{ plan: StudyPlan; days: PlanDay[] }>(
+          `/v1/plans/${edit}`,
+          idToken,
+        );
+        if (!active) return;
+
+        setTitle(payload.plan.title);
+        setDescription(payload.plan.description ?? '');
+        setVisibility(payload.plan.visibility);
+        setOriginalDayCount(payload.days.length);
+        setDays(
+          payload.days.length
+            ? payload.days.map((day) => ({
+                reference: day.reference,
+                prompt: day.prompt ?? '',
+                title: day.title ?? '',
+              }))
+            : [{ reference: '', prompt: '', title: '' }],
+        );
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : 'Could not load this plan.');
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [edit, idToken]);
 
   const updateDay = (index: number, patch: Partial<DraftDay>) => {
     setDays((prev) => prev.map((day, i) => (i === index ? { ...day, ...patch } : day)));
     setError(null);
   };
 
-  const addDay = () => setDays((prev) => [...prev, { reference: '', prompt: '' }]);
+  const addDay = () => setDays((prev) => [...prev, { reference: '', prompt: '', title: '' }]);
 
   const removeDay = (index: number) =>
     setDays((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== index)));
@@ -93,7 +139,35 @@ export default function NewPlanScreen() {
     setError(null);
   };
 
-  const handleCreate = async () => {
+  const submit = async (filled: DraftDay[]) => {
+    if (!idToken) return;
+
+    setIsSaving(true);
+    try {
+      const body = JSON.stringify({
+        title: title.trim(),
+        description: description.trim(),
+        visibility,
+        days: filled,
+      });
+
+      if (edit) {
+        await planRequest(`/v1/plans/${edit}`, idToken, { method: 'PATCH', body });
+        router.replace(`/plans/${edit}`);
+      } else {
+        const plan = await planRequest<StudyPlan>('/v1/plans', idToken, { method: 'POST', body });
+        router.replace(`/plans/${plan.id}`);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : `Could not ${edit ? 'save' : 'create'} the plan.`,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSave = () => {
     setError(null);
 
     if (!title.trim()) {
@@ -102,7 +176,11 @@ export default function NewPlanScreen() {
     }
 
     const filled = days
-      .map((day) => ({ reference: day.reference.trim(), prompt: day.prompt.trim() }))
+      .map((day) => ({
+        reference: day.reference.trim(),
+        prompt: day.prompt.trim(),
+        title: day.title,
+      }))
       .filter((day) => day.reference);
 
     if (filled.length === 0) {
@@ -111,31 +189,39 @@ export default function NewPlanScreen() {
     }
 
     if (!idToken) {
-      setError('Sign in to create a plan.');
+      setError(`Sign in to ${edit ? 'edit' : 'create'} a plan.`);
       return;
     }
 
-    setIsSaving(true);
-    try {
-      const plan = await planRequest<StudyPlan>('/v1/plans', idToken, {
-        method: 'POST',
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          visibility,
-          days: filled,
-        }),
-      });
-
-      router.replace(`/plans/${plan.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not create the plan.');
-    } finally {
-      setIsSaving(false);
+    // Shortening a plan drops everyone's ticks for the days that no longer
+    // exist, which is not recoverable — so say so before it happens.
+    const removed = originalDayCount - filled.length;
+    if (edit && removed > 0) {
+      Alert.alert(
+        `Remove ${removed} ${removed === 1 ? 'day' : 'days'}?`,
+        `Anyone following this plan will lose their progress on ${
+          removed === 1 ? 'that day' : 'those days'
+        }.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Save anyway', style: 'destructive', onPress: () => void submit(filled) },
+        ],
+      );
+      return;
     }
+
+    void submit(filled);
   };
 
   const filledCount = days.filter((day) => day.reference.trim()).length;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.safe, styles.centered, { backgroundColor: theme.background }]}>
+        <ActivityIndicator color={theme.primary} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -148,8 +234,12 @@ export default function NewPlanScreen() {
             <Text style={[styles.backText, { color: theme.textSecondary }]}>Plans</Text>
           </TouchableOpacity>
 
-          <Text style={[styles.kicker, { color: theme.textMuted }]}>New plan</Text>
-          <Text style={[styles.title, { color: theme.text }]}>Build a study plan</Text>
+          <Text style={[styles.kicker, { color: theme.textMuted }]}>
+            {isEditing ? 'Edit plan' : 'New plan'}
+          </Text>
+          <Text style={[styles.title, { color: theme.text }]}>
+            {isEditing ? 'Make changes' : 'Build a study plan'}
+          </Text>
 
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.label, { color: theme.textMuted }]}>Title</Text>
@@ -266,14 +356,15 @@ export default function NewPlanScreen() {
 
           <TouchableOpacity
             style={[styles.primaryBtn, { backgroundColor: theme.primary }, isSaving && styles.disabled]}
-            onPress={handleCreate}
+            onPress={handleSave}
             disabled={isSaving}
             activeOpacity={0.85}>
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text style={styles.primaryBtnText}>
-                Create plan · {filledCount} {filledCount === 1 ? 'day' : 'days'}
+                {isEditing ? 'Save changes' : 'Create plan'} · {filledCount}{' '}
+                {filledCount === 1 ? 'day' : 'days'}
               </Text>
             )}
           </TouchableOpacity>
@@ -286,6 +377,7 @@ export default function NewPlanScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
+  centered: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 44 },
   glow: { position: 'absolute', top: -90, right: -90, width: 220, height: 220, borderRadius: 110 },
   backRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },

@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
+import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { usePlan } from '@/hooks/use-plan';
 
@@ -23,6 +24,7 @@ export default function PlanDetailScreen() {
   const router = useRouter();
   const { isDarkMode } = useThemeMode();
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
+  const { firebaseUser } = useFirebaseAuth();
 
   const { plan, days, completedDays, members, isLoading, error, refresh, toggleDay, join, leave } =
     usePlan(id);
@@ -107,6 +109,7 @@ export default function PlanDetailScreen() {
 
   const done = completedDays.length;
   const ratio = plan.durationDays > 0 ? Math.min(1, done / plan.durationDays) : 0;
+  const isOwner = Boolean(firebaseUser?.uid && plan.ownerId === firebaseUser.uid);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -122,11 +125,21 @@ export default function PlanDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          {plan.isMember && plan.joinCode ? (
-            <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={styles.backBtn}>
-              <Ionicons name="share-outline" size={20} color={theme.textSecondary} />
-            </TouchableOpacity>
-          ) : null}
+          <View style={styles.topActions}>
+            {isOwner ? (
+              <TouchableOpacity
+                onPress={() => router.push(`/plans/new?edit=${plan.id}`)}
+                activeOpacity={0.8}
+                style={styles.backBtn}>
+                <Ionicons name="create-outline" size={20} color={theme.textSecondary} />
+              </TouchableOpacity>
+            ) : null}
+            {plan.isMember && plan.joinCode ? (
+              <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={styles.backBtn}>
+                <Ionicons name="share-outline" size={20} color={theme.textSecondary} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </View>
 
         <View style={[styles.heroCard, { backgroundColor: theme.primary }]}>
@@ -297,6 +310,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 40 },
   glow: { position: 'absolute', top: -90, right: -90, width: 220, height: 220, borderRadius: 110 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   backBtn: { padding: 4 },
   heroCard: { borderRadius: 28, padding: 20, marginBottom: 14 },
   heroHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },

@@ -49,6 +49,7 @@ import {
   reportContent,
   unblockUser,
   uncompleteDay,
+  updatePlan,
   updateReflection,
 } from './plans.mjs';
 import { loadConfig } from './config.mjs';
@@ -511,6 +512,25 @@ async function handleWelcomeEmail(req, res) {
 
 const MAX_REFLECTION_LENGTH = 2000;
 
+/** Validates and normalises a plan's schedule, shared by create and edit. */
+function normalizePlanDays(value) {
+  const days = Array.isArray(value) ? value : [];
+  if (days.length === 0) throw badRequest('A plan needs at least one day.');
+  if (days.length > 400) throw badRequest('A plan cannot exceed 400 days.');
+
+  for (const day of days) {
+    if (!day || typeof day.reference !== 'string' || !day.reference.trim()) {
+      throw badRequest('Every day needs a passage reference.');
+    }
+  }
+
+  return days.map((day) => ({
+    reference: day.reference.trim(),
+    title: typeof day.title === 'string' ? day.title.trim() : '',
+    prompt: typeof day.prompt === 'string' ? day.prompt.trim() : '',
+  }));
+}
+
 /** /v1/plans and /v1/plans/:id/... */
 async function handlePlans(req, res, parts, url) {
   const user = await requireUser(req);
@@ -531,7 +551,10 @@ async function handlePlans(req, res, parts, url) {
         return;
       }
 
-      const plans = scope === 'public' ? await listPublicPlans(userId) : await listMyPlans(userId);
+      const plans =
+        scope === 'public'
+          ? await listPublicPlans(userId, 50, url.searchParams.get('q') || '')
+          : await listMyPlans(userId);
       sendJson(res, 200, { plans });
       return;
     }
@@ -540,25 +563,11 @@ async function handlePlans(req, res, parts, url) {
       const body = assertBody(await readBody(req));
       rejectUnknownKeys(body, ['title', 'description', 'visibility', 'days'], 'plan');
 
-      const days = Array.isArray(body.days) ? body.days : [];
-      if (days.length === 0) throw badRequest('A plan needs at least one day.');
-      if (days.length > 400) throw badRequest('A plan cannot exceed 400 days.');
-
-      for (const day of days) {
-        if (!day || typeof day.reference !== 'string' || !day.reference.trim()) {
-          throw badRequest('Every day needs a passage reference.');
-        }
-      }
-
       const plan = await createPlan(userId, {
         title: requiredTrimmedString(body.title, 'title'),
         description: optionalTrimmedString(body.description) || '',
         visibility: optionalEnum(body.visibility, ['private', 'link', 'public'], 'visibility') || 'link',
-        days: days.map((day) => ({
-          reference: day.reference.trim(),
-          title: typeof day.title === 'string' ? day.title.trim() : '',
-          prompt: typeof day.prompt === 'string' ? day.prompt.trim() : '',
-        })),
+        days: normalizePlanDays(body.days),
       });
 
       sendJson(res, 201, plan);
@@ -580,6 +589,30 @@ async function handlePlans(req, res, parts, url) {
         getPlanMembers(userId, planId),
       ]);
       sendJson(res, 200, { plan, days, completedDays: progress, members });
+      return;
+    }
+
+    if (req.method === 'PATCH' || req.method === 'PUT') {
+      const body = assertBody(await readBody(req));
+      rejectUnknownKeys(body, ['title', 'description', 'visibility', 'days'], 'plan');
+
+      const updated = await updatePlan(userId, planId, {
+        title: body.title === undefined ? undefined : requiredTrimmedString(body.title, 'title'),
+        description:
+          body.description === undefined ? undefined : optionalTrimmedString(body.description) || '',
+        visibility:
+          body.visibility === undefined
+            ? undefined
+            : optionalEnum(body.visibility, ['private', 'link', 'public'], 'visibility'),
+        days: body.days === undefined ? undefined : normalizePlanDays(body.days),
+      });
+
+      // updatePlan returns null for anyone who does not own the plan.
+      if (!updated) {
+        throw new AppError(403, 'not_the_owner', 'Only the person who made this plan can edit it.');
+      }
+
+      sendJson(res, 200, { plan: updated });
       return;
     }
 

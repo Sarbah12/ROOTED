@@ -107,8 +107,22 @@ export async function listMyPlans(userId) {
   return rows.map(mapPlan);
 }
 
-/** The public directory, excluding plans by people the caller has blocked. */
-export async function listPublicPlans(userId, limit = 50) {
+/** Wildcards typed by the user are literal, not pattern syntax. */
+function likePattern(search) {
+  const escaped = String(search).replace(/[\\%_]/g, (char) => `\\${char}`);
+  return `%${escaped}%`;
+}
+
+/**
+ * The public directory, excluding plans by people the caller has blocked.
+ *
+ * `search` matches the title, the description, or the author's name. An empty
+ * search matches everything, so the directory and the search share one query.
+ */
+export async function listPublicPlans(userId, limit = 50, search = '') {
+  const term = String(search).trim();
+  const pattern = term ? likePattern(term) : null;
+
   const { rows } = await query(
     `select p.*, u.display_name as owner_name,
             (m.user_id is not null) as is_member, m.current_day
@@ -121,9 +135,15 @@ export async function listPublicPlans(userId, limit = 50) {
          select 1 from user_blocks b
          where b.blocker_id = $1 and b.blocked_id = p.owner_id
        )
+       and (
+         $3::text is null
+         or p.title ilike $3 escape '\\'
+         or coalesce(p.description, '') ilike $3 escape '\\'
+         or coalesce(u.display_name, '') ilike $3 escape '\\'
+       )
      order by p.member_count desc, p.created_at desc
      limit $2`,
-    [userId, limit]
+    [userId, limit, pattern]
   );
   return rows.map(mapPlan);
 }
@@ -194,6 +214,77 @@ export async function leavePlan(userId, planId) {
     [planId, userId]
   );
   return Boolean(row);
+}
+
+/**
+ * Edits a plan the caller owns. Returns null for anyone else, so the route does
+ * not have to check ownership separately.
+ *
+ * Passing `days` replaces the whole schedule: editing day 3 of a 30-day plan
+ * means sending all 30 back. Members who already finished a day keep that
+ * credit even if its reading changed — they did the work — but completions
+ * past the end of a shortened plan are removed, or progress could read as more
+ * days than the plan now has.
+ */
+export async function updatePlan(userId, planId, input) {
+  return transaction(async (client) => {
+    const owned = await client.query(
+      'select id from study_plans where id = $1 and owner_id = $2',
+      [planId, userId]
+    );
+    if (owned.rowCount === 0) return null;
+
+    const fields = [];
+    const values = [];
+
+    for (const [column, value] of [
+      ['title', input.title],
+      ['description', input.description],
+      ['visibility', input.visibility],
+    ]) {
+      if (value !== undefined) {
+        values.push(value);
+        fields.push(`${column} = $${values.length}`);
+      }
+    }
+
+    if (input.days !== undefined) {
+      await client.query('delete from study_plan_days where plan_id = $1', [planId]);
+
+      for (const [index, day] of input.days.entries()) {
+        await client.query(
+          `insert into study_plan_days (plan_id, day, reference, title, prompt)
+           values ($1, $2, $3, $4, $5)`,
+          [planId, index + 1, day.reference, day.title ?? '', day.prompt ?? '']
+        );
+      }
+
+      const length = input.days.length;
+      values.push(length);
+      fields.push(`duration_days = $${values.length}`);
+
+      await client.query('delete from plan_completions where plan_id = $1 and day > $2', [
+        planId,
+        length,
+      ]);
+      await client.query(
+        'update plan_members set current_day = least(current_day, $2) where plan_id = $1',
+        [planId, Math.max(1, length)]
+      );
+    }
+
+    if (fields.length === 0) {
+      const unchanged = await client.query('select * from study_plans where id = $1', [planId]);
+      return mapPlan(unchanged.rows[0]);
+    }
+
+    values.push(planId);
+    const { rows } = await client.query(
+      `update study_plans set ${fields.join(', ')} where id = $${values.length} returning *`,
+      values
+    );
+    return mapPlan(rows[0]);
+  });
 }
 
 export async function archivePlan(userId, planId) {
