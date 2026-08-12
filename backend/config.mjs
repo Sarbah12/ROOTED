@@ -24,7 +24,9 @@ export function loadConfig(env = process.env) {
 
   return {
     nodeEnv,
-    host: env.HOST || '127.0.0.1',
+    // Containers must listen on every interface or the platform's router cannot
+    // reach them. Locally, loopback keeps the dev server off the network.
+    host: env.HOST || (nodeEnv === 'production' ? '0.0.0.0' : '127.0.0.1'),
     port: parsePort(env.PORT, 3333),
     databaseUrl: env.DATABASE_URL || null,
     firebaseProjectId: env.FIREBASE_PROJECT_ID || null,

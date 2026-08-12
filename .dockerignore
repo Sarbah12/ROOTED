@@ -1,0 +1,5 @@
+# The image needs backend/ and nothing else. Excluding everything first keeps
+# the bundled Bible, the app source and node_modules out of the build context.
+*
+!backend
+backend/node_modules
