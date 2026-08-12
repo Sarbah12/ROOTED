@@ -3,7 +3,17 @@
 Slides: `out/rooted-carousel-1.png` … `-8.png`, in order. 1080×1350 (4:5).
 
 Arc: hello → where the name comes from → the problem → what we made → how it
-is meant to be used → what we promise → where we are → come with us.
+is meant to be used → what we promise → come with us.
+
+Style: bold colour-blocked slides alternating with light ones, heavy headlines
+with the key word highlighted in gold, and the product carried in device frames
+rather than photography. The app screens are drawn from the real palette and
+real content — the verse on the phone is one the rotation actually serves, and
+the highlighted John 3:16 is how marking a verse actually looks.
+
+**If you want photography in it** (the reference style leans on it), the natural
+slots are slide 3 and slide 6, behind the headline with a dark overlay. I cannot
+produce photographs, so those slides carry product UI instead.
 
 ---
 
