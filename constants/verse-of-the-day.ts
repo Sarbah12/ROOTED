@@ -1,80 +1,92 @@
 import { BIBLE_BOOKS_BY_ID } from '@/constants/bible-books';
 import { getOfflineChapter } from '@/constants/bible-offline';
+import { VERSE_POOL } from '@/constants/verse-pool';
 
 /**
  * Verse of the day.
  *
- * The reference rotates by calendar day and the text is read from the bundled
- * KJV, so it is genuinely a different verse each day rather than a fixed string
- * labelled "today".
+ * A different verse every day, for years, without repeating — and without
+ * storing any state. The day number is mapped through a bijection over the
+ * pool, so each cycle visits every verse exactly once before any repeats, and
+ * each cycle walks them in a different order.
+ *
+ * With ~2,000 verses that is over five years before one comes round again, and
+ * the order differs when it does.
  */
 
-type VerseRef = {
-  bookId: string;
-  chapter: number;
-  verse: number;
-  theme: string;
-};
-
-const ROTATION: VerseRef[] = [
-  { bookId: 'jhn', chapter: 3, verse: 16, theme: 'Love' },
-  { bookId: 'psa', chapter: 23, verse: 1, theme: 'Comfort' },
-  { bookId: 'pro', chapter: 3, verse: 5, theme: 'Trust' },
-  { bookId: 'isa', chapter: 40, verse: 31, theme: 'Strength' },
-  { bookId: 'rom', chapter: 8, verse: 28, theme: 'Purpose' },
-  { bookId: 'phi', chapter: 4, verse: 13, theme: 'Strength' },
-  { bookId: 'jos', chapter: 1, verse: 9, theme: 'Courage' },
-  { bookId: 'psa', chapter: 46, verse: 1, theme: 'Refuge' },
-  { bookId: 'mat', chapter: 6, verse: 33, theme: 'Priorities' },
-  { bookId: 'jer', chapter: 29, verse: 11, theme: 'Hope' },
-  { bookId: 'psa', chapter: 119, verse: 105, theme: 'Guidance' },
-  { bookId: 'jas', chapter: 1, verse: 5, theme: 'Wisdom' },
-  { bookId: 'eph', chapter: 2, verse: 8, theme: 'Grace' },
-  { bookId: '1co', chapter: 13, verse: 13, theme: 'Love' },
-  { bookId: 'gal', chapter: 5, verse: 22, theme: 'Growth' },
-  { bookId: 'heb', chapter: 11, verse: 1, theme: 'Faith' },
-  { bookId: 'psa', chapter: 27, verse: 1, theme: 'Confidence' },
-  { bookId: 'mat', chapter: 11, verse: 28, theme: 'Rest' },
-  { bookId: '2co', chapter: 5, verse: 17, theme: 'New life' },
-  { bookId: 'pro', chapter: 9, verse: 10, theme: 'Wisdom' },
-  { bookId: 'jhn', chapter: 14, verse: 6, theme: 'The Way' },
-  { bookId: 'psa', chapter: 1, verse: 3, theme: 'Rooted' },
-  { bookId: 'isa', chapter: 41, verse: 10, theme: 'Assurance' },
-  { bookId: 'rom', chapter: 12, verse: 2, theme: 'Renewal' },
-  { bookId: 'mic', chapter: 6, verse: 8, theme: 'Justice' },
-  { bookId: 'psa', chapter: 139, verse: 14, theme: 'Identity' },
-  { bookId: 'jhn', chapter: 15, verse: 5, theme: 'Abiding' },
-  { bookId: '1pe', chapter: 5, verse: 7, theme: 'Care' },
-  { bookId: 'col', chapter: 3, verse: 23, theme: 'Work' },
-  { bookId: 'lam', chapter: 3, verse: 22, theme: 'Mercy' },
-  { bookId: 'act', chapter: 1, verse: 8, theme: 'Power' },
-];
-
-/** Days since epoch, so the verse changes at local midnight. */
+/** Days since the Unix epoch, so the verse turns over at local midnight. */
 function dayIndex(date: Date) {
-  const local = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
-  return Math.floor(local / 86_400_000);
+  return Math.floor(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000,
+  );
+}
+
+/**
+ * Largest odd number below n that shares no factor with it, used as the stride.
+ * Any stride coprime with n visits every position exactly once, which is what
+ * makes the walk a permutation rather than a sampling.
+ */
+function coprimeStride(n: number) {
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+
+  // Roughly the golden ratio gives a well-spread stride; walk down to the first
+  // coprime value from there.
+  let stride = Math.floor(n * 0.618) | 1;
+  while (stride > 1 && gcd(stride, n) !== 1) stride -= 2;
+  return stride > 1 ? stride : 1;
+}
+
+const POOL_SIZE = VERSE_POOL.length;
+const STRIDE = coprimeStride(POOL_SIZE);
+
+/**
+ * Position within the pool for a given day.
+ *
+ * `cycle` shifts the starting point each time round, so the second pass through
+ * the pool is not the same sequence as the first.
+ */
+function poolIndexFor(day: number) {
+  const cycle = Math.floor(day / POOL_SIZE);
+  const position = ((day % POOL_SIZE) + POOL_SIZE) % POOL_SIZE;
+  return (position * STRIDE + cycle * 7919) % POOL_SIZE;
 }
 
 export type DailyVerse = {
   text: string;
   reference: string;
+  /** The book, used as a light-touch label in the UI. */
   theme: string;
 };
 
 export function getVerseOfTheDay(date = new Date()): DailyVerse {
-  const pick = ROTATION[dayIndex(date) % ROTATION.length];
-  const book = BIBLE_BOOKS_BY_ID[pick.bookId];
-  const verses = getOfflineChapter(pick.bookId, pick.chapter);
-  const text = verses?.[pick.verse - 1];
+  const day = dayIndex(date);
 
-  const reference = `${book?.name ?? pick.bookId} ${pick.chapter}:${pick.verse}`;
+  // Walk forward if an entry somehow cannot be read, rather than showing
+  // nothing. The bundle covers all 66 books, so this should not trigger.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const entry = VERSE_POOL[poolIndexFor(day + attempt)];
+    if (!entry) continue;
 
-  // The bundle covers all 66 books, so this should not happen — but never show
-  // a placeholder verse if it somehow does.
-  if (!text) {
-    return { text: '', reference, theme: pick.theme };
+    const [bookId, chapter, verse] = entry;
+    const book = BIBLE_BOOKS_BY_ID[bookId];
+    const verses = getOfflineChapter(bookId, chapter);
+    const text = verses?.[verse - 1];
+
+    if (book && text) {
+      return {
+        // Psalm titles are bracketed in the source and read oddly alone.
+        text: `“${text.replace(/^\[[^\]]*\]\s*/, '')}”`,
+        reference: `${book.name} ${chapter}:${verse}`,
+        theme: book.name,
+      };
+    }
   }
 
-  return { text: `“${text}”`, reference, theme: pick.theme };
+  return { text: '', reference: '', theme: '' };
 }
+
+/** Exposed so the About screen can state how long the rotation runs. */
+export const VERSE_ROTATION = {
+  poolSize: POOL_SIZE,
+  yearsBeforeRepeat: POOL_SIZE / 365,
+};
