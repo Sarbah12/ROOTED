@@ -150,142 +150,125 @@ function membersList() {
       .join('')}`);
 }
 
-/** A sermon note with the fields the app actually stores. */
-function noteCard() {
-  return panel(`
-    <div style="display:flex;gap:12px;margin-bottom:24px">
-      ${['SERMON', 'SUNDAY SERVICE']
-        .map(
-          (tag, i) => `<span style="
-            background:${i ? C.bg : C.greenSoft};border-radius:99px;padding:11px 22px;
-            font-size:19px;font-weight:800;letter-spacing:.08em;
-            color:${i ? C.muted : C.green}">${tag}</span>`,
-        )
-        .join('')}
-    </div>
-    <div style="font-family:Georgia,serif;font-size:38px;color:${C.ink};margin-bottom:20px">
-      Abiding, not striving
-    </div>
-    <div style="display:flex;gap:40px;margin-bottom:24px;font-size:23px;color:${C.body}">
-      <span>Ps. <b style="color:${C.ink}">Daniel Mensah</b></span>
-      <span>John 15:1–8</span>
-    </div>
-    <div style="
-      border-left:4px solid ${C.gold};padding-left:24px;
-      font-family:Georgia,serif;font-size:26px;line-height:1.5;color:${C.body}">
-      “The branch does not strain to stay attached. It simply stays.”
-    </div>`);
-}
+/** What is in the app, at a glance rather than one slide each. */
+function overviewGrid() {
+  const items = [
+    ['Bible reader', 'All 66 books, offline'],
+    ['Verse of the day', 'Never the same twice'],
+    ['Study plans', 'Followed with others'],
+    ['Notes & sermons', 'Preacher, passage, series'],
+    ['Prayer list', 'Marked answered'],
+    ['Quiz', 'By book or topic'],
+  ];
 
-/** Prayer on the left, quiz on the right. */
-function prayerQuiz() {
-  return `<div style="display:flex;gap:22px">
-    <div style="flex:1">${panel(
-      `<div style="font-size:20px;font-weight:800;letter-spacing:.12em;color:${C.gold};margin-bottom:24px">PRAYER LIST</div>
-       ${[
-         ['Mum’s results', true],
-         ['Job interview', true],
-         ['Wisdom for the move', false],
-       ]
-         .map(
-           ([text, done], i) => `
-        <div style="display:flex;align-items:center;gap:16px;padding:16px 0;${
-          i ? `border-top:1px solid ${C.border}` : ''
-        }">
-          <span style="
-            width:30px;height:30px;flex:none;border-radius:50%;
-            background:${done ? C.green : 'transparent'};border:2px solid ${done ? C.green : C.border};
-            color:#fff;font-size:17px;font-weight:800;
-            display:flex;align-items:center;justify-content:center">${done ? '✓' : ''}</span>
-          <span style="font-size:23px;color:${done ? C.muted : C.ink};${
-            done ? 'text-decoration:line-through' : ''
-          }">${text}</span>
-        </div>`,
-         )
-         .join('')}`,
-      '32px 30px',
-      'height:100%',
-    )}</div>
-    <div style="flex:1">${panel(
-      `<div style="font-size:20px;font-weight:800;letter-spacing:.12em;color:${C.gold};margin-bottom:22px">QUIZ · JOHN</div>
-       <div style="font-family:Georgia,serif;font-size:27px;line-height:1.4;color:${C.ink};margin-bottom:22px">
-         Who said “I am the true vine”?
-       </div>
-       ${['Paul', 'Jesus', 'Isaiah']
-         .map(
-           (option, i) => `
-        <div style="
-          border:2px solid ${i === 1 ? C.green : C.border};
-          background:${i === 1 ? C.greenSoft : 'transparent'};
-          border-radius:16px;padding:16px 20px;margin-top:12px;
-          font-size:23px;font-weight:${i === 1 ? 700 : 500};
-          color:${i === 1 ? C.green : C.body}">${option}</div>`,
-         )
-         .join('')}`,
-      '32px 30px',
-      'height:100%',
-    )}</div>
+  return `<div style="display:flex;flex-wrap:wrap;gap:18px">
+    ${items
+      .map(
+        ([title, sub]) => `
+      <div style="
+        width:calc(50% - 9px);background:${C.surface};border:1px solid ${C.border};
+        border-radius:26px;padding:28px 30px">
+        <div style="font-family:Georgia,serif;font-size:29px;color:${C.ink};margin-bottom:9px">${title}</div>
+        <div style="font-size:22px;color:${C.muted}">${sub}</div>
+      </div>`,
+      )
+      .join('')}
   </div>`;
 }
 
+/** The commitments, each one something the app already does. */
+function promiseList() {
+  const promises = [
+    'Reading the Bible stays free, with no account needed',
+    'The whole Bible works with no signal at all',
+    'Your progress is your real progress — never a placeholder',
+    'Notes, prayers and highlights live on your device first',
+  ];
+
+  return panel(
+    promises
+      .map(
+        (text, i) => `
+      <div style="display:flex;align-items:flex-start;gap:22px;padding:24px 0;${
+        i ? `border-top:1px solid ${C.border}` : ''
+      }">
+        <span style="
+          width:34px;height:34px;flex:none;border-radius:50%;background:${C.greenSoft};
+          display:flex;align-items:center;justify-content:center;
+          font-size:19px;font-weight:800;color:${C.green}">✓</span>
+        <span style="font-size:26px;line-height:1.42;color:${C.ink}">${text}</span>
+      </div>`,
+      )
+      .join(''),
+    '20px 40px',
+  );
+}
+
+/**
+ * An introduction, not a feature tour. The first post has to say who this is
+ * and why it exists before it lists anything, so the arc runs: hello → where
+ * the name comes from → the problem → what we made → what we promise → where
+ * we are → come with us.
+ */
 const slides = [
   {
     kind: 'cover',
-    kicker: 'A Bible study app',
-    display: 'Scripture that actually<br><em>sticks</em>.',
-    body: 'Built for people who keep starting over in January and stalling by February.',
+    kicker: 'Hello',
+    display: 'We’re <em>Rooted</em>.',
+    body: 'A new Bible study app — and this is the first thing we have ever posted. Here is what we are making, and why.',
+  },
+  {
+    kind: 'verse',
+    label: 'Where the name comes from',
+    verse: 'Rooted and built up in him, and stablished in the faith, as ye have been taught, abounding therein with thanksgiving.',
+    ref: 'Colossians 2:7',
+    note: 'Roots do their work out of sight, slowly, long before anything shows above ground. That felt like the right picture for time spent in Scripture.',
   },
   {
     kind: 'feature',
     n: '01',
-    label: 'Open to everyone',
-    display: 'The whole Bible.<br>No account.',
-    body: 'Sixty-six books and 31,100 verses are bundled into the app itself, so it opens with no signal and no sign-up.',
-    visual: booksGrid,
+    label: 'Why we are building it',
+    display: 'Most Bible plans<br>die in February.',
+    body: 'Not for lack of wanting. You begin in January, miss four days in a row, open the app to a wall of red, and quietly stop. We have all done it.',
+    visual: weekList,
   },
   {
     kind: 'feature',
     n: '02',
-    label: 'Verse of the day',
-    display: 'A different verse<br>every day for five<br>and a half years.',
-    body: 'Most apps loop the same handful and you notice within a month. Rooted walks a pool of 2,011 and repeats none of them until it has shown you all.',
-    visual: weekList,
-  },
-  {
-    kind: 'verse',
-    label: 'Today',
-    verse: 'The angel of the LORD encampeth round about them that fear him, and delivereth them.',
-    ref: 'Psalm 34:7',
+    label: 'What Rooted is',
+    display: 'One place for<br>the whole habit.',
+    body: 'Reading, the verse you wake up to, the plan you share with friends, Sunday’s notes, your prayer list — instead of four apps and a notebook.',
+    visual: overviewGrid,
   },
   {
     kind: 'feature',
     n: '03',
-    label: 'Read together',
-    display: 'Plans you finish,<br>because someone<br>is reading with you.',
-    body: 'Start a plan, share the code, and watch everyone move through it together.',
+    label: 'Made to be kept up with',
+    display: 'Read with people,<br>not at them.',
+    body: 'Start a plan, share the code, and move through it together. Missing a day does not wipe anything out — you pick it back up where you are.',
     visual: membersList,
   },
   {
     kind: 'feature',
     n: '04',
-    label: 'Notes & sermons',
-    display: 'Sunday’s sermon,<br>still there on Thursday.',
-    body: 'Keep the preacher, the passage and the series together. Highlight a verse while reading and it carries into a note with the reference attached.',
-    visual: noteCard,
+    label: 'What we promise',
+    display: 'Four things<br>we will not<br>compromise on.',
+    body: 'These are not plans for later. They are how the app is built today.',
+    visual: promiseList,
   },
   {
     kind: 'feature',
     n: '05',
-    label: 'Prayer & quiz',
-    display: 'Track what you pray.<br>Test what you learn.',
-    body: 'Keep a prayer list and mark the answers as they come. Then quiz yourself on the book you have just studied.',
-    visual: prayerQuiz,
+    label: 'Where we are',
+    display: 'Being built,<br>in the open.',
+    body: 'Rooted is in testing on iOS right now, with the Bible reader, the daily verse, plans, notes, prayers and quizzes all working. We will show the rest as it lands.',
+    visual: booksGrid,
   },
   {
     kind: 'cta',
     kicker: 'Coming to iOS',
-    display: 'Get rooted.',
-    body: 'Reading stays free, with no account needed.',
+    display: 'Come with us.',
+    body: 'Follow along and watch it grow. Reading stays free, with no account needed.',
   },
 ];
 
@@ -343,6 +326,7 @@ function render(slide, index) {
 
   if (slide.kind === 'cover') {
     inner = `
+      <div class="spacer"></div>
       <div class="mark" style="--s:1.5;margin-bottom:56px"></div>
       <div class="kicker">${slide.kicker}</div>
       <div class="rule" style="margin-bottom:44px"></div>
@@ -368,16 +352,14 @@ function render(slide, index) {
       <div style="
         background:${C.surface};border:1px solid ${C.border};border-radius:44px;
         padding:76px 68px;box-shadow:0 30px 70px rgba(22,33,28,.07)">
-        <div style="font-family:Georgia,serif;font-size:60px;line-height:1.34;color:${C.ink}">
+        <div style="font-family:Georgia,serif;font-size:52px;line-height:1.36;color:${C.ink}">
           “${slide.verse}”
         </div>
-        <div style="margin-top:40px;font-size:29px;font-weight:700;color:${C.green};letter-spacing:.02em">
+        <div style="margin-top:36px;font-size:29px;font-weight:700;color:${C.green};letter-spacing:.02em">
           ${slide.ref}
         </div>
       </div>
-      <div class="body" style="margin-top:52px;font-size:29px">
-        Tomorrow brings another. So does the day after that, for years.
-      </div>
+      <div class="body" style="margin-top:48px;font-size:28px">${slide.note}</div>
       <div class="spacer"></div>
       ${foot(index)}`;
   } else {

@@ -1,40 +1,64 @@
-# Launch carousel — caption
+# First post — introduction carousel
 
 Slides: `out/rooted-carousel-1.png` … `-8.png`, in order. 1080×1350 (4:5).
+
+Arc: hello → where the name comes from → the problem → what we made → how it
+is meant to be used → what we promise → where we are → come with us.
 
 ---
 
 ## Caption
 
-Most Bible apps show you the same thirty verses on a loop. You notice by
-February, and by March you have stopped opening it.
+Hello. We’re Rooted.
 
-Rooted is built the other way round.
+We are building a Bible study app, and this is the first thing we have ever
+posted — so it seems right to start with why.
 
-→ The whole Bible, offline, with no account and no sign-up
-→ A different verse every day for five and a half years before one repeats
-→ Study plans you follow with other people, so you actually finish
-→ Sermon notes that keep the preacher, the passage and the series together
-→ A prayer list you can mark answered, and quizzes on what you just read
+Most Bible plans die in February. Not for lack of wanting. You start in
+January, miss four days in a row, open the app to a wall of red, and quietly
+stop. We have all done it.
 
-Reading stays free. Always.
+So we are making something you can keep up with. The whole Bible, offline,
+free to read with no account. A different verse each morning that will not
+repeat for five and a half years. Plans you follow alongside other people, so
+missing a Tuesday does not end the whole thing. Somewhere for Sunday’s
+sermon notes and your prayer list to live.
 
-Coming to iOS. 🌱
+The name comes from Colossians 2:7 — “Rooted and built up in him.” Roots do
+their work out of sight, slowly, long before anything shows above ground.
+That felt like the right picture for time spent in Scripture.
+
+It is in testing on iOS now. Follow along and watch it grow. 🌱
 
 ---
 
 ## Hashtags
 
-#BibleStudy #BibleApp #DailyVerse #Scripture #QuietTime #FaithTech
-#ChristianApp #BibleReadingPlan #VerseOfTheDay #Devotional
+#BibleStudy #BibleApp #DailyVerse #Scripture #QuietTime #Colossians27
+#ChristianApp #BibleReadingPlan #VerseOfTheDay #Devotional #FaithTech
 
 ---
 
-## Notes before posting
+## Before posting
 
-- The verse-of-the-day figures are real: 2,011 verses in the pool, which is
-  5.5 years at one a day. Do not round them up in comments.
-- "Coming to iOS" is accurate today — the app is on TestFlight, not the App
-  Store. Swap slide 8 for a real link once it ships.
-- The names on the plans slide (Ama, Kwesi, Nana) are invented, and the sermon
-  note is written for the post. Nothing here is a real person's data.
+- **Slide 8 says "Coming to iOS."** That is true today — Rooted is on
+  TestFlight, not the App Store. Swap it for a real link once it ships, then
+  re-run `node marketing/instagram/build-carousel.mjs`.
+- **The numbers are real.** 66 books and 31,100 verses bundled, 2,011 in the
+  verse pool, 5.5 years before a repeat. Do not round them up in the comments.
+- **Nothing here is a real person's data.** The names on the plans slide (Ama,
+  Kwesi, Nana) and the join code are invented for the post.
+- The four promises on slide 6 all describe how the app behaves today. If any
+  of them stops being true, pull the slide rather than quietly reword it — a
+  first post is the worst place to make a promise you have to walk back.
+
+---
+
+## Rebuilding
+
+```bash
+node marketing/instagram/build-carousel.mjs
+```
+
+Edit the `slides` array to change copy; every slide re-renders. The palette is
+the app's own, so it stays in step with the product.
