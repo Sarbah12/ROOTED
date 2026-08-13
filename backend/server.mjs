@@ -11,6 +11,7 @@ import {
   verifyLoginToken,
 } from './auth.mjs';
 import { getChapter, isBibleApiConfigured, listBibles } from './bible.mjs';
+import { getNltChapter, isNltConfigured } from './nlt.mjs';
 import { isEmailConfigured, sendPasswordResetEmail, sendWelcomeEmail } from './email.mjs';
 import {
   createComment,
@@ -782,6 +783,22 @@ async function handleBlocks(req, res, targetId) {
  */
 async function handleBible(req, res, parts) {
   await requireUser(req);
+
+  // The NLT comes from Tyndale directly rather than through API.Bible, so it
+  // is served whether or not an API.Bible key exists.
+  if (parts[2] === 'nlt' && parts[3] && parts[4] && req.method === 'GET') {
+    if (!isNltConfigured()) {
+      throw new AppError(503, 'nlt_unavailable', 'The NLT is not configured on this server.');
+    }
+
+    const chapterNumber = Number(parts[4]);
+    if (!Number.isInteger(chapterNumber) || chapterNumber < 1) {
+      throw badRequest('Invalid chapter.');
+    }
+
+    sendJson(res, 200, await getNltChapter(parts[3], chapterNumber));
+    return;
+  }
 
   if (!isBibleApiConfigured()) {
     throw new AppError(

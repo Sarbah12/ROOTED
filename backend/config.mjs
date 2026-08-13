@@ -34,8 +34,10 @@ export function loadConfig(env = process.env) {
     firebasePrivateKey: env.FIREBASE_PRIVATE_KEY || null,
     firebaseServiceAccountJson: env.FIREBASE_SERVICE_ACCOUNT_JSON || null,
     firebaseAuthEmulatorHost: env.FIREBASE_AUTH_EMULATOR_HOST || null,
-    // API.Bible licences copyrighted translations (NKJV, NLT, AMP …).
+    // API.Bible licences copyrighted translations (NKJV, AMP …).
     apiBibleKey: env.API_BIBLE_KEY || null,
+    // The NLT comes straight from its publisher instead (api.nlt.to).
+    nltApiKey: env.NLT_API_KEY || null,
     resendApiKey: env.RESEND_API_KEY || null,
     resendFrom: env.RESEND_FROM || 'Rooted <onboarding@resend.dev>',
     appPublicUrl: env.APP_PUBLIC_URL || 'https://rootedbible.app',

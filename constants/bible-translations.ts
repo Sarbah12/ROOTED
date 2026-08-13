@@ -235,15 +235,18 @@ export const TRANSLATIONS: Translation[] = [
 ];
 
 /**
- * Copyrighted translations, licensed through API.Bible.
+ * Copyrighted translations. Each stays inert until its `bibleId` is filled in,
+ * so a translation never appears in the picker unless it can actually load.
  *
- * These are inert until two things are true: the backend has API_BIBLE_KEY set,
- * and `bibleId` below is filled in with the id from your account. The free
- * Starter plan allows three copyrighted Bibles and is non-commercial only — the
- * moment the app carries ads or charges money it needs a paid plan, and NIV
- * commercial use is not offered at all.
+ * NKJV and AMP come through API.Bible: set API_BIBLE_KEY on the backend and
+ * take ids from GET /v1/bible/versions. The free Starter plan allows three
+ * copyrighted Bibles and is non-commercial only — the moment the app carries
+ * ads or charges money it needs a paid plan, and NIV commercial use is not
+ * offered at all.
  *
- * Get ids from GET /v1/bible/versions once the key is configured.
+ * The NLT does not go through API.Bible. Tyndale publish it and run their own
+ * API (api.nlt.to), which gives 5,000 requests a day on a free key and a
+ * direct line for a commercial licence later. It needs NLT_API_KEY instead.
  */
 export const LICENSED_TRANSLATIONS: Translation[] = [
   {
@@ -265,7 +268,11 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     provider: 'licensed',
     coverage: 'full',
     language: 'English',
-    note: 'Requires a licence',
+    // Not API.Bible. Tyndale publish the NLT and run their own API for it, so
+    // this goes to them directly — better limits, and a licence conversation
+    // with the people who own the text. The backend routes `nlt` accordingly.
+    bibleId: 'nlt',
+    note: 'Licensed from Tyndale',
     copyright: '© Tyndale House Publishers',
   },
   {
