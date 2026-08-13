@@ -1,4 +1,5 @@
 import { BOOK_NAMES } from './books.mjs';
+import { readCache, writeCache } from './chapter-cache.mjs';
 import { config } from './config.mjs';
 
 /**
@@ -22,11 +23,6 @@ import { config } from './config.mjs';
 
 const API_BASE = 'https://api.nlt.to/api';
 const TIMEOUT_MS = 12_000;
-
-/** Tyndale's limit is 5,000 requests a day, and chapters do not change. */
-const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
-const CACHE_MAX = 400;
-const cache = new Map();
 
 export function isNltConfigured() {
   return Boolean(config.nltApiKey);
@@ -151,10 +147,9 @@ export async function getNltChapter(bookId, chapter) {
 
   const ref = `${name}.${chapter}`;
 
-  const cached = cache.get(ref);
-  if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
-    return cached.value;
-  }
+  const cacheKey = `nlt:${ref}`;
+  const cached = readCache(cacheKey);
+  if (cached) return cached;
 
   const html = await request(ref);
   const verses = [];
@@ -169,17 +164,10 @@ export async function getNltChapter(bookId, chapter) {
     throw new Error(`No NLT text returned for ${ref}`);
   }
 
-  const value = {
+  return writeCache(cacheKey, {
     verses,
     copyright:
       'Holy Bible, New Living Translation, copyright © 1996, 2004, 2015 by ' +
       'Tyndale House Foundation. Used by permission of Tyndale House Publishers.',
-  };
-
-  // Oldest out first; chapters are small and this only exists to stay under
-  // the daily request limit.
-  if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
-  cache.set(ref, { at: Date.now(), value });
-
-  return value;
+  });
 }

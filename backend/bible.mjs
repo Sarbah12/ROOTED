@@ -1,3 +1,4 @@
+import { readCache, writeCache } from './chapter-cache.mjs';
 import { config } from './config.mjs';
 
 /**
@@ -75,6 +76,12 @@ function toChapterId(bookId, chapter) {
  * from every other source.
  */
 export async function getChapter(bibleId, bookId, chapter) {
+  // The free tier allows 5,000 calls a month, so serving the same chapter to
+  // every reader from one fetch is the difference between usable and not.
+  const cacheKey = `apibible:${bibleId}:${bookId}:${chapter}`;
+  const cached = readCache(cacheKey);
+  if (cached) return cached;
+
   const payload = await apiBible(
     `/bibles/${encodeURIComponent(bibleId)}/chapters/${toChapterId(bookId, chapter)}` +
       '?content-type=text&include-verse-numbers=true&include-notes=false' +
@@ -97,11 +104,11 @@ export async function getChapter(bibleId, bookId, chapter) {
 
   // Fall back to one block rather than returning nothing if the shape changes.
   if (verses.length === 0 && content.trim()) {
-    return {
+    return writeCache(cacheKey, {
       verses: [{ verse: 1, text: content.replace(/\s+/g, ' ').trim() }],
       copyright: payload.data?.copyright ?? '',
-    };
+    });
   }
 
-  return { verses, copyright: payload.data?.copyright ?? '' };
+  return writeCache(cacheKey, { verses, copyright: payload.data?.copyright ?? '' });
 }

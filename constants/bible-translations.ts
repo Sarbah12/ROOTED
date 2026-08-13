@@ -239,10 +239,15 @@ export const TRANSLATIONS: Translation[] = [
  * so a translation never appears in the picker unless it can actually load.
  *
  * NKJV and AMP come through API.Bible: set API_BIBLE_KEY on the backend and
- * take ids from GET /v1/bible/versions. The free Starter plan allows three
- * copyrighted Bibles and is non-commercial only — the moment the app carries
- * ads or charges money it needs a paid plan, and NIV commercial use is not
- * offered at all.
+ * take ids from GET /v1/bible/versions.
+ *
+ * The binding limit on their free Starter tier is not the three-Bible cap, it
+ * is 5,000 API calls a *month* — one call per user per month at the scale this
+ * app is sized for. The backend caches chapters in memory for that reason.
+ * Starter is also strictly non-commercial: the moment the app carries ads or
+ * charges money it needs Pro (from $29/month, 150,000 calls) or a per
+ * translation commercial licence (from $10/month). NIV commercial use is not
+ * offered at all, at any price.
  *
  * The NLT does not go through API.Bible. Tyndale publish it and run their own
  * API (api.nlt.to), which gives 5,000 requests a day on a free key and a
