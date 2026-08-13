@@ -7,6 +7,7 @@
  */
 
 import { BIBLE_BOOKS_BY_ID } from '@/constants/bible-books';
+import { QUIZ_BANK } from '@/constants/quiz-bank';
 
 export type QuizDifficulty = 'Easy' | 'Medium' | 'Hard';
 
@@ -49,7 +50,8 @@ export const QUIZ_TOPICS_BY_ID = Object.fromEntries(
   QUIZ_TOPICS.map((topic) => [topic.id, topic]),
 );
 
-export const QUIZ_QUESTIONS: QuizQuestion[] = [
+/** The original hand-written set. New books live in quiz-bank.ts. */
+const CORE_QUESTIONS: QuizQuestion[] = [
   // ---------------- Genesis ----------------
   {
     id: 'gen-1',
@@ -887,6 +889,8 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     topics: ['salvation'],
   },
 ];
+
+export const QUIZ_QUESTIONS: QuizQuestion[] = [...CORE_QUESTIONS, ...QUIZ_BANK];
 
 const MIN_QUESTIONS_PER_SUBJECT = 3;
 
