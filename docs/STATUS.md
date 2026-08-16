@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-08-12
+Last updated: 2026-08-14
 
 A candid account of what works, what is built but unverified, and what is still
 missing. See [README](../README.md) for how the app is put together.
@@ -19,7 +19,8 @@ Things that have actually been run and observed to work.
 | TestFlight upload | "Submitted your app to Apple App Store Connect" |
 | Verse rotation never repeats | 2,567 pool entries, full cycle walked: 2,567 distinct, 0 consecutive repeats, cycle 2 shares no position with cycle 1 |
 | Backend boots in a container | Clean `npm ci --omit=dev` of `backend/` alone serves `/health` 200 on `0.0.0.0` |
-| Offline Bible bundle | 66 books / 1,189 chapters / the complete KJV, verified chapter by chapter against a second source |
+| Offline Bible bundle | 66 books / 1,189 chapters / 31,102 verses — every chapter's verse count checked against a second source, all 1,189 match |
+| Bible text is clean | 0 verses carrying translator apparatus, down from 6,406 before the source was replaced |
 | Bible reader | John 3 and Psalms 23 rendered from the bundle in a running app |
 | Translation coverage | Genesis 1 requested from all 17; six are NT-only and badged |
 | Translation picker | 8 language groups render, offline and NT-only badges shown |
