@@ -178,7 +178,7 @@ export default function BibleSearchScreen() {
                   <Ionicons name="search" size={22} color={theme.primary} />
                 </View>
                 <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                  Search all 31,100 verses
+                  Search all 31,102 verses
                 </Text>
                 <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>
                   Works offline. Every word must appear in the verse, so “faith works”

@@ -4,7 +4,7 @@ import { getOfflineChapter } from '@/constants/bible-offline';
 /**
  * Full-text search across the bundled KJV.
  *
- * All 31,100 verses are on device, so this needs no network. Scanning them does
+ * All 31,102 verses are on device, so this needs no network. Scanning them does
  * mean parsing every book, which is why `searchBible` yields in batches rather
  * than doing it in one pass — a synchronous scan would freeze the interface for
  * a second or so on a mid-range phone.

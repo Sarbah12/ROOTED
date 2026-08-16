@@ -9,6 +9,28 @@
  *   constants/bible-books.ts         generated metadata for all 66 books
  *
  * Re-run this only when you want to refresh the bundled text.
+ *
+ * ---------------------------------------------------------------------------
+ * WARNING: the upstream source is missing verses.
+ *
+ * As downloaded, en_kjv.json omits at least these six, and omitting a verse
+ * silently renumbers every verse after it in that chapter:
+ *
+ *     Matthew 2:16   Matthew 22:1   Matthew 26:61
+ *     Mark 4:40      Mark 7:11      Mark 8:8
+ *
+ * They were found by scripts/check-bible-bundle.mjs and patched by hand from
+ * bible-api.com. Running this script again will overwrite those patches and
+ * put the gaps back, and nothing in the app will notice — a chapter with a
+ * gap looks exactly like a chapter without one.
+ *
+ * So after any re-run:
+ *
+ *     NLT_API_KEY=... node scripts/check-bible-bundle.mjs
+ *
+ * and re-apply whatever it reports. Note also that shifting verse numbers
+ * invalidates constants/verse-pool.ts, which stores [book, chapter, verse].
+ * ---------------------------------------------------------------------------
  */
 
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';

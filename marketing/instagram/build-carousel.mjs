@@ -293,7 +293,7 @@ const slides = [
     stage: () => `
       ${phone(homeScreen(), { w: 430, rotate: -4, x: 250, y: 60 })}
       ${chip({ icon: '🌱', value: '2,011', label: 'verses in rotation', x: -10, y: 150, rotate: -3 })}
-      ${chip({ icon: '📖', value: '31,100', label: 'verses, offline', x: 0, y: 400, rotate: 2 })}
+      ${chip({ icon: '📖', value: '31,102', label: 'verses, offline', x: 0, y: 400, rotate: 2 })}
       ${chip({ icon: '🔥', value: '14 days', label: 'current streak', x: 40, y: 640, rotate: -2 })}`,
   },
   {

@@ -75,7 +75,7 @@ Put these in the first comment rather than the caption, so the copy stays clean.
 
 - **Slide 8 says "Coming to iOS."** True today — Rooted is on TestFlight, not
   the App Store. Swap it for a real link once it ships, then re-run the build.
-- **The numbers are real.** 66 books and 31,100 verses bundled, 2,011 in the
+- **The numbers are real.** 66 books and 31,102 verses bundled, 2,011 in the
   verse pool, 5.5 years before a repeat. Do not round them up in the comments.
 - **Nothing here is a real person's data.** The names on the plans slide (Ama,
   Kwesi, Nana) and the join code are invented for the post.

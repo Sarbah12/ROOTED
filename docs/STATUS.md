@@ -19,7 +19,7 @@ Things that have actually been run and observed to work.
 | TestFlight upload | "Submitted your app to Apple App Store Connect" |
 | Verse rotation never repeats | 2,011 pool entries, full cycle walked: 2,011 distinct, 0 consecutive repeats, cycle 2 shares no position with cycle 1 |
 | Backend boots in a container | Clean `npm ci --omit=dev` of `backend/` alone serves `/health` 200 on `0.0.0.0` |
-| Offline Bible bundle | 66 books / 1,189 chapters / 31,100 verses |
+| Offline Bible bundle | 66 books / 1,189 chapters / the complete KJV, verified chapter by chapter against a second source |
 | Bible reader | John 3 and Psalms 23 rendered from the bundle in a running app |
 | Translation coverage | Genesis 1 requested from all 17; six are NT-only and badged |
 | Translation picker | 8 language groups render, offline and NT-only badges shown |

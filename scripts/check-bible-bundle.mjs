@@ -30,10 +30,28 @@ async function chapterVerseCount(bookName, chapter) {
   const ref = encodeURIComponent(`${bookName}.${chapter}`);
   const url = `https://api.nlt.to/api/passages?ref=${ref}&version=KJV&key=${KEY}`;
 
-  const response = await fetch(url);
-  if (!response.ok) return { error: `HTTP ${response.status}` };
+  // Over a thousand requests, a transient timeout is close to certain. Without
+  // retries a single blip throws away the whole run.
+  let html = null;
+  let lastError = 'unknown';
 
-  const html = await response.text();
+  for (let attempt = 0; attempt < 3 && html === null; attempt += 1) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+      if (response.ok) {
+        html = await response.text();
+      } else {
+        lastError = `HTTP ${response.status}`;
+        await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : 'fetch failed';
+      await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+    }
+  }
+
+  if (html === null) return { error: lastError };
+
   const header = html.match(/bk_ch_vs_header">([^<]*)/)?.[1];
   if (!header) return { error: 'no header' };
 
