@@ -20,6 +20,7 @@ import { NOTE_COLORS } from '@/constants/bible-study';
 import { APP_THEMES } from '@/constants/app-theme';
 import { useThemeMode } from '@/context/theme-mode';
 import { SignInRequired } from '@/components/sign-in-required';
+import { exportNoteToPdf } from '@/constants/note-pdf';
 import { useNotes, type BackendNote, type NoteKind } from '@/hooks/use-notes';
 
 type NoteForm = {
@@ -60,6 +61,14 @@ export default function StudyNotesScreen() {
   const { notes, isLoading, error, isSignedIn, refresh, createNote, updateNote, deleteNote } =
     useNotes();
   const [modalVisible, setModalVisible] = useState(false);
+  /**
+   * A sermon note asks for seven things before the writing starts. Leaving all
+   * of that on screen while someone is trying to keep up with a preacher makes
+   * the one field that matters the smallest thing in the sheet, so the details
+   * fold away once they are filled and the body takes the room.
+   */
+  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [exportingId, setExportingId] = useState<string | null>(null);
   const [editingNote, setEditingNote] = useState<BackendNote | null>(null);
   const [search, setSearch] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -79,6 +88,7 @@ export default function StudyNotesScreen() {
       reference: params.reference,
       content: params.seed ? `"${params.seed}"\n\n` : '',
     });
+    setDetailsOpen(false);
     setModalVisible(true);
     // Only when arriving with a reference attached.
   }, [params.reference, params.seed]);
@@ -88,6 +98,8 @@ export default function StudyNotesScreen() {
     setSaveError(null);
     // Default to whatever the list is filtered to, so the common case is one tap.
     setForm({ ...EMPTY_FORM, kind: filter === 'sermon' ? 'sermon' : 'study' });
+    // A blank note has nothing to summarise yet, so start with details showing.
+    setDetailsOpen(true);
     setModalVisible(true);
   };
 
@@ -105,11 +117,40 @@ export default function StudyNotesScreen() {
       series: note.series,
       sermonDate: note.sermonDate ?? '',
     });
+    // Coming back to an existing note, the writing is what you came for.
+    setDetailsOpen(false);
     setModalVisible(true);
+  };
+
+  /** What the folded details bar shows: only the parts that were filled in. */
+  const summaryLine = [
+    form.kind === 'sermon' ? form.preacher.trim() : '',
+    form.kind === 'sermon' ? form.church.trim() : '',
+    form.reference.trim(),
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const handleExport = async (note: BackendNote) => {
+    setExportingId(note.id);
+    try {
+      const shared = await exportNoteToPdf(note);
+      if (!shared) {
+        Alert.alert('Nowhere to send it', 'This device has no app that can receive a PDF.');
+      }
+    } catch {
+      Alert.alert('Could not make the PDF', 'Something went wrong building the file.');
+    } finally {
+      setExportingId(null);
+    }
   };
 
   const saveNote = async () => {
     if (!form.title.trim()) {
+      // The title lives in the details, which may be folded away — so say what
+      // is wrong and put the field back on screen rather than doing nothing.
+      setDetailsOpen(true);
+      setSaveError('Give this note a title before saving.');
       return;
     }
 
@@ -339,12 +380,26 @@ export default function StudyNotesScreen() {
                       </Text>
                       <Text style={[styles.noteRef, { color: theme.primary }]}>{note.reference}</Text>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => handleDelete(note.id)}
-                      style={[styles.deleteBtn, { backgroundColor: theme.primarySoft }]}
-                      activeOpacity={0.8}>
-                      <Ionicons name="trash-outline" size={14} color={theme.primary} />
-                    </TouchableOpacity>
+                    <View style={styles.cardActions}>
+                      <TouchableOpacity
+                        onPress={() => handleExport(note)}
+                        style={[styles.deleteBtn, { backgroundColor: theme.primarySoft }]}
+                        activeOpacity={0.8}
+                        hitSlop={6}>
+                        <Ionicons
+                          name={exportingId === note.id ? 'hourglass-outline' : 'document-text-outline'}
+                          size={14}
+                          color={theme.primary}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDelete(note.id)}
+                        style={[styles.deleteBtn, { backgroundColor: theme.primarySoft }]}
+                        activeOpacity={0.8}
+                        hitSlop={6}>
+                        <Ionicons name="trash-outline" size={14} color={theme.primary} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                   {note.kind === 'sermon' && (note.preacher || note.church) ? (
                     <View style={styles.sermonMetaRow}>
@@ -404,11 +459,48 @@ export default function StudyNotesScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalScroll} keyboardShouldPersistTaps="handled">
-              {saveError ? (
-                <Text style={[styles.saveErrorText, { color: theme.text }]}>{saveError}</Text>
-              ) : null}
-              <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            {saveError ? (
+              <Text style={[styles.saveErrorText, { color: theme.text }]}>{saveError}</Text>
+            ) : null}
+
+            {/* Folded away, the details become one tappable line. */}
+            {!detailsOpen ? (
+              <TouchableOpacity
+                style={[styles.summaryBar, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => setDetailsOpen(true)}
+                activeOpacity={0.85}>
+                <Ionicons
+                  name={form.kind === 'sermon' ? 'mic-outline' : 'book-outline'}
+                  size={16}
+                  color={theme.primary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.summaryTitle, { color: theme.text }]} numberOfLines={1}>
+                    {form.title.trim() || (form.kind === 'sermon' ? 'Untitled sermon' : 'Untitled note')}
+                  </Text>
+                  {summaryLine ? (
+                    <Text style={[styles.summaryMeta, { color: theme.textMuted }]} numberOfLines={1}>
+                      {summaryLine}
+                    </Text>
+                  ) : null}
+                </View>
+                <Text style={[styles.summaryEdit, { color: theme.primary }]}>Details</Text>
+                <Ionicons name="chevron-down" size={15} color={theme.primary} />
+              </TouchableOpacity>
+            ) : null}
+
+            <ScrollView
+              style={[styles.modalScroll, !detailsOpen && styles.modalScrollCollapsed]}
+              contentContainerStyle={!detailsOpen ? styles.modalScrollGrow : undefined}
+              keyboardShouldPersistTaps="handled">
+              <View
+                style={[
+                  styles.formCard,
+                  !detailsOpen && styles.formCardGrow,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                ]}>
+                {detailsOpen ? (
+                <>
                 <Text style={[styles.formLabel, { color: theme.textMuted }]}>Note type</Text>
                 <View style={[styles.kindToggle, { backgroundColor: theme.surfaceAlt }]}>
                   {([
@@ -502,28 +594,6 @@ export default function StudyNotesScreen() {
                   </>
                 ) : null}
 
-                <Text style={[styles.formLabel, { color: theme.textMuted }]}>
-                  {form.kind === 'sermon' ? 'Sermon notes' : 'Note'}
-                </Text>
-                <TextInput
-                  style={[
-                    styles.formInput,
-                    styles.formTextArea,
-                    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft },
-                  ]}
-                  value={form.content}
-                  onChangeText={(value) => setForm((current) => ({ ...current, content: value }))}
-                  placeholder={
-                    form.kind === 'sermon'
-                      ? 'Main points, verses referenced, what stood out…'
-                      : 'Write your reflection here...'
-                  }
-                  placeholderTextColor={theme.textMuted}
-                  multiline
-                  numberOfLines={8}
-                  textAlignVertical="top"
-                />
-
                 <Text style={[styles.formLabel, { color: theme.textMuted }]}>Tags</Text>
                 <TextInput
                   style={[styles.formInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft }]}
@@ -532,8 +602,47 @@ export default function StudyNotesScreen() {
                   placeholder="Faith, Grace, Sermon"
                   placeholderTextColor={theme.textMuted}
                 />
+
+                <TouchableOpacity
+                  style={[styles.doneDetailsBtn, { backgroundColor: theme.primarySoft }]}
+                  onPress={() => setDetailsOpen(false)}
+                  activeOpacity={0.85}>
+                  <Ionicons name="chevron-up" size={15} color={theme.primary} />
+                  <Text style={[styles.doneDetailsText, { color: theme.primary }]}>
+                    Done — start writing
+                  </Text>
+                </TouchableOpacity>
+                </>
+                ) : null}
+
+                {detailsOpen ? (
+                  <Text style={[styles.formLabel, { color: theme.textMuted }]}>
+                    {form.kind === 'sermon' ? 'Sermon notes' : 'Note'}
+                  </Text>
+                ) : null}
+                <TextInput
+                  style={[
+                    styles.formInput,
+                    styles.formTextArea,
+                    !detailsOpen && styles.formTextAreaFull,
+                    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surfaceSoft },
+                  ]}
+                  value={form.content}
+                  onChangeText={(value) => setForm((current) => ({ ...current, content: value }))}
+                  // Getting out of the way the moment writing starts is the
+                  // whole point; re-opening is one tap on the summary bar.
+                  onFocus={() => setDetailsOpen(false)}
+                  placeholder={
+                    form.kind === 'sermon'
+                      ? 'Main points, verses referenced, what stood out…'
+                      : 'Write your reflection here...'
+                  }
+                  placeholderTextColor={theme.textMuted}
+                  multiline
+                  textAlignVertical="top"
+                />
               </View>
-              <View style={{ height: 28 }} />
+              {detailsOpen ? <View style={{ height: 28 }} /> : null}
             </ScrollView>
           </SafeAreaView>
         </KeyboardAvoidingView>
@@ -881,6 +990,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
+  cardActions: { flexDirection: 'row', gap: 7 },
+  summaryBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderWidth: 1, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12,
+    marginHorizontal: 18, marginBottom: 10,
+  },
+  summaryTitle: { fontSize: 14.5, fontWeight: '700' },
+  summaryMeta: { fontSize: 11.5, marginTop: 2 },
+  summaryEdit: { fontSize: 12.5, fontWeight: '800' },
+  doneDetailsBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    borderRadius: 999, paddingVertical: 12, marginTop: 16,
+  },
+  doneDetailsText: { fontSize: 13.5, fontWeight: '800' },
+  modalScrollCollapsed: { flex: 1 },
+  modalScrollGrow: { flexGrow: 1 },
+  formCardGrow: { flex: 1 },
+  formTextAreaFull: { flex: 1, minHeight: 240 },
   modalScroll: {
     flex: 1,
   },
