@@ -10,8 +10,8 @@ import { VERSE_POOL } from '@/constants/verse-pool';
  * pool, so each cycle visits every verse exactly once before any repeats, and
  * each cycle walks them in a different order.
  *
- * With ~2,000 verses that is over five years before one comes round again, and
- * the order differs when it does.
+ * With ~2,500 verses that is about seven years before one comes round again,
+ * and the order differs when it does.
  */
 
 /** Days since the Unix epoch, so the verse turns over at local midnight. */

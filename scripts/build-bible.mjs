@@ -3,33 +3,34 @@
  *
  *   node scripts/build-bible.mjs
  *
- * Source: https://github.com/thiagobodruk/bible (en_kjv.json) — Public Domain.
+ * Source: https://github.com/aruljohn/Bible-kjv — Public Domain, one file per
+ * book.
  * Output:
- *   assets/bible/kjv/<bookId>.json   one file per book: [[ch1 verses], [ch2 verses], ...]
+ *   assets/bible/kjv/<bookId>.json   one file per book: [[ch1 verses], ...]
  *   constants/bible-books.ts         generated metadata for all 66 books
- *
- * Re-run this only when you want to refresh the bundled text.
+ *   constants/bible-offline.ts       generated lazy loader map
  *
  * ---------------------------------------------------------------------------
- * WARNING: the upstream source is missing verses.
+ * Why this source and not the obvious one.
  *
- * As downloaded, en_kjv.json omits at least these six, and omitting a verse
- * silently renumbers every verse after it in that chapter:
+ * The bundle was first built from thiagobodruk/bible, which turned out to be
+ * wrong in two ways that no code in the app could detect:
  *
- *     Matthew 2:16   Matthew 22:1   Matthew 26:61
- *     Mark 4:40      Mark 7:11      Mark 8:8
+ *   1. Six verses were simply absent — Matthew 2:16, 22:1 and 26:61, Mark
+ *      4:40, 7:11 and 8:8 — and a missing verse silently renumbers every
+ *      verse after it in its chapter. A chapter with a gap looks exactly like
+ *      a chapter without one.
  *
- * They were found by scripts/check-bible-bundle.mjs and patched by hand from
- * bible-api.com. Running this script again will overwrite those patches and
- * put the gaps back, and nothing in the app will notice — a chapter with a
- * gap looks exactly like a chapter without one.
+ *   2. One verse in five had the translators' marginal apparatus welded onto
+ *      the end of the text. Genesis 1:4 read "...divided the light from the
+ *      darkness. the light from...: Heb. between the light and between the
+ *      darkness" — editorial notes presented as Scripture.
  *
- * So after any re-run:
+ * This source has neither: 31,102 verses, the canonical count, with no
+ * apparatus in any of them. Verified chapter by chapter against a second
+ * source by scripts/check-bible-bundle.mjs.
  *
- *     NLT_API_KEY=... node scripts/check-bible-bundle.mjs
- *
- * and re-apply whatever it reports. Note also that shifting verse numbers
- * invalidates constants/verse-pool.ts, which stores [book, chapter, verse].
+ * If you ever change source again, run that audit afterwards.
  * ---------------------------------------------------------------------------
  */
 
@@ -38,47 +39,86 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SOURCE_URL = 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/en_kjv.json';
+const SOURCE_BASE = 'https://raw.githubusercontent.com/aruljohn/Bible-kjv/master';
+
+/** The canonical KJV totals, asserted after the build so a bad source fails loudly. */
+const EXPECTED_CHAPTERS = 1189;
+const EXPECTED_VERSES = 31102;
 const outDir = path.join(root, 'assets', 'bible', 'kjv');
 
-/** source abbrev -> [appId, display name, testament] */
-const BOOK_MAP = {
-  gn: ['gen', 'Genesis', 'OT'],      ex: ['exo', 'Exodus', 'OT'],
-  lv: ['lev', 'Leviticus', 'OT'],    nm: ['num', 'Numbers', 'OT'],
-  dt: ['deu', 'Deuteronomy', 'OT'],  js: ['jos', 'Joshua', 'OT'],
-  jud: ['jdg', 'Judges', 'OT'],      rt: ['rut', 'Ruth', 'OT'],
-  '1sm': ['1sa', '1 Samuel', 'OT'],  '2sm': ['2sa', '2 Samuel', 'OT'],
-  '1kgs': ['1ki', '1 Kings', 'OT'],  '2kgs': ['2ki', '2 Kings', 'OT'],
-  '1ch': ['1ch', '1 Chronicles', 'OT'], '2ch': ['2ch', '2 Chronicles', 'OT'],
-  ezr: ['ezr', 'Ezra', 'OT'],        ne: ['neh', 'Nehemiah', 'OT'],
-  et: ['est', 'Esther', 'OT'],       job: ['job', 'Job', 'OT'],
-  ps: ['psa', 'Psalms', 'OT'],       prv: ['pro', 'Proverbs', 'OT'],
-  ec: ['ecc', 'Ecclesiastes', 'OT'], so: ['sng', 'Song of Solomon', 'OT'],
-  is: ['isa', 'Isaiah', 'OT'],       jr: ['jer', 'Jeremiah', 'OT'],
-  lm: ['lam', 'Lamentations', 'OT'], ez: ['ezk', 'Ezekiel', 'OT'],
-  dn: ['dan', 'Daniel', 'OT'],       ho: ['hos', 'Hosea', 'OT'],
-  jl: ['jol', 'Joel', 'OT'],         am: ['amo', 'Amos', 'OT'],
-  ob: ['oba', 'Obadiah', 'OT'],      jn: ['jon', 'Jonah', 'OT'],
-  mi: ['mic', 'Micah', 'OT'],        na: ['nam', 'Nahum', 'OT'],
-  hk: ['hab', 'Habakkuk', 'OT'],     zp: ['zep', 'Zephaniah', 'OT'],
-  hg: ['hag', 'Haggai', 'OT'],       zc: ['zec', 'Zechariah', 'OT'],
-  ml: ['mal', 'Malachi', 'OT'],
+/** [appId, display name, testament] — the source file is the name without spaces. */
+const BOOKS = [
+  ['gen', 'Genesis', 'OT'],
+  ['exo', 'Exodus', 'OT'],
+  ['lev', 'Leviticus', 'OT'],
+  ['num', 'Numbers', 'OT'],
+  ['deu', 'Deuteronomy', 'OT'],
+  ['jos', 'Joshua', 'OT'],
+  ['jdg', 'Judges', 'OT'],
+  ['rut', 'Ruth', 'OT'],
+  ['1sa', '1 Samuel', 'OT'],
+  ['2sa', '2 Samuel', 'OT'],
+  ['1ki', '1 Kings', 'OT'],
+  ['2ki', '2 Kings', 'OT'],
+  ['1ch', '1 Chronicles', 'OT'],
+  ['2ch', '2 Chronicles', 'OT'],
+  ['ezr', 'Ezra', 'OT'],
+  ['neh', 'Nehemiah', 'OT'],
+  ['est', 'Esther', 'OT'],
+  ['job', 'Job', 'OT'],
+  ['psa', 'Psalms', 'OT'],
+  ['pro', 'Proverbs', 'OT'],
+  ['ecc', 'Ecclesiastes', 'OT'],
+  ['sng', 'Song of Solomon', 'OT'],
+  ['isa', 'Isaiah', 'OT'],
+  ['jer', 'Jeremiah', 'OT'],
+  ['lam', 'Lamentations', 'OT'],
+  ['ezk', 'Ezekiel', 'OT'],
+  ['dan', 'Daniel', 'OT'],
+  ['hos', 'Hosea', 'OT'],
+  ['jol', 'Joel', 'OT'],
+  ['amo', 'Amos', 'OT'],
+  ['oba', 'Obadiah', 'OT'],
+  ['jon', 'Jonah', 'OT'],
+  ['mic', 'Micah', 'OT'],
+  ['nam', 'Nahum', 'OT'],
+  ['hab', 'Habakkuk', 'OT'],
+  ['zep', 'Zephaniah', 'OT'],
+  ['hag', 'Haggai', 'OT'],
+  ['zec', 'Zechariah', 'OT'],
+  ['mal', 'Malachi', 'OT'],
+  ['mat', 'Matthew', 'NT'],
+  ['mrk', 'Mark', 'NT'],
+  ['luk', 'Luke', 'NT'],
+  ['jhn', 'John', 'NT'],
+  ['act', 'Acts', 'NT'],
+  ['rom', 'Romans', 'NT'],
+  ['1co', '1 Corinthians', 'NT'],
+  ['2co', '2 Corinthians', 'NT'],
+  ['gal', 'Galatians', 'NT'],
+  ['eph', 'Ephesians', 'NT'],
+  ['phi', 'Philippians', 'NT'],
+  ['col', 'Colossians', 'NT'],
+  ['1th', '1 Thessalonians', 'NT'],
+  ['2th', '2 Thessalonians', 'NT'],
+  ['1ti', '1 Timothy', 'NT'],
+  ['2ti', '2 Timothy', 'NT'],
+  ['tit', 'Titus', 'NT'],
+  ['phm', 'Philemon', 'NT'],
+  ['heb', 'Hebrews', 'NT'],
+  ['jas', 'James', 'NT'],
+  ['1pe', '1 Peter', 'NT'],
+  ['2pe', '2 Peter', 'NT'],
+  ['1jn', '1 John', 'NT'],
+  ['2jn', '2 John', 'NT'],
+  ['3jn', '3 John', 'NT'],
+  ['jud', 'Jude', 'NT'],
+  ['rev', 'Revelation', 'NT'],
+];
 
-  mt: ['mat', 'Matthew', 'NT'],      mk: ['mrk', 'Mark', 'NT'],
-  lk: ['luk', 'Luke', 'NT'],         jo: ['jhn', 'John', 'NT'],
-  act: ['act', 'Acts', 'NT'],        rm: ['rom', 'Romans', 'NT'],
-  '1co': ['1co', '1 Corinthians', 'NT'], '2co': ['2co', '2 Corinthians', 'NT'],
-  gl: ['gal', 'Galatians', 'NT'],    eph: ['eph', 'Ephesians', 'NT'],
-  ph: ['phi', 'Philippians', 'NT'],  cl: ['col', 'Colossians', 'NT'],
-  '1ts': ['1th', '1 Thessalonians', 'NT'], '2ts': ['2th', '2 Thessalonians', 'NT'],
-  '1tm': ['1ti', '1 Timothy', 'NT'], '2tm': ['2ti', '2 Timothy', 'NT'],
-  tt: ['tit', 'Titus', 'NT'],        phm: ['phm', 'Philemon', 'NT'],
-  hb: ['heb', 'Hebrews', 'NT'],      jm: ['jas', 'James', 'NT'],
-  '1pe': ['1pe', '1 Peter', 'NT'],   '2pe': ['2pe', '2 Peter', 'NT'],
-  '1jo': ['1jn', '1 John', 'NT'],    '2jo': ['2jn', '2 John', 'NT'],
-  '3jo': ['3jn', '3 John', 'NT'],    jd: ['jud', 'Jude', 'NT'],
-  re: ['rev', 'Revelation', 'NT'],
-};
+function sourceUrl(name) {
+  return `${SOURCE_BASE}/${name.replace(/\s/g, '')}.json`;
+}
 
 /** KJV wraps translator-supplied words in braces; drop the markers, keep the words. */
 function clean(text) {
@@ -88,25 +128,23 @@ function clean(text) {
     .trim();
 }
 
-async function loadSource() {
-  const local = process.argv[2];
-  if (local) {
-    console.log(`Reading local source: ${local}`);
-    return readFile(local, 'utf8');
+/** One book, from a local directory when given, otherwise from the source. */
+async function loadBook(name, localDir) {
+  const file = `${name.replace(/\s/g, '')}.json`;
+
+  if (localDir) {
+    return JSON.parse(await readFile(path.join(localDir, file), 'utf8'));
   }
-  console.log(`Downloading ${SOURCE_URL} …`);
-  const res = await fetch(SOURCE_URL);
-  if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-  return res.text();
+
+  const res = await fetch(sourceUrl(name), { signal: AbortSignal.timeout(30_000) });
+  if (!res.ok) throw new Error(`Download failed for ${name}: ${res.status}`);
+  return res.json();
 }
 
 async function main() {
-  const raw = (await loadSource()).replace(/^﻿/, '');
-  const source = JSON.parse(raw);
-
-  if (source.length !== 66) {
-    throw new Error(`Expected 66 books in source, got ${source.length}`);
-  }
+  // Pass a directory to build from files already on disk.
+  const localDir = process.argv[2];
+  console.log(localDir ? `Reading ${localDir}` : `Downloading from ${SOURCE_BASE}`);
 
   await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
@@ -115,12 +153,23 @@ async function main() {
   let totalChapters = 0;
   let totalVerses = 0;
 
-  for (const entry of source) {
-    const mapped = BOOK_MAP[entry.abbrev];
-    if (!mapped) throw new Error(`Unmapped book abbrev: ${entry.abbrev}`);
-    const [id, name, testament] = mapped;
+  for (const [id, name, testament] of BOOKS) {
+    const source = await loadBook(name, localDir);
 
-    const chapters = entry.chapters.map((verses) => verses.map(clean));
+    // Chapters and verses carry their numbers as strings; sort by them rather
+    // than trusting file order, so a reordered source cannot scramble a book.
+    const chapters = [...source.chapters]
+      .sort((a, b) => Number(a.chapter) - Number(b.chapter))
+      .map((chapter) =>
+        [...chapter.verses]
+          .sort((a, b) => Number(a.verse) - Number(b.verse))
+          .map((verse) => clean(verse.text)),
+      );
+
+    if (chapters.some((chapter) => chapter.length === 0)) {
+      throw new Error(`${name} has an empty chapter`);
+    }
+
     totalChapters += chapters.length;
     totalVerses += chapters.reduce((sum, c) => sum + c.length, 0);
 
@@ -128,8 +177,16 @@ async function main() {
     books.push({ id, name, chapters: chapters.length, testament });
   }
 
+  // A source that quietly loses text should stop the build, not ship.
+  if (totalChapters !== EXPECTED_CHAPTERS || totalVerses !== EXPECTED_VERSES) {
+    throw new Error(
+      `Expected ${EXPECTED_CHAPTERS} chapters and ${EXPECTED_VERSES} verses, ` +
+        `got ${totalChapters} and ${totalVerses}`,
+    );
+  }
+
   const header = `// GENERATED by scripts/build-bible.mjs — do not edit by hand.
-// Source: ${SOURCE_URL} (King James Version, Public Domain)
+// Source: ${SOURCE_BASE} (King James Version, Public Domain)
 // ${books.length} books · ${totalChapters} chapters · ${totalVerses} verses
 
 export type Testament = 'OT' | 'NT';

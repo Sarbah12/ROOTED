@@ -292,7 +292,7 @@ const slides = [
     sub: 'Meet the Bible app you can keep up with',
     stage: () => `
       ${phone(homeScreen(), { w: 430, rotate: -4, x: 250, y: 60 })}
-      ${chip({ icon: '🌱', value: '2,011', label: 'verses in rotation', x: -10, y: 150, rotate: -3 })}
+      ${chip({ icon: '🌱', value: '2,567', label: 'verses in rotation', x: -10, y: 150, rotate: -3 })}
       ${chip({ icon: '📖', value: '31,102', label: 'verses, offline', x: 0, y: 400, rotate: 2 })}
       ${chip({ icon: '🔥', value: '14 days', label: 'current streak', x: 40, y: 640, rotate: -2 })}`,
   },
@@ -319,12 +319,12 @@ const slides = [
   {
     dark: true,
     kicker: 'Verse of the day',
-    head: 'A new verse<br>every day for<br><hl>5.5 years</hl>.',
+    head: 'A new verse<br>every day for<br><hl>7 years</hl>.',
     sub: 'Before a single one repeats',
     stage: () => `
       ${phone(readerScreen(), { w: 415, rotate: 4, x: 300, y: 70 })}
       ${chip({ icon: '✨', value: 'Never', label: 'the same twice', x: -10, y: 210, rotate: -3 })}
-      ${chip({ icon: '🗓️', value: '2,011', label: 'before a repeat', x: 20, y: 470, rotate: 2 })}`,
+      ${chip({ icon: '🗓️', value: '2,567', label: 'before a repeat', x: 20, y: 470, rotate: 2 })}`,
   },
   {
     dark: false,

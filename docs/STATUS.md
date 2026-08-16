@@ -17,7 +17,7 @@ Things that have actually been run and observed to work.
 | Lint clean | `expo lint`, 0 errors and 0 warnings |
 | iOS build succeeds | EAS build `4baa7982`, signed `.ipa`, five minutes |
 | TestFlight upload | "Submitted your app to Apple App Store Connect" |
-| Verse rotation never repeats | 2,011 pool entries, full cycle walked: 2,011 distinct, 0 consecutive repeats, cycle 2 shares no position with cycle 1 |
+| Verse rotation never repeats | 2,567 pool entries, full cycle walked: 2,567 distinct, 0 consecutive repeats, cycle 2 shares no position with cycle 1 |
 | Backend boots in a container | Clean `npm ci --omit=dev` of `backend/` alone serves `/health` 200 on `0.0.0.0` |
 | Offline Bible bundle | 66 books / 1,189 chapters / the complete KJV, verified chapter by chapter against a second source |
 | Bible reader | John 3 and Psalms 23 rendered from the bundle in a running app |

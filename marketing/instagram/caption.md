@@ -33,7 +33,7 @@ right to start with why we are building this.
 We wanted a Bible app you can actually keep up with:
 
 📖 The whole Bible, offline and free to read, with no account needed
-🌱 A different verse every morning that will not repeat for five and a half years
+🌱 A different verse every morning that will not repeat for seven years
 👥 Plans you follow alongside other people, so missing a Tuesday does not end the whole thing
 ✍️ Somewhere for Sunday’s sermon notes and your prayer list to live
 
@@ -52,7 +52,7 @@ Which book would you want a plan for first? 👇
 Most Bible plans die in February. We are building the one you can keep up with.
 
 Hello — we’re Rooted. The whole Bible offline and free to read, a new verse
-each morning that will not repeat for five and a half years, and plans you
+each morning that will not repeat for seven years, and plans you
 follow with other people so a missed Tuesday does not end the whole thing.
 
 Named for Colossians 2:7 — “Rooted and built up in him.”
@@ -75,8 +75,8 @@ Put these in the first comment rather than the caption, so the copy stays clean.
 
 - **Slide 8 says "Coming to iOS."** True today — Rooted is on TestFlight, not
   the App Store. Swap it for a real link once it ships, then re-run the build.
-- **The numbers are real.** 66 books and 31,102 verses bundled, 2,011 in the
-  verse pool, 5.5 years before a repeat. Do not round them up in the comments.
+- **The numbers are real.** 66 books and 31,102 verses bundled, 2,567 in the
+  verse pool, 7 years before a repeat. Do not round them up in the comments.
 - **Nothing here is a real person's data.** The names on the plans slide (Ama,
   Kwesi, Nana) and the join code are invented for the post.
 - The promises on slide 7 all describe how the app behaves today. If one stops
