@@ -118,11 +118,11 @@ outside the project directory.
 
 ## TestFlight
 
-**Build 16** (version 1.0.0) is the current one. Built locally, signed, and
+**Build 17** (version 1.0.0) is the current one. Built locally, signed, and
 verified by unpacking the .ipa and grepping the JS bundle rather than trusting
 that the build succeeded.
 
-Builds 13, 14 and 15 came before it. All four were built against the
+Builds 13 to 16 came before it. All were built against the
 placeholder backend URL — `eas.json` still points the production profile at
 `https://CHANGE-ME.example.com`, which does not resolve, so server calls fail
 at the network layer and screens fall back to their cached-or-empty states
@@ -133,9 +133,10 @@ search over the corrected 31,102-verse text, verse of the day and its rotation,
 copying a verse, highlights and reading position, the quiz across all 66 books,
 on-device notes and prayers, and note export to PDF.
 
-**What will fail in it**: sign-in, study plans and the starter templates, the
-blog, notes and prayer sync, streaks, reflections, account deletion, and the
-licensed translations. All present in the binary, all waiting on a backend.
+**What will fail in it**: sign-in, study plans and the starter templates,
+friends and nudges, the blog, notes and prayer sync, streaks, reflections,
+account deletion, the welcome email, and the licensed translations — including
+the fifteen new ones. All present in the binary, all waiting on a backend.
 
 The next build should set that URL to the real Railway domain first.
 
