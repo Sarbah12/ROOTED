@@ -35,7 +35,8 @@
       },
       "env": {
         "EXPO_PUBLIC_BACKEND_API_BASE_URL": "https://CHANGE-ME.example.com"
-      }
+      },
+      "credentialsSource": "local"
     }
   },
   "submit": {
