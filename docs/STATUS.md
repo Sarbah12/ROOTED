@@ -116,22 +116,26 @@ outside the project directory.
 
 ## TestFlight
 
-Build 13 (`4baa7982`, version 1.0.0) is uploaded and processing.
+**Build 16** (version 1.0.0) is the current one. Built locally, signed, and
+verified by unpacking the .ipa and grepping the JS bundle rather than trusting
+that the build succeeded.
 
-**It was built against the placeholder backend URL.** `eas.json` still points
-the production profile at `https://CHANGE-ME.example.com`, which does not
-resolve, so every server call fails at the network layer and the screens fall
-back to their cached-or-empty states rather than crashing. This was a deliberate
-choice — the on-device half was worth testing before the backend exists.
+Builds 13, 14 and 15 came before it. All four were built against the
+placeholder backend URL — `eas.json` still points the production profile at
+`https://CHANGE-ME.example.com`, which does not resolve, so server calls fail
+at the network layer and screens fall back to their cached-or-empty states
+rather than crashing.
 
-What build 13 exercises honestly: the Bible reader and search, verse of the day
-and its rotation, staying signed in across restarts, highlights and reading
-position, the quiz, and on-device notes and prayers.
+**What build 16 exercises honestly** (no server needed): the Bible reader and
+search over the corrected 31,102-verse text, verse of the day and its rotation,
+copying a verse, highlights and reading position, the quiz across all 66 books,
+on-device notes and prayers, and note export to PDF.
 
-What will fail in it: study plans, the blog, notes and prayer sync, streaks,
-reflections, and the licensed translations (NKJV, NLT, AMP).
+**What will fail in it**: sign-in, study plans and the starter templates, the
+blog, notes and prayer sync, streaks, reflections, account deletion, and the
+licensed translations. All present in the binary, all waiting on a backend.
 
-The next build must set that URL to the real Railway domain first.
+The next build should set that URL to the real Railway domain first.
 
 ---
 
