@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   ScrollView,
   StyleSheet,
   Switch,
@@ -348,6 +349,15 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         )}
 
+        <TouchableOpacity
+          style={[styles.legalRow, { borderColor: theme.border }]}
+          activeOpacity={0.8}
+          onPress={() => Linking.openURL('https://rootedbible.app/privacy')}>
+          <Ionicons name="shield-checkmark-outline" size={16} color={theme.textSecondary} />
+          <Text style={[styles.legalText, { color: theme.textSecondary }]}>Privacy policy</Text>
+          <Ionicons name="open-outline" size={14} color={theme.textMuted} />
+        </TouchableOpacity>
+
         {firebaseUser ? (
           <TouchableOpacity
             style={styles.deleteBtn}
@@ -610,6 +620,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  legalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 13,
+    marginTop: 14,
+  },
+  legalText: { fontSize: 13.5, fontWeight: '600' },
   deleteBtn: {
     flexDirection: 'row',
     alignItems: 'center',

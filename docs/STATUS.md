@@ -144,7 +144,8 @@ The next build must set that URL to the real Railway domain first.
 | Content rights | **Not set** — and the answer changed when the NLT landed. It is no longer "no third-party content": the app now displays licensed text from Tyndale, so declare third-party content and be ready to show the licence terms |
 | Age rating | **Not set** — answering "none" throughout gives 4+ |
 | UGC report/block UI | Done — report and block on every reflection |
-| Privacy policy URL | **Not written** — required |
+| Account deletion in-app | Done — Settings → Delete my account; DELETE /v1/me cascades all 15 tables |
+| Privacy policy URL | Written — `docs/privacy-policy.md`. **Still needs hosting** at `https://rootedbible.app/privacy`, which is what Settings links to and what App Store Connect needs |
 | macOS platform entry | Should be **deleted** from App Store Connect; iOS only |
 
 ---
@@ -364,7 +365,8 @@ The next build must set that URL to the real Railway domain first.
 | Content rights | **Not set** — and the answer changed when the NLT landed. It is no longer "no third-party content": the app now displays licensed text from Tyndale, so declare third-party content and be ready to show the licence terms |
 | Age rating | **Not set** — answering "none" throughout gives 4+ |
 | UGC report/block UI | Done — report and block on every reflection |
-| Privacy policy URL | **Not written** — required |
+| Account deletion in-app | Done — Settings → Delete my account; DELETE /v1/me cascades all 15 tables |
+| Privacy policy URL | Written — `docs/privacy-policy.md`. **Still needs hosting** at `https://rootedbible.app/privacy`, which is what Settings links to and what App Store Connect needs |
 | macOS platform entry | Should be **deleted** from App Store Connect; iOS only |
 
 ---
