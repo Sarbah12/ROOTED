@@ -34,15 +34,23 @@ function escapeHtml(value: string) {
 }
 
 /**
- * Blank lines become paragraphs; single newlines stay as line breaks. Lines
- * that open like a list keep their shape rather than being reflowed into prose,
- * because sermon notes are mostly lists.
+ * The note, line for line as it was typed.
+ *
+ * An earlier version turned numbered lines into <ol>. That looked tidier and
+ * was wrong: HTML renumbers an ordered list from one, so notes written 1, 2, 5
+ * — or restarting at 1 under a new heading, which is how people actually write
+ * down three points under each of four headings — came out renumbered. The
+ * document has to match the note, so markers are now printed exactly as typed
+ * and never regenerated.
+ *
+ * Leading indentation is kept too, and wrapped lines hang under the text
+ * rather than under the marker, so a long point still reads as one point.
  */
 function renderBody(text: string) {
   const blocks = text
     .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean);
+    .map((block) => block.replace(/\s+$/, ''))
+    .filter((block) => block.trim());
 
   if (blocks.length === 0) {
     return '<p class="empty">No notes were written for this one.</p>';
@@ -50,21 +58,31 @@ function renderBody(text: string) {
 
   return blocks
     .map((block) => {
-      const lines = block.split('\n');
-      const numbered = lines.every((line) => /^\s*\d+[.)]\s+/.test(line));
-      const bulleted = lines.every((line) => /^\s*[-–—•*]\s+/.test(line));
+      const lines = block.split('\n').filter((line) => line.trim());
 
-      if (numbered || bulleted) {
-        const items = lines
-          .map((line) => line.replace(/^\s*(\d+[.)]|[-–—•*])\s+/, ''))
-          .map((line) => `<li>${escapeHtml(line)}</li>`)
-          .join('');
-        // Numbered points are usually the preacher's structure, and losing the
-        // numbers loses the structure.
-        return numbered ? `<ol>${items}</ol>` : `<ul>${items}</ul>`;
-      }
+      const rendered = lines
+        .map((line) => {
+          const indent = (line.match(/^[ \t]*/)?.[0] ?? '')
+            .replace(/\t/g, '    ').length;
+          const body = line.trim();
 
-      return `<p>${escapeHtml(block).replace(/\n/g, '<br/>')}</p>`;
+          // The marker is captured and reprinted verbatim — never re-derived.
+          const marker = body.match(/^(\d+[.)]|[a-zA-Z][.)]|[-–—•*·])\s+/);
+
+          const nest = Math.floor(indent / 2) * 14;
+
+          if (marker) {
+            const rest = body.slice(marker[0].length);
+            return `<div class="line marked" style="margin-left:${nest}px">
+              <span class="marker">${escapeHtml(marker[1])}</span><span>${escapeHtml(rest)}</span>
+            </div>`;
+          }
+
+          return `<div class="line" style="margin-left:${nest}px">${escapeHtml(body)}</div>`;
+        })
+        .join('');
+
+      return `<div class="block">${rendered}</div>`;
     })
     .join('');
 }
@@ -76,19 +94,30 @@ function formatDate(value: string | null | undefined) {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-/** Only the parts that were actually filled in. */
+/**
+ * Every detail that was filled in, whatever the note is tagged as.
+ *
+ * These used to be printed only for notes marked "sermon", so a study note
+ * with a preacher recorded lost it on export — the reader was told less than
+ * the writer knew. If a field has a value it was worth typing, so it is worth
+ * printing.
+ */
 function metaRows(note: BackendNote) {
   const rows: [string, string][] = [];
 
-  if (note.kind === 'sermon') {
-    if (note.preacher?.trim()) rows.push(['Preacher', note.preacher.trim()]);
-    if (note.church?.trim()) rows.push(['Church', note.church.trim()]);
-    if (note.series?.trim()) rows.push(['Series', note.series.trim()]);
-    const preached = formatDate(note.sermonDate);
-    if (preached) rows.push(['Preached', preached]);
-  }
+  const add = (label: string, value?: string | null) => {
+    if (value?.trim()) rows.push([label, value.trim()]);
+  };
 
-  if (note.reference?.trim()) rows.push(['Passage', note.reference.trim()]);
+  add('Preacher', note.preacher);
+  add('Church', note.church);
+  add('Series', note.series);
+  add('Preached', formatDate(note.sermonDate));
+  add('Passage', note.reference);
+
+  if (note.tags?.filter(Boolean).length) {
+    add('Tags', note.tags.filter(Boolean).join(', '));
+  }
 
   return rows;
 }
@@ -97,7 +126,6 @@ export function noteToHtml(note: BackendNote) {
   const rows = metaRows(note);
   const isSermon = note.kind === 'sermon';
   const kindLabel = isSermon ? 'Sermon notes' : 'Study notes';
-  const tags = note.tags?.filter(Boolean) ?? [];
 
   return `<!doctype html>
 <html><head><meta charset="utf-8" />
@@ -126,34 +154,33 @@ export function noteToHtml(note: BackendNote) {
 
   .sheet { padding: 34px 52px 44px; }
 
-  h1 { font-size: 27px; line-height: 1.24; margin: 0 0 4px; font-weight: normal; color: ${INK}; }
+  h1 { font-size: 29px; line-height: 1.24; margin: 0 0 4px; font-weight: normal; color: ${INK}; }
   .rule { width: 46px; height: 3px; background: ${GOLD}; border-radius: 2px; margin: 16px 0 22px; }
 
   /* Details sit in a tinted block so the eye can skip them on a re-read. */
-  .meta { background: ${CREAM}; border-radius: 10px; padding: 16px 20px; margin-bottom: 26px; }
+  .meta { background: ${CREAM}; border-radius: 10px; padding: 18px 22px; margin-bottom: 28px; }
   .meta table { width: 100%; border-collapse: collapse; }
-  .meta td { padding: 4px 0; vertical-align: top; font-size: 11.5px; }
+  .meta td { padding: 5px 0; vertical-align: top; font-size: 12px; }
   .meta td.k {
     font-family: Helvetica, Arial, sans-serif; color: ${GOLD};
     width: 86px; letter-spacing: .6px; text-transform: uppercase; font-size: 9px;
     font-weight: bold; padding-top: 6px;
   }
-  .meta td.v { color: ${INK}; font-size: 12.5px; }
+  .meta td.v { color: ${INK}; font-size: 13.5px; }
 
-  p { font-size: 13px; line-height: 1.78; color: ${BODY}; margin: 0 0 14px; max-width: 34em; }
+  p { font-size: 14.5px; line-height: 1.8; color: ${BODY}; margin: 0 0 15px; max-width: 33em; }
   p.empty { color: ${MUTED}; font-style: italic; }
-  ul, ol { margin: 0 0 14px; padding-left: 20px; max-width: 34em; }
-  ol li { padding-left: 3px; }
-  li { font-size: 13px; line-height: 1.72; color: ${BODY}; margin-bottom: 7px; }
-  li::marker { color: ${GOLD}; font-weight: bold; }
 
-  .tags { margin-top: 26px; }
-  .tag {
-    display: inline-block; font-family: Helvetica, Arial, sans-serif;
-    font-size: 9.5px; font-weight: bold; letter-spacing: .5px;
-    color: ${GREEN_DEEP}; background: #E4EFE8;
-    border-radius: 20px; padding: 5px 12px; margin: 0 6px 6px 0;
-  }
+  /* Paragraphs of the note, separated as they were by blank lines. */
+  .block { margin: 0 0 19px; max-width: 33em; }
+
+  /* One typed line, printed as typed. Wrapped text hangs under the words
+     rather than under the marker, so a long point still reads as one point. */
+  .line { font-size: 14.5px; line-height: 1.8; color: ${BODY}; margin-bottom: 4px; }
+  .line.marked { padding-left: 1.9em; text-indent: -1.9em; }
+  .marker { color: ${GOLD}; font-weight: bold; display: inline-block;
+            min-width: 1.9em; text-indent: 0; }
+
 
   .foot {
     margin-top: 34px; padding-top: 13px; border-top: 1px solid ${RULE};
@@ -187,14 +214,6 @@ export function noteToHtml(note: BackendNote) {
     }
 
     ${renderBody(note.content ?? '')}
-
-    ${
-      tags.length
-        ? `<div class="tags">${tags
-            .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
-            .join('')}</div>`
-        : ''
-    }
 
     <div class="foot">
       <span>Written in Rooted</span>
