@@ -9,6 +9,13 @@ missing. See [README](../README.md) for how the app is put together.
 
 ## Verified
 
+`npm run check` runs all of this in one go — types, lint, backend syntax, the
+Bible bundle, every quiz and plan reference, the verse rotation, and a scan for
+committed secrets. `npm run check -- --fix` applies what can be applied.
+
+`npm run check:bible` is separate because it makes 1,189 network requests
+against a second source; run it when the bundle changes.
+
 Things that have actually been run and observed to work.
 
 | | Evidence |
@@ -231,6 +238,13 @@ missing. See [README](../README.md) for how the app is put together.
 ---
 
 ## Verified
+
+`npm run check` runs all of this in one go — types, lint, backend syntax, the
+Bible bundle, every quiz and plan reference, the verse rotation, and a scan for
+committed secrets. `npm run check -- --fix` applies what can be applied.
+
+`npm run check:bible` is separate because it makes 1,189 network requests
+against a second source; run it when the bundle changes.
 
 Things that have actually been run and observed to work.
 
