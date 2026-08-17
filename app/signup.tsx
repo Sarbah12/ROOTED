@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
+import { BACKEND_API_BASE_URL } from '@/constants/firebase';
 import {
   USERNAME_RULES,
   isSyntheticEmail,
@@ -90,6 +91,25 @@ export default function SignUpScreen() {
     try {
       const credential = await createUserWithEmailAndPassword(auth, result.email, password);
       await updateProfile(credential.user, { displayName: displayName.trim() });
+
+      // Welcome mail, for accounts that have somewhere to receive it. Username
+      // and phone sign-ups map onto addresses on our own domains, which are not
+      // real inboxes — sending there hard-bounces and costs sending reputation
+      // the password-reset mail depends on. The server checks this too; this
+      // just avoids the pointless round trip.
+      if (!isSyntheticEmail(result.email)) {
+        credential.user
+          .getIdToken()
+          .then((token) =>
+            fetch(`${BACKEND_API_BASE_URL}/v1/auth/welcome`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          )
+          // Never let a welcome email hold up, or fail, a successful sign-up.
+          .catch(() => {});
+      }
+
       goAfterAuth();
       return;
     } catch (err) {

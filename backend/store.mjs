@@ -79,6 +79,19 @@ function mapPrayer(row) {
 const USERNAME_DOMAIN = '@users.rootedbible.app';
 const PHONE_DOMAIN = '@phone.rootedbible.app';
 
+/**
+ * True when the address can actually receive mail.
+ *
+ * Username and phone sign-ups are mapped onto addresses on domains we own, so
+ * they look like emails and are not. Sending to one hard-bounces, and enough
+ * bounces damage the sending reputation of the domain that real password
+ * resets depend on.
+ */
+export function isRealInbox(email) {
+  if (!email) return false;
+  return !email.endsWith(USERNAME_DOMAIN) && !email.endsWith(PHONE_DOMAIN);
+}
+
 function splitIdentity(email) {
   if (!email) return { username: null, phoneDigits: null, realEmail: null };
   if (email.endsWith(USERNAME_DOMAIN)) {

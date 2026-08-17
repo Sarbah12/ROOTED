@@ -72,14 +72,13 @@ import {
   deleteNote,
   deleteUser,
   deletePrayer,
-  getReadingProgress,
   getSettings,
   getUser,
+  isRealInbox,
   listNotes,
   listPrayers,
   listQuizResults,
   recordQuizResult,
-  setReadingProgress,
   updateNote,
   updatePrayer,
   updateSettings,
@@ -215,13 +214,6 @@ async function requireUser(req) {
   const { decodedToken, userRecord } = await verifyFirebaseRequest(req, config);
   return sanitizeFirebaseUserRecord(userRecord, decodedToken);
 }
-
-/** Plan definitions are static content, not user data. */
-const READING_PLANS = [
-  { id: 'plan_1', name: 'Bible in a Year', duration: '365 days', color: '#2E6A5C' },
-  { id: 'plan_2', name: 'New Testament in 90 Days', duration: '90 days', color: '#8A6236' },
-  { id: 'plan_3', name: 'Psalms & Proverbs', duration: '60 days', color: '#5D7A66' },
-];
 
 async function handleAuthLogin(req, res) {
   const body = assertBody(await readBody(req));
@@ -408,62 +400,26 @@ async function handleDashboard(req, res) {
   const firebaseUser = await requireUser(req);
   const userId = firebaseUser.uid;
 
-  const [user, settings, notes, prayers, progress] = await Promise.all([
+  const [user, settings, notes, prayers, plans] = await Promise.all([
     getUser(userId),
     getSettings(userId),
     listNotes(userId),
     listPrayers(userId),
-    getReadingProgress(userId),
+    listMyPlans(userId),
   ]);
-
-  const progressById = new Map(progress.map((item) => [item.id, item.progress]));
 
   sendJson(res, 200, {
     user: { ...user, settings },
     counts: {
       notes: notes.length,
       prayers: prayers.length,
-      plans: READING_PLANS.length,
+      plans: plans.length,
     },
-    readingPlans: READING_PLANS.map((plan) => ({
-      ...plan,
-      progress: progressById.get(plan.id) ?? 0,
-    })),
     notes: notes.slice(0, 3),
     prayers: prayers.slice(0, 3),
   });
 }
 
-async function handleReadingPlans(req, res) {
-  const firebaseUser = await requireUser(req);
-
-  if (req.method === 'GET') {
-    const progress = await getReadingProgress(firebaseUser.uid);
-    const progressById = new Map(progress.map((item) => [item.id, item.progress]));
-    sendJson(res, 200, {
-      readingPlans: READING_PLANS.map((plan) => ({
-        ...plan,
-        progress: progressById.get(plan.id) ?? 0,
-      })),
-    });
-    return;
-  }
-
-  if (req.method === 'PATCH' || req.method === 'PUT') {
-    const body = assertBody(await readBody(req));
-    rejectUnknownKeys(body, ['planId', 'progress'], 'reading plan');
-    const planId = requiredTrimmedString(body.planId, 'planId');
-
-    if (typeof body.progress !== 'number' || body.progress < 0 || body.progress > 1) {
-      throw badRequest('progress must be a number between 0 and 1');
-    }
-
-    sendJson(res, 200, await setReadingProgress(firebaseUser.uid, planId, body.progress));
-    return;
-  }
-
-  throw methodNotAllowed();
-}
 
 async function handleQuizResults(req, res) {
   const firebaseUser = await requireUser(req);
@@ -523,8 +479,10 @@ async function handlePasswordReset(req, res) {
 async function handleWelcomeEmail(req, res) {
   const firebaseUser = await requireUser(req);
 
-  if (!isEmailConfigured() || !firebaseUser.email) {
-    sendJson(res, 200, { sent: false });
+  // Not an error worth failing the request over: signing up with a username or
+  // phone number is a legitimate choice, and it simply has no inbox to write to.
+  if (!isEmailConfigured() || !isRealInbox(firebaseUser.email)) {
+    sendJson(res, 200, { sent: false, reason: 'no-inbox' });
     return;
   }
 
@@ -1233,10 +1191,6 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (parts[0] === 'v1' && parts[1] === 'reading-plans') {
-      await handleReadingPlans(req, res);
-      return;
-    }
 
     throw notFound();
   })(req, res, url);

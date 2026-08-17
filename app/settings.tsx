@@ -6,6 +6,7 @@ import {
   Alert,
   Image,
   Linking,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -17,6 +18,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
 import { BACKEND_API_BASE_URL } from '@/constants/firebase';
+import { validatePassword } from '@/constants/identity';
+import { updatePassword } from 'firebase/auth';
+
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useAppSettings } from '@/context/app-settings';
 
@@ -79,6 +83,44 @@ export default function SettingsScreen() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  /**
+   * Changing the password from inside the app.
+   *
+   * Only offered to accounts that signed in with a password — an Apple account
+   * has no password here to change, and offering it would be a dead end.
+   */
+  const changePassword = () => {
+    if (!firebaseUser) return;
+
+    Alert.prompt(
+      'New password',
+      'At least 8 characters, with a letter and a number.',
+      async (next) => {
+        const problem = validatePassword(next ?? '');
+        if (problem) {
+          Alert.alert('That will not do', problem);
+          return;
+        }
+
+        try {
+          await updatePassword(firebaseUser, next);
+          Alert.alert('Password changed', 'Use it the next time you sign in.');
+        } catch (error) {
+          const code = (error as { code?: string })?.code ?? '';
+          if (code === 'auth/requires-recent-login') {
+            Alert.alert(
+              'Sign in again first',
+              'For your security, changing a password needs a recent sign-in. Sign out, sign back in, and try again.',
+            );
+          } else {
+            Alert.alert('Could not change it', error instanceof Error ? error.message : 'Try again.');
+          }
+        }
+      },
+      'secure-text',
+    );
   };
 
   const confirmDelete = () => {
@@ -348,6 +390,16 @@ export default function SettingsScreen() {
             <Text style={[styles.signOutText, { color: theme.primary }]}>Sign in</Text>
           </TouchableOpacity>
         )}
+
+        {firebaseUser && Platform.OS === 'ios' ? (
+          <TouchableOpacity
+            style={[styles.legalRow, { borderColor: theme.border }]}
+            activeOpacity={0.8}
+            onPress={changePassword}>
+            <Ionicons name="key-outline" size={16} color={theme.textSecondary} />
+            <Text style={[styles.legalText, { color: theme.textSecondary }]}>Change password</Text>
+          </TouchableOpacity>
+        ) : null}
 
         <TouchableOpacity
           style={[styles.legalRow, { borderColor: theme.border }]}
