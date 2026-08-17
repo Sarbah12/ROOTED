@@ -61,6 +61,7 @@ import {
   createNote,
   createPrayer,
   deleteNote,
+  deleteUser,
   deletePrayer,
   getReadingProgress,
   getSettings,
@@ -235,6 +236,22 @@ async function handleAuthLogout(req, res) {
 
 async function handleMe(req, res) {
   const firebaseUser = await requireUser(req);
+
+  /**
+   * Deleting the account. Everything referencing the user cascades, so this
+   * removes notes, prayers, plans, posts, comments and reflections with it.
+   *
+   * The Firebase user is deleted by the app rather than here: doing it from
+   * the client means the person's own credentials authorise it, and a failure
+   * to remove their data server-side cannot leave them locked out of an
+   * account whose contents still exist.
+   */
+  if (req.method === 'DELETE') {
+    await deleteUser(firebaseUser.uid);
+    sendJson(res, 200, { deleted: true });
+    return;
+  }
+
   const user = (await getUser(firebaseUser.uid)) ?? (await upsertUser(firebaseUser));
   const settings = await getSettings(firebaseUser.uid);
 
@@ -1048,7 +1065,12 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (parts[0] === 'v1' && parts[1] === 'me' && parts.length === 2 && req.method === 'GET') {
+    if (
+      parts[0] === 'v1' &&
+      parts[1] === 'me' &&
+      parts.length === 2 &&
+      (req.method === 'GET' || req.method === 'DELETE')
+    ) {
       await handleMe(req, res);
       return;
     }

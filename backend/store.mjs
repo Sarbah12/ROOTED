@@ -137,6 +137,22 @@ export async function getUser(userId) {
 }
 
 // ----------------------------------------------------------------- settings
+/**
+ * Erases the account and everything attached to it.
+ *
+ * Every table referencing users(id) cascades, so one delete is enough — but
+ * that is a property of the schema rather than of this function, so if a table
+ * is ever added without `on delete cascade` it will start failing here loudly
+ * rather than quietly orphaning someone's notes.
+ *
+ * Required by App Store guideline 5.1.1(v): an app that lets people create an
+ * account must let them delete it from inside the app.
+ */
+export async function deleteUser(userId) {
+  const row = await queryOne('delete from users where id = $1 returning id', [userId]);
+  return Boolean(row);
+}
+
 export async function getSettings(userId) {
   const row = await queryOne('select * from user_settings where user_id = $1', [userId]);
   if (row) return mapSettings(row);

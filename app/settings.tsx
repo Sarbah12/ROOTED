@@ -1,6 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -12,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
+import { BACKEND_API_BASE_URL } from '@/constants/firebase';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useAppSettings } from '@/context/app-settings';
 
@@ -30,7 +34,72 @@ const ACCOUNT_ROWS = [
 export default function SettingsScreen() {
   const router = useRouter();
   const { settings, updateSettings } = useAppSettings();
-  const { signOut, firebaseUser } = useFirebaseAuth();
+  const { signOut, firebaseUser, idToken } = useFirebaseAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  /**
+   * Deletes the account, as App Store guideline 5.1.1(v) requires.
+   *
+   * Order matters. The server data goes first: if that fails we stop and say
+   * so, leaving the person with an account they can still sign into. Deleting
+   * Firebase first and then failing server-side would lock them out of data
+   * that still exists, with no way back in to try again.
+   */
+  const deleteAccount = async () => {
+    if (!firebaseUser) return;
+    setIsDeleting(true);
+
+    try {
+      if (idToken) {
+        const response = await fetch(`${BACKEND_API_BASE_URL}/v1/me`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        if (!response.ok) throw new Error('Your data could not be deleted. Nothing was removed.');
+      }
+
+      await firebaseUser.delete();
+      router.replace('/(tabs)');
+    } catch (error) {
+      const code = (error as { code?: string })?.code ?? '';
+
+      // Firebase refuses to delete an account that signed in a while ago.
+      if (code === 'auth/requires-recent-login') {
+        Alert.alert(
+          'Sign in again first',
+          'For your security, Apple and Firebase require a recent sign-in before an account can be deleted. Sign out, sign back in, and try again.',
+        );
+      } else {
+        Alert.alert(
+          'Could not delete your account',
+          error instanceof Error ? error.message : 'Please try again.',
+        );
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const confirmDelete = () => {
+    Alert.alert(
+      'Delete your account?',
+      'This removes your notes, prayers, plans, posts and reflections permanently. It cannot be undone.',
+      [
+        { text: 'Keep my account', style: 'cancel' },
+        {
+          text: 'Delete everything',
+          style: 'destructive',
+          onPress: () =>
+            // Two steps on purpose: this is irreversible, and the first tap is
+            // easy to make by accident.
+            Alert.alert('Are you certain?', 'Everything you have written in Rooted will be gone.', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete my account', style: 'destructive', onPress: deleteAccount },
+            ]),
+        },
+      ],
+    );
+  };
 
   const isDarkMode = settings.darkMode;
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
@@ -279,6 +348,23 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         )}
 
+        {firebaseUser ? (
+          <TouchableOpacity
+            style={styles.deleteBtn}
+            activeOpacity={0.8}
+            onPress={confirmDelete}
+            disabled={isDeleting}>
+            {isDeleting ? (
+              <ActivityIndicator size="small" color="#C0553C" />
+            ) : (
+              <>
+                <Ionicons name="trash-outline" size={15} color="#C0553C" />
+                <Text style={styles.deleteText}>Delete my account</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        ) : null}
+
         <Text style={[styles.footerText, { color: theme.textMuted }]}>
           Changes here shape how Rooted feels every time you open the app.
         </Text>
@@ -524,6 +610,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 14,
+    marginTop: 10,
+  },
+  deleteText: { color: '#C0553C', fontSize: 14, fontWeight: '700' },
   signOutBtn: {
     marginTop: 16,
     borderWidth: 1,
