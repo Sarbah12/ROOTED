@@ -102,6 +102,7 @@ access rather than code.
 |---|---|---|
 | App Store Connect key `LKYA6Y6CZ4` | `~/Downloads/AuthKey_LKYA6Y6CZ4.p8` | App Store Connect → Users and Access → Integrations → revoke, regenerate |
 | Resend API key `re_BJzVu9pw…` | `.env` | Resend → API Keys → revoke, regenerate |
+| API.Bible key `xXWKwfmD…` | `.env` | Free Starter tier, non-commercial, 5,000 calls a month. Regenerate at api.bible if the transcript is shared. |
 | NLT API key `17681cb9…` | `.env` | Lower stakes — a free non-commercial key, capped at 5,000 requests a day, so misuse burns quota rather than money. Still tied to your Tyndale registration; regenerate if the transcript is ever shared. |
 
 None is in the repository — `.gitignore` covers `.env`, `*.p8`, `*.p12`,
@@ -325,6 +326,7 @@ access rather than code.
 |---|---|---|
 | App Store Connect key `LKYA6Y6CZ4` | `~/Downloads/AuthKey_LKYA6Y6CZ4.p8` | App Store Connect → Users and Access → Integrations → revoke, regenerate |
 | Resend API key `re_BJzVu9pw…` | `.env` | Resend → API Keys → revoke, regenerate |
+| API.Bible key `xXWKwfmD…` | `.env` | Free Starter tier, non-commercial, 5,000 calls a month. Regenerate at api.bible if the transcript is shared. |
 | NLT API key `17681cb9…` | `.env` | Lower stakes — a free non-commercial key, capped at 5,000 requests a day, so misuse burns quota rather than money. Still tied to your Tyndale registration; regenerate if the transcript is ever shared. |
 
 None is in the repository — `.gitignore` covers `.env`, `*.p8`, `*.p12`,

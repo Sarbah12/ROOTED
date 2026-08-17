@@ -262,7 +262,8 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     provider: 'licensed',
     coverage: 'full',
     language: 'English',
-    note: 'Requires a licence',
+    bibleId: '63097d2a0a2f7db3-01',
+    note: 'Licensed via API.Bible',
     copyright: '© Thomas Nelson',
   },
   {
@@ -288,7 +289,8 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     provider: 'licensed',
     coverage: 'full',
     language: 'English',
-    note: 'Requires a licence',
+    bibleId: 'a81b73293d3080c9-01',
+    note: 'Licensed via API.Bible',
     copyright: '© The Lockman Foundation',
   },
 ];

@@ -13,7 +13,8 @@ import { config } from './config.mjs';
  * bible-api.com; there is nothing to protect there and no reason to add a hop.
  */
 
-const API_BASE = 'https://api.scripture.api.bible/v1';
+// api.scripture.api.bible still answers, but rest.api.bible is the current host.
+const API_BASE = 'https://rest.api.bible/v1';
 const TIMEOUT_MS = 10_000;
 
 export function isBibleApiConfigured() {
