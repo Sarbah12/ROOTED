@@ -13,7 +13,8 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "15"
     },
     "android": {
       "package": "com.rootedbible.app",
