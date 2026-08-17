@@ -59,7 +59,9 @@ live system. Expect some of it to need adjustment on first contact.
 ## Not built
 
 - **Reading plan progress writes.** `PATCH /v1/reading-plans` exists; nothing
-  calls it. Superseded in practice by study plans, so it may be dead weight.
+  calls it. Now genuinely dead weight — the three name-only plans it served
+  have been replaced by real templates in `constants/plan-templates.ts`, which
+  create ordinary study plans. Worth deleting.
 - **Welcome email trigger.** `POST /v1/auth/welcome` exists; sign-up does not
   call it. Not a one-line fix: username and phone sign-ups are mapped onto
   synthetic addresses (`@users.rootedbible.app`, `@phone.rootedbible.app`), so
@@ -280,7 +282,9 @@ live system. Expect some of it to need adjustment on first contact.
 ## Not built
 
 - **Reading plan progress writes.** `PATCH /v1/reading-plans` exists; nothing
-  calls it. Superseded in practice by study plans, so it may be dead weight.
+  calls it. Now genuinely dead weight — the three name-only plans it served
+  have been replaced by real templates in `constants/plan-templates.ts`, which
+  create ordinary study plans. Worth deleting.
 - **Welcome email trigger.** `POST /v1/auth/welcome` exists; sign-up does not
   call it. Not a one-line fix: username and phone sign-ups are mapped onto
   synthetic addresses (`@users.rootedbible.app`, `@phone.rootedbible.app`), so

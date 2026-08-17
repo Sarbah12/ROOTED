@@ -20,6 +20,7 @@ import { useThemeMode } from '@/context/theme-mode';
 import { planRequest } from '@/hooks/use-plan';
 import { SignInRequired } from '@/components/sign-in-required';
 import { usePlans, type StudyPlan } from '@/hooks/use-plans';
+import { PLAN_TEMPLATES, type PlanTemplate } from '@/constants/plan-templates';
 
 type Tab = 'mine' | 'discover';
 
@@ -37,6 +38,37 @@ export default function PlansScreen() {
   const [isJoining, setIsJoining] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const [startingId, setStartingId] = useState<string | null>(null);
+
+  /**
+   * Starts a plan from a template.
+   *
+   * Creates it as a normal private study plan rather than a special kind, so
+   * everything that already works — marking days, streaks, reflections, and
+   * sharing the code with someone later — works on it with no extra code.
+   */
+  const startTemplate = async (template: PlanTemplate) => {
+    if (!idToken) return;
+    setStartingId(template.id);
+
+    try {
+      const created = await planRequest<StudyPlan>('/v1/plans', idToken, {
+        method: 'POST',
+        body: JSON.stringify({
+          title: template.title,
+          description: template.description,
+          visibility: 'private',
+          days: template.days,
+        }),
+      });
+      await refresh();
+      router.push(`/plans/${created.id}`);
+    } catch {
+      Alert.alert('Could not start that plan', 'Please try again.');
+    } finally {
+      setStartingId(null);
+    }
+  };
 
   const loadPublic = useCallback(
     async (term: string) => {
@@ -257,7 +289,7 @@ export default function PlansScreen() {
                 style={[styles.emptyBtn, { backgroundColor: theme.primary }]}
                 onPress={() => router.push('/plans/new')}
                 activeOpacity={0.85}>
-                <Text style={styles.emptyBtnText}>Create a plan</Text>
+                <Text style={styles.emptyBtnText}>Create your own</Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -316,6 +348,36 @@ export default function PlansScreen() {
             })}
           </View>
         )}
+
+        {tab === 'mine' && plans.length === 0 && !isLoading ? (
+          <View style={styles.templates}>
+            <Text style={[styles.templatesTitle, { color: theme.text }]}>Or start one of these</Text>
+            <Text style={[styles.templatesBlurb, { color: theme.textSecondary }]}>
+              Ready-made plans with every day mapped out. You can share yours with a code later.
+            </Text>
+
+            {PLAN_TEMPLATES.map((template) => (
+              <TouchableOpacity
+                key={template.id}
+                style={[styles.templateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => startTemplate(template)}
+                disabled={startingId !== null}
+                activeOpacity={0.86}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.templateName, { color: theme.text }]}>{template.title}</Text>
+                  <Text style={[styles.templateMeta, { color: theme.textMuted }]}>
+                    {template.days.length} days · starts with {template.days[0].reference}
+                  </Text>
+                </View>
+                {startingId === template.id ? (
+                  <ActivityIndicator size="small" color={theme.primary} />
+                ) : (
+                  <Ionicons name="arrow-forward-circle" size={24} color={theme.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -357,6 +419,20 @@ const styles = StyleSheet.create({
   emptyBtn: { marginTop: 8, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12 },
   emptyBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
   list: { gap: 12 },
+  templates: { marginTop: 22 },
+  templatesTitle: { fontSize: 17, fontFamily: 'Georgia', marginBottom: 5 },
+  templatesBlurb: { fontSize: 13.5, lineHeight: 20, marginBottom: 14 },
+  templateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 10,
+  },
+  templateName: { fontSize: 15.5, fontWeight: '800' },
+  templateMeta: { fontSize: 12.5, fontWeight: '600', marginTop: 3 },
   card: { borderWidth: 1, borderRadius: 20, padding: 16, gap: 8 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   cardTitle: { fontSize: 16.5, fontWeight: '800' },

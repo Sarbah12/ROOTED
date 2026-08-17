@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -97,6 +98,14 @@ export default function BibleReaderScreen() {
       {
         text: isBookmarked ? 'Remove bookmark' : 'Bookmark',
         onPress: () => toggleBookmark(verse),
+      },
+      {
+        // The most-used action in any Bible app, and the one people reach for
+        // to paste a verse into a message.
+        text: 'Copy',
+        onPress: () => {
+          Clipboard.setStringAsync(quoted).catch(() => {});
+        },
       },
       {
         text: 'Share',
