@@ -69,6 +69,10 @@ live system. Expect some of it to need adjustment on first contact.
   and the handler need to skip addresses that are not real inboxes.
 - **Blog cover images.** `posts.cover_image_url` exists in the schema; there is
   no upload path and no storage bucket.
+- **Push delivery for nudges.** A nudge is stored and shown the next time the
+  friend opens Rooted. Reaching them when the app is closed needs an APNs key
+  and the push entitlement, which was deliberately removed earlier because
+  nothing used it.
 
 ---
 
@@ -297,6 +301,10 @@ live system. Expect some of it to need adjustment on first contact.
   and the handler need to skip addresses that are not real inboxes.
 - **Blog cover images.** `posts.cover_image_url` exists in the schema; there is
   no upload path and no storage bucket.
+- **Push delivery for nudges.** A nudge is stored and shown the next time the
+  friend opens Rooted. Reaching them when the app is closed needs an APNs key
+  and the push entitlement, which was deliberately removed earlier because
+  nothing used it.
 
 ---
 

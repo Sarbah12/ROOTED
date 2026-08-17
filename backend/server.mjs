@@ -12,6 +12,15 @@ import {
 } from './auth.mjs';
 import { getChapter, isBibleApiConfigured, listBibles } from './bible.mjs';
 import { getNltChapter, isNltConfigured } from './nlt.mjs';
+import {
+  acceptFriend,
+  listFriends,
+  listNudges,
+  markNudgesSeen,
+  nudgeFriend,
+  removeFriend,
+  requestFriend,
+} from './friends.mjs';
 import { isEmailConfigured, sendPasswordResetEmail, sendWelcomeEmail } from './email.mjs';
 import {
   createComment,
@@ -844,6 +853,80 @@ async function handleBible(req, res, parts) {
   throw notFound();
 }
 
+
+/**
+ * /v1/friends and /v1/nudges
+ *
+ *   GET    /v1/friends                list, accepted and pending
+ *   POST   /v1/friends                { username } — ask to connect
+ *   POST   /v1/friends/:id/accept     accept a request sent to you
+ *   DELETE /v1/friends/:id            decline, or unfriend — same thing
+ *   POST   /v1/friends/:userId/nudge  { message } — once per friend per day
+ *
+ *   GET    /v1/nudges                 what friends have sent you
+ *   POST   /v1/nudges/seen            mark them read
+ */
+async function handleFriends(req, res, parts) {
+  const user = await requireUser(req);
+  const userId = user.uid;
+  const id = parts[2];
+  const action = parts[3];
+
+  if (!id) {
+    if (req.method === 'GET') {
+      sendJson(res, 200, { friends: await listFriends(userId) });
+      return;
+    }
+
+    if (req.method === 'POST') {
+      const body = assertBody(await readBody(req));
+      rejectUnknownKeys(body, ['username'], 'friend request');
+      const result = await requestFriend(userId, requiredTrimmedString(body.username, 'username'));
+      sendJson(res, 201, result);
+      return;
+    }
+
+    throw methodNotAllowed();
+  }
+
+  if (action === 'accept' && req.method === 'POST') {
+    if (!(await acceptFriend(userId, id))) throw notFound('That request is no longer waiting.');
+    sendJson(res, 200, { accepted: true });
+    return;
+  }
+
+  if (action === 'nudge' && req.method === 'POST') {
+    const body = assertBody(await readBody(req));
+    rejectUnknownKeys(body, ['message'], 'nudge');
+    sendJson(res, 201, await nudgeFriend(userId, id, optionalTrimmedString(body.message) || ''));
+    return;
+  }
+
+  if (!action && req.method === 'DELETE') {
+    if (!(await removeFriend(userId, id))) throw notFound();
+    sendJson(res, 200, { removed: true });
+    return;
+  }
+
+  throw notFound();
+}
+
+async function handleNudges(req, res, parts) {
+  const user = await requireUser(req);
+
+  if (parts[2] === 'seen' && req.method === 'POST') {
+    sendJson(res, 200, await markNudgesSeen(user.uid));
+    return;
+  }
+
+  if (!parts[2] && req.method === 'GET') {
+    sendJson(res, 200, { nudges: await listNudges(user.uid) });
+    return;
+  }
+
+  throw notFound();
+}
+
 const MAX_POST_BODY = 40000;
 const MAX_COMMENT = 2000;
 
@@ -1092,6 +1175,16 @@ const server = http.createServer(async (req, res) => {
 
     if (parts[0] === 'v1' && parts[1] === 'prayers') {
       await handlePrayers(req, res, parts[2]);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'friends') {
+      await handleFriends(req, res, parts);
+      return;
+    }
+
+    if (parts[0] === 'v1' && parts[1] === 'nudges') {
+      await handleNudges(req, res, parts);
       return;
     }
 

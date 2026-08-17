@@ -407,3 +407,48 @@ create trigger post_comments_count_sync
 alter table posts         enable row level security;
 alter table post_likes    enable row level security;
 alter table post_comments enable row level security;
+
+-- ---------------------------------------------------------------- friends
+-- Friendship is mutual and must be accepted. A one-sided "follow" would let
+-- anyone attach themselves to a stranger and then nudge them, which is the
+-- shape most harassment takes in small social features.
+create table if not exists friendships (
+  id           text        primary key,
+  requester_id text        not null references users(id) on delete cascade,
+  addressee_id text        not null references users(id) on delete cascade,
+  status       text        not null default 'pending'
+                           check (status in ('pending', 'accepted')),
+  created_at   timestamptz not null default now(),
+  responded_at timestamptz,
+  check (requester_id <> addressee_id)
+);
+
+-- One relationship per pair whichever way round it was asked, so B cannot
+-- send a second request while A's is still pending.
+create unique index if not exists friendships_pair
+  on friendships (least(requester_id, addressee_id), greatest(requester_id, addressee_id));
+
+create index if not exists friendships_addressee
+  on friendships (addressee_id, status);
+
+-- ----------------------------------------------------------------- nudges
+-- A reminder from one friend to another to open their Bible.
+create table if not exists nudges (
+  id           text        primary key,
+  from_user_id text        not null references users(id) on delete cascade,
+  to_user_id   text        not null references users(id) on delete cascade,
+  message      text        not null default '',
+  created_at   timestamptz not null default now(),
+  seen_at      timestamptz,
+  check (from_user_id <> to_user_id)
+);
+
+-- The rate limit lives in the database rather than in application code: one
+-- nudge per friend per day, enforced whatever calls it. A "remind" button with
+-- no ceiling is a harassment vector, and the first thing App Review looks for
+-- in a social feature.
+create unique index if not exists nudges_one_per_friend_per_day
+  on nudges (from_user_id, to_user_id, (created_at::date));
+
+create index if not exists nudges_inbox
+  on nudges (to_user_id, created_at desc);

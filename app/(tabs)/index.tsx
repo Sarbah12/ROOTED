@@ -298,6 +298,24 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ) : null}
 
+        {isSignedIn ? (
+          <TouchableOpacity
+            style={[styles.blogCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push('/friends')}
+            activeOpacity={0.86}>
+            <View style={[styles.blogMark, { backgroundColor: theme.primarySoft }]}>
+              <Ionicons name="people-outline" size={20} color={theme.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.blogTitle, { color: theme.text }]}>Friends</Text>
+              <Text style={[styles.blogBody, { color: theme.textSecondary }]}>
+                Read alongside people, and remind each other.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+          </TouchableOpacity>
+        ) : null}
+
         <TouchableOpacity
           style={[styles.blogCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
           onPress={() => router.push('/blog')}
