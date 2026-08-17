@@ -174,3 +174,44 @@ guess is never substituted.
 
 **Keep the project out of iCloud.** `~/Desktop` and `~/Documents` are synced,
 which made builds unusably slow. See the table in the README.
+
+---
+
+## Building locally (when the EAS quota is out)
+
+The free EAS plan allows a limited number of iOS builds a month; it ran out on
+14 August and resets on the 1st. Cloud builds work unchanged. Local builds do
+not, and the reason is worth writing down because it took a while to find.
+
+**The blocker.** Three distribution certificates exist on the Apple account,
+all displaying the same name:
+
+| Serial | Apple id | Where the private key is |
+|---|---|---|
+| `5C315540…` | `6FRVN5X239` | login keychain, and `rydechain-build.keychain` |
+| `55784328…` | `86C8DX3Z5M` | `rooted-credentials/distribution.p12` |
+| `2B7A4570…` | `CVAHQHWG3V` | EAS servers |
+
+Xcode resolves the shared name to `5C315540…`, then codesign fails with
+`errSecInternalComponent` — it cannot reach that key, because EAS builds
+against its own temporary keychain rather than the login one.
+
+**Already done.** A profile `Rooted AppStore All Distribution` (`WTZ495NSCR`)
+was created containing all three certificates, so the profile no longer
+rejects whichever one Xcode picks. That removed the earlier
+"profile doesn't include signing certificate" failure.
+
+**What is still needed** — one of these, both requiring a human at the machine:
+
+1. Let codesign use the login keychain key without a prompt:
+   `security unlock-keychain ~/Library/Keychains/login.keychain-db` then
+   `security set-key-partition-list -S apple-tool:,apple: -s ~/Library/Keychains/login.keychain-db`
+   Both ask for the account password, which is why they cannot be scripted here.
+
+2. Or remove `5C315540…` from the login and `rydechain-build` keychains so Xcode
+   falls through to the certificate in the p12. Export it first — deleting takes
+   the private key with it, and it is shared with the RYDECHAIN signing setup.
+
+`credentials.json` (gitignored) already points at the new profile and the
+matching p12. `credentialsSource` is left at the default so cloud builds keep
+using EAS credentials, which is the path known to work.
