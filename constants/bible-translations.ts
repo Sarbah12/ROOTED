@@ -38,7 +38,10 @@ export type Translation = {
   source: TranslationSource;
   coverage: TranslationCoverage;
   provider: TranslationProvider;
-  /** bible-api.com identifier — public remote translations only. */
+  /**
+   * bible-api.com identifier. Set on `public` translations, and also on
+   * `proxied` ones, where it is the fallback if our backend cannot be reached.
+   */
   apiId?: string;
   /** API.Bible id — licensed translations only. Set once you have a key. */
   bibleId?: string;
@@ -66,6 +69,7 @@ export const TRANSLATIONS: Translation[] = [
     name: 'World English Bible',
     source: 'remote',
     provider: 'proxied',
+    apiId: 'web',
     bibleId: '9879dbb7cfe39e4d-01',
     coverage: 'full',
     language: 'English',
@@ -77,6 +81,7 @@ export const TRANSLATIONS: Translation[] = [
     name: 'World English Bible, British Edition',
     source: 'remote',
     provider: 'proxied',
+    apiId: 'webbe',
     bibleId: '7142879509583d59-01',
     coverage: 'full',
     language: 'English',
@@ -88,6 +93,7 @@ export const TRANSLATIONS: Translation[] = [
     name: 'American Standard Version',
     source: 'remote',
     provider: 'proxied',
+    apiId: 'asv',
     bibleId: '06125adad2d5898a-01',
     coverage: 'full',
     language: 'English',
@@ -99,6 +105,7 @@ export const TRANSLATIONS: Translation[] = [
     name: 'Douay-Rheims 1899',
     source: 'remote',
     provider: 'proxied',
+    apiId: 'dra',
     bibleId: '179568874c45066f-01',
     coverage: 'full',
     language: 'English',
@@ -200,6 +207,7 @@ export const TRANSLATIONS: Translation[] = [
     name: 'Bible kralická',
     source: 'remote',
     provider: 'proxied',
+    apiId: 'bkr',
     bibleId: 'c61908161b077c4c-01',
     coverage: 'full',
     language: 'Čeština',

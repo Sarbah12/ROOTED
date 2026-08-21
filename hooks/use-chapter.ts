@@ -197,13 +197,32 @@ export function useChapter(
         }
 
         try {
-          const result = await fetchLicensedChapter(
-            translation.bibleId as string,
-            bookId,
-            chapter,
-            idToken,
-            controller.signal
-          );
+          let result;
+
+          try {
+            result = await fetchLicensedChapter(
+              translation.bibleId as string,
+              bookId,
+              chapter,
+              idToken,
+              controller.signal
+            );
+          } catch (proxyError) {
+            // A public-domain text that also exists on bible-api.com can still
+            // be read when our own backend is unreachable. Preferring the proxy
+            // is about reliability and caching, not access — so losing it
+            // should degrade to the old path rather than to nothing.
+            if (translation.provider !== 'proxied' || !translation.apiId) throw proxyError;
+
+            const verses = await fetchChapter(
+              translation.apiId,
+              book.name,
+              chapter,
+              controller.signal
+            );
+            result = { verses, copyright: translation.copyright ?? '' };
+          }
+
           if (!isCurrent()) return;
 
           setState({
