@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
-import { getVerseOfTheDay } from '@/constants/verse-of-the-day';
+import { useVerseOfTheDay } from '@/hooks/use-verse-of-the-day';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { useNotes } from '@/hooks/use-notes';
@@ -129,8 +128,8 @@ export default function HomeScreen() {
   // instant sign-in succeeds and does not wait on the backend profile.
   const firstName = firebaseUser?.displayName?.trim().split(/\s+/)[0] || null;
 
-  // Rotates by calendar day, with the text read from the bundled KJV.
-  const verseOfTheDay = useMemo(() => getVerseOfTheDay(), []);
+  // Rotates by calendar day, and follows the day over — see the hook.
+  const verseOfTheDay = useVerseOfTheDay();
 
   // Counts and progress come from the user's own data. Nothing here is a
   // placeholder: with no plans joined the tiles read zero rather than inventing
