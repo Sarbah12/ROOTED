@@ -60,12 +60,14 @@ async function fetchLicensedChapter(
   bibleId: string,
   bookId: string,
   chapter: number,
-  idToken: string,
+  idToken: string | null,
   signal: AbortSignal
 ): Promise<{ verses: ChapterVerse[]; copyright: string }> {
   const response = await fetch(
     `${BACKEND_API_BASE_URL}/v1/bible/${encodeURIComponent(bibleId)}/${bookId}/${chapter}`,
-    { signal, headers: { Authorization: `Bearer ${idToken}` } }
+    // Public-domain texts are served without a token; the server decides
+    // which ids are open, so sending one when we have it costs nothing.
+    { signal, headers: idToken ? { Authorization: `Bearer ${idToken}` } : {} }
   );
 
   const payload = await response.json().catch(() => null);
@@ -172,8 +174,9 @@ export function useChapter(
     const controller = new AbortController();
     const key = cacheKey(translation.id, bookId, chapter);
 
-    if (translation.provider === 'licensed') {
-      if (!idToken) {
+    if (translation.provider === 'licensed' || translation.provider === 'proxied') {
+      // Only the licensed ones need an account; proxied are public domain.
+      if (translation.provider === 'licensed' && !idToken) {
         setState({
           verses: [],
           loading: false,

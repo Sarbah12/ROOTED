@@ -1,12 +1,17 @@
 /**
  * Translations available in the Bible reader.
  *
- * KJV ships with the app (see assets/bible/kjv). Everything else is fetched
- * from bible-api.com on demand and cached on device.
+ * KJV ships with the app (see assets/bible/kjv) and needs no network at all.
  *
- * Every translation here is Public Domain — no licensing restrictions on
- * bundling or redistribution. This is deliberate: modern copyrighted
- * translations (NIV, ESV, NLT) would each need a separate licence.
+ * Everything else is fetched. Where API.Bible carries the same text it is
+ * preferred and proxied through our own backend, because bible-api.com is a
+ * free community service with no key and aggressive per-IP rate limiting —
+ * moderate use returns 403 and then blocks entirely, which reads to a user as
+ * "this version is broken". Proxying also means one server-side fetch serves
+ * every reader of that chapter.
+ *
+ * Public-domain texts stay readable without an account even when proxied; the
+ * server keeps a list of ids it will serve unauthenticated.
  *
  * `coverage` matters. Several of these carry only the New Testament, and
  * without flagging it the reader would just fail on Genesis with no
@@ -18,11 +23,12 @@ export type TranslationCoverage = 'full' | 'nt';
 
 /**
  * Where the text comes from.
- *   bundled    shipped with the app
- *   public     bible-api.com, fetched straight from the device
- *   licensed   API.Bible, proxied through our backend so the key stays private
+ *   bundled    shipped with the app, works offline
+ *   public     bible-api.com, straight from the device — no key, rate limited
+ *   proxied    API.Bible via our backend, public domain, no sign-in needed
+ *   licensed   API.Bible or Tyndale via our backend, needs an account
  */
-export type TranslationProvider = 'bundled' | 'public' | 'licensed';
+export type TranslationProvider = 'bundled' | 'public' | 'proxied' | 'licensed';
 
 export type Translation = {
   id: string;
@@ -59,8 +65,8 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'WEB',
     name: 'World English Bible',
     source: 'remote',
-    provider: 'public',
-    apiId: 'web',
+    provider: 'proxied',
+    bibleId: '9879dbb7cfe39e4d-01',
     coverage: 'full',
     language: 'English',
     note: 'Modern English',
@@ -70,8 +76,8 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'WEBBE',
     name: 'World English Bible, British Edition',
     source: 'remote',
-    provider: 'public',
-    apiId: 'webbe',
+    provider: 'proxied',
+    bibleId: '7142879509583d59-01',
     coverage: 'full',
     language: 'English',
     note: 'Modern English, British spelling',
@@ -81,8 +87,8 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'ASV',
     name: 'American Standard Version',
     source: 'remote',
-    provider: 'public',
-    apiId: 'asv',
+    provider: 'proxied',
+    bibleId: '06125adad2d5898a-01',
     coverage: 'full',
     language: 'English',
     note: '1901',
@@ -92,8 +98,8 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'DRA',
     name: 'Douay-Rheims 1899',
     source: 'remote',
-    provider: 'public',
-    apiId: 'dra',
+    provider: 'proxied',
+    bibleId: '179568874c45066f-01',
     coverage: 'full',
     language: 'English',
     note: 'Catholic tradition',
@@ -193,8 +199,8 @@ export const TRANSLATIONS: Translation[] = [
     abbr: 'BKR',
     name: 'Bible kralická',
     source: 'remote',
-    provider: 'public',
-    apiId: 'bkr',
+    provider: 'proxied',
+    bibleId: 'c61908161b077c4c-01',
     coverage: 'full',
     language: 'Čeština',
     note: 'Czech',
@@ -211,15 +217,28 @@ export const TRANSLATIONS: Translation[] = [
     note: 'Russian',
   },
   {
-    id: 'cuv',
-    abbr: 'CUV',
-    name: 'Chinese Union Version',
+    id: 'ccb-simplified',
+    abbr: '简体中文',
+    name: 'Chinese Contemporary Bible, Simplified',
     source: 'remote',
-    provider: 'public',
-    apiId: 'cuv',
-    coverage: 'nt',
+    provider: 'proxied',
+    bibleId: '7ea794434e9ea7ee-01',
+    coverage: 'full',
     language: '中文',
-    note: 'Chinese',
+    note: 'Simplified characters',
+    copyright: '© Biblica, Inc.',
+  },
+  {
+    id: 'ccb-traditional',
+    abbr: '繁體中文',
+    name: 'Chinese Contemporary Bible, Traditional',
+    source: 'remote',
+    provider: 'proxied',
+    bibleId: 'a6e06d2c5b90ad89-01',
+    coverage: 'full',
+    language: '中文',
+    note: 'Traditional characters',
+    copyright: '© Biblica, Inc.',
   },
   {
     id: 'cherokee',

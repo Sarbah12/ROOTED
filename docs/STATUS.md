@@ -63,6 +63,26 @@ live system. Expect some of it to need adjustment on first contact.
 
 ---
 
+## Known weakness: bible-api.com
+
+Ten translations still fetch straight from the device to bible-api.com — a free
+community service with no API key and aggressive per-IP rate limiting. Under
+test it returned 403 after moderate use and then blocked the address entirely,
+which to a reader looks exactly like "this version is broken".
+
+Everything API.Bible also carries has been moved behind our own backend, where
+one fetch serves every reader and the response is cached. The ten that remain
+have no equivalent there: Darby, BBE, YLT, both Open English editions, the
+Clementine Vulgate, Almeida, Cornilescu, the Russian Synodal and the Cherokee
+New Testament.
+
+**Unverified:** the Clementine Vulgate answered for Genesis 1 but 404ed on
+John 3 before the block came down, which suggests its coverage is partial while
+the app badges it `full`. Re-check the ten with `node scripts/check-versions.mjs`
+from an address that is not blocked.
+
+---
+
 ## Not built
 
 - **Blog cover images.** `posts.cover_image_url` exists in the schema; there is
@@ -291,6 +311,26 @@ live system. Expect some of it to need adjustment on first contact.
   never reached a server.
 - **Sign in with Apple.** Entitlement and provisioning profile are correct, but
   the flow has not been exercised.
+
+---
+
+## Known weakness: bible-api.com
+
+Ten translations still fetch straight from the device to bible-api.com — a free
+community service with no API key and aggressive per-IP rate limiting. Under
+test it returned 403 after moderate use and then blocked the address entirely,
+which to a reader looks exactly like "this version is broken".
+
+Everything API.Bible also carries has been moved behind our own backend, where
+one fetch serves every reader and the response is cached. The ten that remain
+have no equivalent there: Darby, BBE, YLT, both Open English editions, the
+Clementine Vulgate, Almeida, Cornilescu, the Russian Synodal and the Cherokee
+New Testament.
+
+**Unverified:** the Clementine Vulgate answered for Genesis 1 but 404ed on
+John 3 before the block came down, which suggests its coverage is partial while
+the app badges it `full`. Re-check the ten with `node scripts/check-versions.mjs`
+from an address that is not blocked.
 
 ---
 

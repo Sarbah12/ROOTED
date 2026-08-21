@@ -765,8 +765,31 @@ async function handleBlocks(req, res, targetId) {
  *   GET /v1/bible/versions
  *   GET /v1/bible/:bibleId/:bookId/:chapter
  */
+/**
+ * Public-domain Bibles served without a sign-in.
+ *
+ * The auth gate on this endpoint exists to stop our licensed key being used as
+ * someone else's free Bible API. Public-domain texts carry no licence to
+ * protect, and the app promises the Bible can be read with no account — so
+ * gating these would break that promise to solve a problem they do not have.
+ *
+ * They still cost API.Bible quota, which is why every response is cached
+ * server-side before it is returned.
+ */
+const OPEN_BIBLE_IDS = new Set([
+  '9879dbb7cfe39e4d-01', // World English Bible
+  '7142879509583d59-01', // World English Bible, British Edition
+  '06125adad2d5898a-01', // American Standard Version
+  '179568874c45066f-01', // Douay-Rheims 1899
+  'c61908161b077c4c-01', // Czech Kralická 1613
+  '7ea794434e9ea7ee-01', // Chinese Contemporary, Simplified
+  'a6e06d2c5b90ad89-01', // Chinese Contemporary, Traditional
+]);
+
 async function handleBible(req, res, parts) {
-  await requireUser(req);
+  // parts is ['v1','bible',<bibleId>,<bookId>,<chapter>]
+  const open = OPEN_BIBLE_IDS.has(parts[2]);
+  if (!open) await requireUser(req);
 
   // The NLT comes from Tyndale directly rather than through API.Bible, so it
   // is served whether or not an API.Bible key exists.
