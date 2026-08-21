@@ -29,7 +29,9 @@ const MIN_PER_BOOK = 3;
 
 /** Pulls the question literals out of the TypeScript without compiling it. */
 async function loadQuestions() {
-  const bank = await readFile(path.join(root, 'constants', 'quiz-bank.ts'), 'utf8');
+  const bank =
+    (await readFile(path.join(root, 'constants', 'quiz-bank.ts'), 'utf8')) +
+    (await readFile(path.join(root, 'constants', 'quiz-topics.ts'), 'utf8'));
   const core = await readFile(path.join(root, 'constants', 'quiz.ts'), 'utf8');
 
   const questions = [];

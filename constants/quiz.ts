@@ -8,6 +8,7 @@
 
 import { BIBLE_BOOKS_BY_ID } from '@/constants/bible-books';
 import { QUIZ_BANK } from '@/constants/quiz-bank';
+import { QUIZ_TOPIC_BANK } from '@/constants/quiz-topics';
 
 export type QuizDifficulty = 'Easy' | 'Medium' | 'Hard';
 
@@ -44,6 +45,14 @@ export const QUIZ_TOPICS = [
   { id: 'church', name: 'The Early Church', blurb: 'How the first believers lived and grew.' },
   { id: 'salvation', name: 'Salvation & Grace', blurb: 'How God rescues people.' },
   { id: 'warfare', name: 'Spiritual Warfare', blurb: 'Standing firm against the enemy.' },
+  { id: 'forgiveness', name: 'Forgiveness', blurb: 'Being forgiven, and forgiving others.' },
+  { id: 'love', name: 'Love', blurb: 'The command Jesus called the greatest.' },
+  { id: 'money', name: 'Money & Giving', blurb: 'What Scripture says about what you own.' },
+  { id: 'family', name: 'Marriage & Family', blurb: 'Households, parents and children.' },
+  { id: 'suffering', name: 'Suffering & Endurance', blurb: 'Holding on when it is hard.' },
+  { id: 'spirit', name: 'The Holy Spirit', blurb: 'The Comforter, and what He does.' },
+  { id: 'justice', name: 'Justice & the Poor', blurb: 'What God requires toward the vulnerable.' },
+  { id: 'heaven', name: 'Heaven & Eternity', blurb: 'What is promised beyond this life.' },
 ] as const;
 
 export const QUIZ_TOPICS_BY_ID = Object.fromEntries(
@@ -890,7 +899,11 @@ const CORE_QUESTIONS: QuizQuestion[] = [
   },
 ];
 
-export const QUIZ_QUESTIONS: QuizQuestion[] = [...CORE_QUESTIONS, ...QUIZ_BANK];
+export const QUIZ_QUESTIONS: QuizQuestion[] = [
+  ...CORE_QUESTIONS,
+  ...QUIZ_BANK,
+  ...QUIZ_TOPIC_BANK,
+];
 
 const MIN_QUESTIONS_PER_SUBJECT = 3;
 

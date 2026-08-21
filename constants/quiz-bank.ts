@@ -1,4 +1,5 @@
-import type { QuizDifficulty, QuizQuestion } from '@/constants/quiz';
+import { q } from '@/constants/quiz-helpers';
+import type { QuizQuestion } from '@/constants/quiz';
 
 /**
  * Questions for all 66 books.
@@ -16,28 +17,6 @@ import type { QuizDifficulty, QuizQuestion } from '@/constants/quiz';
  * Every reference is checked against the bundled KJV by
  * scripts/check-quiz.mjs — run it after editing.
  */
-
-function q(
-  id: string,
-  question: string,
-  options: string[],
-  answerIndex: number,
-  reference: string,
-  difficulty: QuizDifficulty,
-  bookId: string,
-  topics: string[] = [],
-): QuizQuestion {
-  return {
-    id,
-    question,
-    options,
-    answer: options[answerIndex],
-    reference,
-    difficulty,
-    bookId,
-    topics,
-  };
-}
 
 export const QUIZ_BANK: QuizQuestion[] = [
   // ------------------------------------------------------------ Genesis
