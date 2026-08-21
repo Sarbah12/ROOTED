@@ -53,9 +53,12 @@ live system. Expect some of it to need adjustment on first contact.
 - **Everything touching Postgres.** No database exists yet; the schema has never
   been applied.
 - **Resend email.** No message has been sent. Sender domain unverified.
-- **Study plans, streaks, reflections, moderation.** Whole API surface
-  untested, and the four screens over it have never rendered against real
-  data.
+- **Shared study plans, streaks, reflections, moderation.** The whole API
+  surface is untested and the screens over it have never rendered against real
+  data. *Following* a plan no longer depends on any of it — plans started from
+  a template live on the device and work with no account and no network. Only
+  joining someone else's, sharing yours by code, and reflections need the
+  server.
 - **Notes and prayer sync.** The offline half works on device; the sync half has
   never reached a server.
 - **Sign in with Apple.** Entitlement and provisioning profile are correct, but
@@ -304,9 +307,12 @@ live system. Expect some of it to need adjustment on first contact.
 - **Everything touching Postgres.** No database exists yet; the schema has never
   been applied.
 - **Resend email.** No message has been sent. Sender domain unverified.
-- **Study plans, streaks, reflections, moderation.** Whole API surface
-  untested, and the four screens over it have never rendered against real
-  data.
+- **Shared study plans, streaks, reflections, moderation.** The whole API
+  surface is untested and the screens over it have never rendered against real
+  data. *Following* a plan no longer depends on any of it — plans started from
+  a template live on the device and work with no account and no network. Only
+  joining someone else's, sharing yours by code, and reflections need the
+  server.
 - **Notes and prayer sync.** The offline half works on device; the sync half has
   never reached a server.
 - **Sign in with Apple.** Entitlement and provisioning profile are correct, but

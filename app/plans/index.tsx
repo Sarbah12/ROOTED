@@ -18,9 +18,9 @@ import { APP_THEMES } from '@/constants/app-theme';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { planRequest } from '@/hooks/use-plan';
-import { SignInRequired } from '@/components/sign-in-required';
 import { usePlans, type StudyPlan } from '@/hooks/use-plans';
 import { PLAN_TEMPLATES, type PlanTemplate } from '@/constants/plan-templates';
+import { currentDay, useLocalPlans } from '@/hooks/use-local-plans';
 
 type Tab = 'mine' | 'discover';
 
@@ -30,6 +30,7 @@ export default function PlansScreen() {
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
   const { idToken } = useFirebaseAuth();
   const { plans, streak, isLoading, error, refresh } = usePlans();
+  const localPlans = useLocalPlans();
 
   const [tab, setTab] = useState<Tab>('mine');
   const [publicPlans, setPublicPlans] = useState<StudyPlan[]>([]);
@@ -43,26 +44,15 @@ export default function PlansScreen() {
   /**
    * Starts a plan from a template.
    *
-   * Creates it as a normal private study plan rather than a special kind, so
-   * everything that already works — marking days, streaks, reflections, and
-   * sharing the code with someone later — works on it with no extra code.
+   * Kept on the device. Following a plan alone is a list of passages and a
+   * record of which days are done — no account, no server, and it works on a
+   * plane. Sharing one is what needs a backend, and that is a separate action.
    */
   const startTemplate = async (template: PlanTemplate) => {
-    if (!idToken) return;
     setStartingId(template.id);
-
     try {
-      const created = await planRequest<StudyPlan>('/v1/plans', idToken, {
-        method: 'POST',
-        body: JSON.stringify({
-          title: template.title,
-          description: template.description,
-          visibility: 'private',
-          days: template.days,
-        }),
-      });
-      await refresh();
-      router.push(`/plans/${created.id}`);
+      const created = await localPlans.start(template);
+      router.push(`/plans/${encodeURIComponent(created.id)}`);
     } catch {
       Alert.alert('Could not start that plan', 'Please try again.');
     } finally {
@@ -101,7 +91,19 @@ export default function PlansScreen() {
 
   const handleJoinByCode = async () => {
     const code = joinCode.trim().toUpperCase();
-    if (!code || !idToken) return;
+    if (!code) return;
+
+    if (!idToken) {
+      Alert.alert(
+        'Sign in to join',
+        'Following your own plan needs no account. Joining someone else’s does, so they can see you are reading with them.',
+        [
+          { text: 'Not now', style: 'cancel' },
+          { text: 'Sign in', onPress: () => router.push('/login') },
+        ],
+      );
+      return;
+    }
 
     setIsJoining(true);
     try {
@@ -127,18 +129,27 @@ export default function PlansScreen() {
     setIsRefreshing(false);
   };
 
-  if (!idToken) {
-    return (
-      <SignInRequired
-        icon="layers-outline"
-        title="Sign in to join study plans"
-        body="Plans are read alongside other people, so they need an account to track your progress and share what you learnt."
-      />
-    );
-  }
+  // On-device plans first; anything the server knows about is added to them.
+  const mine = [
+    ...localPlans.plans.map((p) => ({
+      id: p.id,
+      ownerId: '',
+      ownerName: null,
+      title: p.title,
+      description: p.description,
+      visibility: 'private' as const,
+      joinCode: null,
+      durationDays: p.days.length,
+      memberCount: 1,
+      createdAt: p.startedAt,
+      isMember: true,
+      currentDay: currentDay(p),
+    })),
+    ...plans,
+  ];
 
-  const list = tab === 'mine' ? plans : publicPlans;
-  const busy = tab === 'mine' ? isLoading : isLoadingPublic;
+  const list = tab === 'mine' ? mine : publicPlans;
+  const busy = tab === 'mine' ? isLoading && localPlans.isLoading : isLoadingPublic;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -227,7 +238,25 @@ export default function PlansScreen() {
           })}
         </View>
 
-        {tab === 'discover' ? (
+        {tab === 'discover' && !idToken ? (
+          <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.emptyMark, { backgroundColor: theme.primarySoft }]}>
+              <Ionicons name="people-outline" size={24} color={theme.primary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>Sign in to discover</Text>
+            <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>
+              Plans other people have shared need an account. Your own plans work without one.
+            </Text>
+            <TouchableOpacity
+              style={[styles.emptyBtn, { backgroundColor: theme.primary }]}
+              onPress={() => router.push('/login')}
+              activeOpacity={0.85}>
+              <Text style={styles.emptyBtnText}>Sign in</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {tab === 'discover' && idToken ? (
           <View style={[styles.searchRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Ionicons name="search" size={16} color={theme.textMuted} />
             <TextInput
@@ -349,7 +378,7 @@ export default function PlansScreen() {
           </View>
         )}
 
-        {tab === 'mine' && plans.length === 0 && !isLoading ? (
+        {tab === 'mine' && mine.length === 0 && !localPlans.isLoading ? (
           <View style={styles.templates}>
             <Text style={[styles.templatesTitle, { color: theme.text }]}>Or start one of these</Text>
             <Text style={[styles.templatesBlurb, { color: theme.textSecondary }]}>

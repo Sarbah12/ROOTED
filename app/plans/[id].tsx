@@ -18,6 +18,7 @@ import { APP_THEMES } from '@/constants/app-theme';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { usePlan } from '@/hooks/use-plan';
+import { isLocalPlanId, useLocalPlan } from '@/hooks/use-local-plans';
 
 export default function PlanDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,8 +27,44 @@ export default function PlanDetailScreen() {
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
   const { firebaseUser } = useFirebaseAuth();
 
-  const { plan, days, completedDays, members, isLoading, error, refresh, toggleDay, join, leave } =
-    usePlan(id);
+  // A plan started on the device is read from storage; one the server owns is
+  // fetched. Same screen either way, so there is one plan UI rather than two.
+  const local = isLocalPlanId(id);
+  const server = usePlan(local ? undefined : id);
+  const stored = useLocalPlan(local ? id : undefined);
+
+  const plan = local
+    ? stored.plan && {
+        id: stored.plan.id,
+        ownerId: '',
+        ownerName: null,
+        title: stored.plan.title,
+        description: stored.plan.description,
+        visibility: 'private' as const,
+        joinCode: null,
+        durationDays: stored.plan.days.length,
+        memberCount: 1,
+        createdAt: stored.plan.startedAt,
+        isMember: true,
+      }
+    : server.plan;
+
+  const days = local
+    ? (stored.plan?.days ?? []).map((d, i) => ({
+        day: i + 1,
+        reference: d.reference,
+        title: d.title ?? '',
+        prompt: d.prompt ?? '',
+      }))
+    : server.days;
+
+  const completedDays = local ? (stored.plan?.completedDays ?? []) : server.completedDays;
+  const members = local ? [] : server.members;
+  const isLoading = local ? stored.isLoading : server.isLoading;
+  const error = local ? null : server.error;
+  const refresh = local ? stored.refresh : server.refresh;
+  const toggleDay = local ? stored.toggleDay : server.toggleDay;
+  const { join, leave } = server;
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
