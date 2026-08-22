@@ -784,6 +784,17 @@ const OPEN_BIBLE_IDS = new Set([
   'c61908161b077c4c-01', // Czech Kralická 1613
   '7ea794434e9ea7ee-01', // Chinese Contemporary, Simplified
   'a6e06d2c5b90ad89-01', // Chinese Contemporary, Traditional
+  // Biblica's "Open" editions carry the same terms as their Chinese ones
+  // above — freely licensed, not public domain. Gating these behind an
+  // account while serving the Chinese ones freely was an oversight, and it
+  // put the Ghanaian translations out of reach of the readers who want them.
+  'b6aee081108c0bc6-01', // Open Akuapem Twi Contemporary
+  '18f6cf27f7b43297-01', // Open Asante Twi Contemporary
+  'ac90bfebd4ee9c4d-01', // Open Ewe Contemporary
+  'b8d1feac6e94bd74-01', // Open Yoruba Contemporary
+  'a36fc06b086699f1-02', // Open Igbo Contemporary
+  '0ab0c764d56a715d-01', // Open Hausa Contemporary
+  '611f8eb23aec8f13-01', // Open Kiswahili Contemporary (Neno)
 ]);
 
 async function handleBible(req, res, parts) {

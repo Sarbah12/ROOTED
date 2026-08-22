@@ -25,7 +25,7 @@ export type TranslationCoverage = 'full' | 'nt';
  * Where the text comes from.
  *   bundled    shipped with the app, works offline
  *   public     bible-api.com, straight from the device — no key, rate limited
- *   proxied    API.Bible via our backend, public domain, no sign-in needed
+ *   proxied    API.Bible via our backend, freely licensed, no sign-in needed
  *   licensed   API.Bible or Tyndale via our backend, needs an account
  */
 export type TranslationProvider = 'bundled' | 'public' | 'proxied' | 'licensed';
@@ -330,7 +330,7 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     abbr: 'Twi (Akuapem)',
     name: 'Akuapem Twi Nkwa Asɛm',
     source: 'remote',
-    provider: 'licensed',
+    provider: 'proxied',
     coverage: 'full',
     language: 'Twi',
     bibleId: 'b6aee081108c0bc6-01',
@@ -342,7 +342,7 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     abbr: 'Twi (Asante)',
     name: 'Asante Twi Nkwa Asɛm',
     source: 'remote',
-    provider: 'licensed',
+    provider: 'proxied',
     coverage: 'full',
     language: 'Twi',
     bibleId: '18f6cf27f7b43297-01',
@@ -354,7 +354,7 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     abbr: 'Eʋe',
     name: 'Agbenya La',
     source: 'remote',
-    provider: 'licensed',
+    provider: 'proxied',
     coverage: 'full',
     language: 'Eʋegbe',
     bibleId: 'ac90bfebd4ee9c4d-01',
@@ -366,7 +366,7 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     abbr: 'Yorùbá',
     name: 'Yoruba Contemporary Bible',
     source: 'remote',
-    provider: 'licensed',
+    provider: 'proxied',
     coverage: 'full',
     language: 'Yorùbá',
     bibleId: 'b8d1feac6e94bd74-01',
@@ -378,7 +378,7 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     abbr: 'Igbo',
     name: 'Igbo Contemporary Bible',
     source: 'remote',
-    provider: 'licensed',
+    provider: 'proxied',
     coverage: 'full',
     language: 'Igbo',
     bibleId: 'a36fc06b086699f1-02',
@@ -390,7 +390,7 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     abbr: 'Hausa',
     name: 'Hausa Contemporary Bible',
     source: 'remote',
-    provider: 'licensed',
+    provider: 'proxied',
     coverage: 'nt',
     language: 'Hausa',
     bibleId: '0ab0c764d56a715d-01',
@@ -402,7 +402,7 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     abbr: 'Neno',
     name: 'Kiswahili Contemporary Version',
     source: 'remote',
-    provider: 'licensed',
+    provider: 'proxied',
     coverage: 'full',
     language: 'Kiswahili',
     bibleId: '611f8eb23aec8f13-01',
