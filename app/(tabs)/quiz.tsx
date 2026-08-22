@@ -13,6 +13,7 @@ import {
   type QuizQuestion,
   type QuizSubject,
 } from '@/constants/quiz';
+import { explainAnswer } from '@/constants/quiz-explanation';
 import { useThemeMode } from '@/context/theme-mode';
 import { SignInRequired } from '@/components/sign-in-required';
 import { useFirebaseAuth } from '@/context/firebase-auth';
@@ -298,6 +299,50 @@ export default function QuizScreen() {
               );
             })}
           </View>
+
+          {/*
+            Shown whether the answer was right or wrong. Getting it right and
+            being told nothing teaches as little as getting it wrong — the
+            passage is the point, not the score.
+          */}
+          {revealed ? (
+            (() => {
+              const explanation = explainAnswer(q.reference);
+              if (!explanation) return null;
+
+              return (
+                <View
+                  style={[
+                    styles.explainCard,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                  ]}>
+                  <View style={styles.explainHeader}>
+                    <Ionicons name="book-outline" size={15} color={theme.primary} />
+                    <Text style={[styles.explainRef, { color: theme.primary }]}>
+                      {explanation.reference}
+                    </Text>
+                  </View>
+
+                  <Text style={[styles.explainAnswer, { color: theme.text }]}>{q.answer}</Text>
+
+                  {explanation.verses.map((verse) => (
+                    <Text key={verse.verse} style={[styles.explainVerse, { color: theme.textSecondary }]}>
+                      <Text style={[styles.explainVerseNum, { color: theme.textMuted }]}>
+                        {verse.verse}{' '}
+                      </Text>
+                      {verse.text}
+                    </Text>
+                  ))}
+
+                  {explanation.truncated ? (
+                    <Text style={[styles.explainMore, { color: theme.textMuted }]}>
+                      Read the rest in {q.reference}.
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            })()
+          ) : null}
 
           {revealed ? (
             <TouchableOpacity
@@ -642,6 +687,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  explainCard: { borderWidth: 1, borderRadius: 20, padding: 16, marginTop: 14, marginBottom: 4 },
+  explainHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  explainRef: { fontSize: 12.5, fontWeight: '800', letterSpacing: 0.3 },
+  explainAnswer: { fontSize: 15.5, fontWeight: '700', marginBottom: 10 },
+  explainVerse: { fontSize: 14.5, lineHeight: 24, fontFamily: 'Georgia', marginBottom: 6 },
+  explainVerseNum: { fontSize: 11, fontWeight: '800' },
+  explainMore: { fontSize: 12, marginTop: 6, fontStyle: 'italic' },
   primaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
