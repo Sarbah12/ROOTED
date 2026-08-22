@@ -1081,18 +1081,36 @@ async function handleComment(req, res, commentId) {
 
 async function handleVersionedHealth(req, res) {
   // Report the database too, so "ok" means the service can actually serve.
-  let database = 'ok';
-  try {
-    await checkConnection();
-  } catch (error) {
-    database = `error: ${error.message}`;
+  //
+  // A server with no DATABASE_URL is not broken — it is deliberately running
+  // as a Bible proxy only, which is a useful thing to deploy on its own and
+  // serves every public domain translation without an account. Reporting that
+  // as 503 made a perfectly good deployment look like a failed one.
+  let database;
+  let healthy = true;
+
+  if (!config.databaseUrl) {
+    database = 'not configured';
+  } else {
+    try {
+      await checkConnection();
+      database = 'ok';
+    } catch (error) {
+      database = `error: ${error.message}`;
+      healthy = false;
+    }
   }
 
-  sendJson(res, database === 'ok' ? 200 : 503, {
-    ok: database === 'ok',
+  sendJson(res, healthy ? 200 : 503, {
+    ok: healthy,
     service: 'rooted-backend',
     version: 'v1',
     database,
+    // What this deployment can actually do, so a misconfiguration is visible
+    // from a URL rather than from a user reporting a blank screen.
+    bible: isBibleApiConfigured() ? 'ok' : 'no API_BIBLE_KEY',
+    nlt: isNltConfigured() ? 'ok' : 'no NLT_API_KEY',
+    accounts: config.databaseUrl ? 'ok' : 'disabled (no database)',
     time: new Date().toISOString(),
   });
 }
