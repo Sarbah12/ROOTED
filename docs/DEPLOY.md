@@ -83,3 +83,20 @@ Two things must happen outside the deploy:
 
 The Message is not available from any API the app can reach, at any price we
 have. It needs a licence from NavPress before it can exist in the app at all.
+
+---
+
+## The npm audit warning, in advance
+
+`npm ci --omit=dev` installs 151 packages and reports **8 moderate
+vulnerabilities**. All eight are the same root cause — a missing buffer bounds
+check in `uuid` v3/v5/v6 when a `buf` argument is passed — reached through
+`firebase-admin` → Firestore/Cloud Storage → `gaxios`/`google-gax`.
+
+None of it is reachable here. The backend imports only `firebase-admin/app`
+and `firebase-admin/auth`, and calls exactly one thing: `verifyIdToken`.
+Firestore and Cloud Storage are never loaded, and nothing calls `uuid` with a
+buffer. Upgrading to firebase-admin 14 does not clear the advisories either, so
+a major version bump buys nothing but risk to the auth path.
+
+Left alone deliberately. Worth re-checking when `uuid` ships a fix upstream.
