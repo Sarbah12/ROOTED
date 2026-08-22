@@ -795,6 +795,17 @@ const OPEN_BIBLE_IDS = new Set([
   'a36fc06b086699f1-02', // Open Igbo Contemporary
   '0ab0c764d56a715d-01', // Open Hausa Contemporary
   '611f8eb23aec8f13-01', // Open Kiswahili Contemporary (Neno)
+  // Public domain, and old enough that no licence applies. These were marked
+  // as licensed by mistake, so the app asked for a sign-in before it would
+  // fetch a 1599 Geneva Bible.
+  'a93a92589195411f-01', // Bible J.N. Darby (French)
+  '592420522e16049f-01', // Reina Valera 1909
+  'd63894c8d9a7a503-01', // Biblia Livre Para Todos
+  '65eec8e0b60e656b-01', // Free Bible Version
+  '01b29f4b342acc35-01', // Literal Standard Version
+  'c315fa9f71d4af3a-01', // Geneva Bible 1599
+  '55212e3cf5d04d49-01', // Cambridge Paragraph Bible of the KJV
+  '66c22495370cdfc0-01', // Translation for Translators
 ]);
 
 async function handleBible(req, res, parts) {
