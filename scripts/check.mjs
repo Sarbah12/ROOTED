@@ -80,6 +80,11 @@ async function checkBible() {
     kjv: 31102,
     'twi-akuapem': null,
     'twi-asante': null,
+    ewe: null,
+    yoruba: null,
+    igbo: null,
+    hausa: null,
+    swahili: null,
   };
   const NOTE = /\.\.\.:\s|:\s(Heb|Gr|Chal)\.\s/;
 

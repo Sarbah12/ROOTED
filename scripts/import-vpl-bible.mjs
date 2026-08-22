@@ -33,6 +33,13 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCES = [
   { id: 'twi-akuapem', code: 'twi', label: 'Akuapem Twi' },
   { id: 'twi-asante', code: 'twiasante', label: 'Asante Twi' },
+  { id: 'ewe', code: 'ewe', label: 'Ewe' },
+  { id: 'yoruba', code: 'yor', label: 'Yoruba' },
+  { id: 'igbo', code: 'ibo', label: 'Igbo' },
+  // eBible carries the complete Hausa Bible; API.Bible only had the New
+  // Testament, which is why the app used to flag Hausa as NT-only.
+  { id: 'hausa', code: 'hausa', label: 'Hausa' },
+  { id: 'swahili', code: 'swhonen', label: 'Kiswahili' },
 ];
 
 /**
@@ -91,6 +98,13 @@ async function importOne(source, books, work) {
 
   const extracted = path.join(work, source.code);
   await run('unzip', ['-qo', zip, '-d', extracted]);
+
+  // Bundling redistributes the text, so the licence is checked here rather
+  // than trusted from a catalogue column or a comment written months ago.
+  const about = await readFile(path.join(extracted, `${source.code}_about.htm`), 'utf8');
+  if (!/creative commons/i.test(about)) {
+    throw new Error(`${source.id}: no Creative Commons licence found in ${source.code}_about.htm`);
+  }
 
   const text = await readFile(path.join(extracted, `${source.code}_vpl.txt`), 'utf8');
   const parsed = parseVpl(text);

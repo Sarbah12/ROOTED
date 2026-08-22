@@ -326,9 +326,13 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
   // them. Coverage was read from each Bible's own book list rather than
   // assumed — Hausa really is New Testament only.
   //
-  // Both Twi editions are CC BY-SA 4.0, so they ship inside the app like the
+  // All seven of these are CC BY-SA 4.0, so they ship inside the app like the
   // KJV rather than being fetched. A reader in Ghana should not need our
-  // server to be up to read scripture in their own language.
+  // server to be up to read scripture in their own language — and English was
+  // the only language that had an offline Bible until they were bundled.
+  //
+  // Hausa is the complete Bible here. API.Bible carried only the New
+  // Testament, which is why it used to be flagged `nt`.
   {
     id: 'twi-akuapem',
     abbr: 'Twi (Akuapem)',
@@ -357,61 +361,61 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
     id: 'ewe',
     abbr: 'Eʋe',
     name: 'Agbenya La',
-    source: 'remote',
-    provider: 'proxied',
+    source: 'offline',
+    provider: 'bundled',
     coverage: 'full',
     language: 'Eʋegbe',
     bibleId: 'ac90bfebd4ee9c4d-01',
-    note: 'Ewe',
-    copyright: '© Biblica, Inc.',
+    note: 'Ewe — bundled, works offline',
+    copyright: 'Biblica® Open Ewe Contemporary Scriptures™ © 1988, 2006, 2020 Biblica, Inc. Licensed CC BY-SA 4.0.',
   },
   {
     id: 'yoruba',
     abbr: 'Yorùbá',
     name: 'Yoruba Contemporary Bible',
-    source: 'remote',
-    provider: 'proxied',
+    source: 'offline',
+    provider: 'bundled',
     coverage: 'full',
     language: 'Yorùbá',
     bibleId: 'b8d1feac6e94bd74-01',
-    note: 'Yoruba',
-    copyright: '© Biblica, Inc.',
+    note: 'Yoruba — bundled, works offline',
+    copyright: 'Biblica® Open Yoruba Contemporary Bible™ © 2009, 2017 Biblica, Inc. Licensed CC BY-SA 4.0.',
   },
   {
     id: 'igbo',
     abbr: 'Igbo',
     name: 'Igbo Contemporary Bible',
-    source: 'remote',
-    provider: 'proxied',
+    source: 'offline',
+    provider: 'bundled',
     coverage: 'full',
     language: 'Igbo',
     bibleId: 'a36fc06b086699f1-02',
-    note: 'Igbo',
-    copyright: '© Biblica, Inc.',
+    note: 'Igbo — bundled, works offline',
+    copyright: 'Biblica® Open Igbo Contemporary Bible™ © 2020 Biblica, Inc. Licensed CC BY-SA 4.0.',
   },
   {
     id: 'hausa',
     abbr: 'Hausa',
     name: 'Hausa Contemporary Bible',
-    source: 'remote',
-    provider: 'proxied',
-    coverage: 'nt',
+    source: 'offline',
+    provider: 'bundled',
+    coverage: 'full',
     language: 'Hausa',
     bibleId: '0ab0c764d56a715d-01',
-    note: 'Hausa',
-    copyright: '© Biblica, Inc.',
+    note: 'Hausa — bundled, works offline',
+    copyright: 'Biblica® Open Hausa Contemporary Bible™ © 2009, 2020 Biblica, Inc. Licensed CC BY-SA 4.0.',
   },
   {
     id: 'swahili',
     abbr: 'Neno',
     name: 'Kiswahili Contemporary Version',
-    source: 'remote',
-    provider: 'proxied',
+    source: 'offline',
+    provider: 'bundled',
     coverage: 'full',
     language: 'Kiswahili',
     bibleId: '611f8eb23aec8f13-01',
-    note: 'Swahili',
-    copyright: '© Biblica, Inc.',
+    note: 'Kiswahili — bundled, works offline',
+    copyright: 'Biblica® Open Kiswahili Contemporary Version (Neno)™ © 1984, 1989, 2009, 2015 Biblica, Inc. Licensed CC BY-SA 4.0.',
   },
 
   // ----------------------------------------------------------- Other languages

@@ -18,9 +18,31 @@ Copyright © 1996, 2020 Biblica, Inc. Released under
 Copyright © 1996, 2020 Biblica, Inc. Released under
 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
+## ewe — Biblica® Open Ewe Contemporary Scriptures
+
+Copyright © 1988, 2006, 2020 Biblica, Inc. Released under CC BY-SA 4.0.
+
+## yoruba — Biblica® Open Yoruba Contemporary Bible
+
+Copyright © 2009, 2017 Biblica, Inc. Released under CC BY-SA 4.0.
+
+## igbo — Biblica® Open Igbo Contemporary Bible
+
+Copyright © 2020 Biblica, Inc. Released under CC BY-SA 4.0.
+
+## hausa — Biblica® Open Hausa Contemporary Bible
+
+Copyright © 2009, 2020 Biblica, Inc. Released under CC BY-SA 4.0. This is the
+complete Bible; the API.Bible edition the app used before carried only the New
+Testament.
+
+## swahili — Biblica® Open Kiswahili Contemporary Version (Neno)
+
+Copyright © 1984, 1989, 2009, 2015 Biblica, Inc. Released under CC BY-SA 4.0.
+
 ---
 
-The Twi editions were imported by `scripts/import-vpl-bible.mjs` from
+These were imported by `scripts/import-vpl-bible.mjs` from
 [eBible.org](https://ebible.org), which publishes the same Biblica editions as
 verse-per-line text.
 
@@ -32,3 +54,15 @@ in `constants/bible-translations.ts`.
 "Biblica" is a registered trademark of Biblica, Inc. The licence permits
 redistribution of the text; it does not grant use of the trademark, which is
 why the app names these translations without claiming any endorsement.
+
+## What is deliberately not here
+
+NKJV, NLT, AMP and The Message are not in this folder and cannot be. They are
+commercially licensed — Thomas Nelson, Tyndale House, The Lockman Foundation
+and NavPress respectively — and no open licence exists for any of them.
+Bundling one would be redistributing a copyrighted translation without
+permission, which is a different thing from proxying a licensed API call.
+
+They reach the app through the backend instead, and a chapter stays readable
+offline once it has been read, because `useChapter` caches it. Shipping the
+whole text needs a licence agreement with the publisher, not a code change.
