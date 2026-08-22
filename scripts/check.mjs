@@ -146,7 +146,7 @@ async function checkReferences() {
 
   // Plan templates
   const planSrc = await readFile(path.join(root, 'constants', 'plan-templates.ts'), 'utf8');
-  const templates = JSON.parse(planSrc.match(/PLAN_TEMPLATES: PlanTemplate\[\] = (\[[\s\S]*\]);/)[1]);
+  const templates = JSON.parse(planSrc.match(/PLAN_TEMPLATES: PlanTemplate\[\] = (\[[\s\S]*?\n\]);/)[1]);
 
   let planRefs = 0;
   const badPlans = [];

@@ -19,7 +19,7 @@ import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { planRequest } from '@/hooks/use-plan';
 import { usePlans, type StudyPlan } from '@/hooks/use-plans';
-import { PLAN_TEMPLATES, type PlanTemplate } from '@/constants/plan-templates';
+import { PLAN_CATEGORIES, type PlanTemplate } from '@/constants/plan-templates';
 import { currentDay, useLocalPlans } from '@/hooks/use-local-plans';
 
 type Tab = 'mine' | 'discover';
@@ -378,32 +378,50 @@ export default function PlansScreen() {
           </View>
         )}
 
-        {tab === 'mine' && mine.length === 0 && !localPlans.isLoading ? (
+        {/*
+          These used to appear only while you had no plans at all, so starting
+          one hid every other plan in the app — there was no way back to the
+          list short of finishing or deleting what you had started.
+        */}
+        {tab === 'mine' && !localPlans.isLoading ? (
           <View style={styles.templates}>
-            <Text style={[styles.templatesTitle, { color: theme.text }]}>Or start one of these</Text>
+            <Text style={[styles.templatesTitle, { color: theme.text }]}>
+              {mine.length === 0 ? 'Or start one of these' : 'Start another'}
+            </Text>
             <Text style={[styles.templatesBlurb, { color: theme.textSecondary }]}>
               Ready-made plans with every day mapped out. You can share yours with a code later.
             </Text>
 
-            {PLAN_TEMPLATES.map((template) => (
-              <TouchableOpacity
-                key={template.id}
-                style={[styles.templateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={() => startTemplate(template)}
-                disabled={startingId !== null}
-                activeOpacity={0.86}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.templateName, { color: theme.text }]}>{template.title}</Text>
-                  <Text style={[styles.templateMeta, { color: theme.textMuted }]}>
-                    {template.days.length} days · starts with {template.days[0].reference}
-                  </Text>
-                </View>
-                {startingId === template.id ? (
-                  <ActivityIndicator size="small" color={theme.primary} />
-                ) : (
-                  <Ionicons name="arrow-forward-circle" size={24} color={theme.primary} />
-                )}
-              </TouchableOpacity>
+            {PLAN_CATEGORIES.map((category) => (
+              <View key={category.name} style={styles.category}>
+                <Text style={[styles.categoryName, { color: theme.textSecondary }]}>
+                  {category.name.toUpperCase()}
+                </Text>
+
+                {category.plans.map((template) => (
+                  <TouchableOpacity
+                    key={template.id}
+                    style={[styles.templateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                    onPress={() => startTemplate(template)}
+                    disabled={startingId !== null}
+                    activeOpacity={0.86}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.templateName, { color: theme.text }]}>{template.title}</Text>
+                      <Text style={[styles.templateBlurb, { color: theme.textSecondary }]}>
+                        {template.description}
+                      </Text>
+                      <Text style={[styles.templateMeta, { color: theme.textMuted }]}>
+                        {template.days.length} days · starts with {template.days[0].reference}
+                      </Text>
+                    </View>
+                    {startingId === template.id ? (
+                      <ActivityIndicator size="small" color={theme.primary} />
+                    ) : (
+                      <Ionicons name="arrow-forward-circle" size={24} color={theme.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
             ))}
           </View>
         ) : null}
@@ -460,7 +478,15 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 10,
   },
+  category: { marginTop: 18 },
+  categoryName: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    marginBottom: 9,
+  },
   templateName: { fontSize: 15.5, fontWeight: '800' },
+  templateBlurb: { fontSize: 13, lineHeight: 19, marginTop: 4 },
   templateMeta: { fontSize: 12.5, fontWeight: '600', marginTop: 3 },
   card: { borderWidth: 1, borderRadius: 20, padding: 16, gap: 8 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },

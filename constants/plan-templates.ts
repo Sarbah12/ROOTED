@@ -3,11 +3,15 @@
 // Starter plans, so the plans screen is not an empty room for someone who has
 // just installed the app and knows nobody using it. Every reference below was
 // generated from the bundled text, so every day points at a real passage.
+//
+// `category` groups them on the plans screen. A flat list of this many plans
+// is a wall; grouped, someone can find the one that fits where they are.
 
 export type PlanTemplate = {
   id: string;
   title: string;
   description: string;
+  category: string;
   days: { reference: string }[];
 };
 
@@ -16,6 +20,7 @@ export const PLAN_TEMPLATES: PlanTemplate[] = [
     "id": "john-21",
     "title": "The Gospel of John in 21 days",
     "description": "One chapter a day through the fourth gospel. A good first plan — three weeks, and you finish something.",
+    "category": "Start here",
     "days": [
       {
         "reference": "John 1"
@@ -83,473 +88,265 @@ export const PLAN_TEMPLATES: PlanTemplate[] = [
     ]
   },
   {
-    "id": "psalms-proverbs-60",
-    "title": "Psalms & Proverbs in 60 days",
-    "description": "The songbook and the wisdom of Israel, side by side. Short readings, good for a busy season.",
+    "id": "mark-16",
+    "title": "Mark in 16 days",
+    "description": "The shortest gospel, and the fastest moving. A chapter a day for a fortnight.",
+    "category": "Start here",
     "days": [
       {
-        "reference": "Psalms 1-3"
+        "reference": "Mark 1"
       },
       {
-        "reference": "Psalms 4-6"
+        "reference": "Mark 2"
       },
       {
-        "reference": "Psalms 7-9"
+        "reference": "Mark 3"
       },
       {
-        "reference": "Psalms 10-12"
+        "reference": "Mark 4"
       },
       {
-        "reference": "Psalms 13-15"
+        "reference": "Mark 5"
       },
       {
-        "reference": "Psalms 16-18"
+        "reference": "Mark 6"
       },
       {
-        "reference": "Psalms 19-21"
+        "reference": "Mark 7"
       },
       {
-        "reference": "Psalms 22-24"
+        "reference": "Mark 8"
       },
       {
-        "reference": "Psalms 25-27"
+        "reference": "Mark 9"
       },
       {
-        "reference": "Psalms 28-30"
+        "reference": "Mark 10"
       },
       {
-        "reference": "Psalms 31-33"
+        "reference": "Mark 11"
       },
       {
-        "reference": "Psalms 34-36"
+        "reference": "Mark 12"
       },
       {
-        "reference": "Psalms 37-39"
+        "reference": "Mark 13"
       },
       {
-        "reference": "Psalms 40-42"
+        "reference": "Mark 14"
       },
       {
-        "reference": "Psalms 43-45"
+        "reference": "Mark 15"
       },
       {
-        "reference": "Psalms 46-48"
-      },
-      {
-        "reference": "Psalms 49-51"
-      },
-      {
-        "reference": "Psalms 52-54"
-      },
-      {
-        "reference": "Psalms 55-57"
-      },
-      {
-        "reference": "Psalms 58-60"
-      },
-      {
-        "reference": "Psalms 61-63"
-      },
-      {
-        "reference": "Psalms 64-66"
-      },
-      {
-        "reference": "Psalms 67-69"
-      },
-      {
-        "reference": "Psalms 70-72"
-      },
-      {
-        "reference": "Psalms 73-75"
-      },
-      {
-        "reference": "Psalms 76-78"
-      },
-      {
-        "reference": "Psalms 79-81"
-      },
-      {
-        "reference": "Psalms 82-84"
-      },
-      {
-        "reference": "Psalms 85-87"
-      },
-      {
-        "reference": "Psalms 88-91"
-      },
-      {
-        "reference": "Psalms 92-94"
-      },
-      {
-        "reference": "Psalms 95-97"
-      },
-      {
-        "reference": "Psalms 98-100"
-      },
-      {
-        "reference": "Psalms 101-103"
-      },
-      {
-        "reference": "Psalms 104-106"
-      },
-      {
-        "reference": "Psalms 107-109"
-      },
-      {
-        "reference": "Psalms 110-112"
-      },
-      {
-        "reference": "Psalms 113-115"
-      },
-      {
-        "reference": "Psalms 116-118"
-      },
-      {
-        "reference": "Psalms 119-121"
-      },
-      {
-        "reference": "Psalms 122-124"
-      },
-      {
-        "reference": "Psalms 125-127"
-      },
-      {
-        "reference": "Psalms 128-130"
-      },
-      {
-        "reference": "Psalms 131-133"
-      },
-      {
-        "reference": "Psalms 134-136"
-      },
-      {
-        "reference": "Psalms 137-139"
-      },
-      {
-        "reference": "Psalms 140-142"
-      },
-      {
-        "reference": "Psalms 143-145"
-      },
-      {
-        "reference": "Psalms 146-148"
-      },
-      {
-        "reference": "Psalms 149-150 · Proverbs 1"
-      },
-      {
-        "reference": "Proverbs 2-4"
-      },
-      {
-        "reference": "Proverbs 5-7"
-      },
-      {
-        "reference": "Proverbs 8-10"
-      },
-      {
-        "reference": "Proverbs 11-13"
-      },
-      {
-        "reference": "Proverbs 14-16"
-      },
-      {
-        "reference": "Proverbs 17-19"
-      },
-      {
-        "reference": "Proverbs 20-22"
-      },
-      {
-        "reference": "Proverbs 23-25"
-      },
-      {
-        "reference": "Proverbs 26-28"
-      },
-      {
-        "reference": "Proverbs 29-31"
+        "reference": "Mark 16"
       }
     ]
   },
   {
-    "id": "nt-90",
-    "title": "The New Testament in 90 days",
-    "description": "Matthew through Revelation in three months. About three chapters a day.",
+    "id": "new-believer-30",
+    "title": "First steps, 30 days",
+    "description": "A month of the passages people are usually pointed to first — who Jesus is, what grace means, and how to begin praying and living it.",
+    "category": "Start here",
     "days": [
       {
-        "reference": "Matthew 1-3"
+        "reference": "John 1"
       },
       {
-        "reference": "Matthew 4-6"
+        "reference": "John 3"
       },
       {
-        "reference": "Matthew 7-9"
+        "reference": "Mark 1"
       },
       {
-        "reference": "Matthew 10-12"
+        "reference": "Romans 3"
       },
       {
-        "reference": "Matthew 13-14"
+        "reference": "Romans 5"
       },
       {
-        "reference": "Matthew 15-17"
+        "reference": "Romans 6"
       },
       {
-        "reference": "Matthew 18-20"
+        "reference": "Romans 8"
       },
       {
-        "reference": "Matthew 21-23"
+        "reference": "Romans 10"
       },
       {
-        "reference": "Matthew 24-26"
+        "reference": "Romans 12"
       },
       {
-        "reference": "Matthew 27-28 · Mark 1"
+        "reference": "Ephesians 1"
       },
       {
-        "reference": "Mark 2-4"
+        "reference": "Ephesians 2"
       },
       {
-        "reference": "Mark 5-7"
+        "reference": "Ephesians 4"
       },
       {
-        "reference": "Mark 8-10"
+        "reference": "Ephesians 6"
       },
       {
-        "reference": "Mark 11-12"
+        "reference": "Acts 1"
       },
       {
-        "reference": "Mark 13-15"
+        "reference": "Acts 2"
       },
       {
-        "reference": "Mark 16 · Luke 1-2"
+        "reference": "1 John 1"
       },
       {
-        "reference": "Luke 3-5"
+        "reference": "1 John 4"
       },
       {
-        "reference": "Luke 6-8"
+        "reference": "Galatians 5"
       },
       {
-        "reference": "Luke 9-11"
+        "reference": "Philippians 2"
       },
       {
-        "reference": "Luke 12-14"
+        "reference": "Philippians 4"
       },
       {
-        "reference": "Luke 15-17"
+        "reference": "Colossians 3"
       },
       {
-        "reference": "Luke 18-20"
+        "reference": "James 1"
       },
       {
-        "reference": "Luke 21-22"
+        "reference": "1 Peter 1"
       },
       {
-        "reference": "Luke 23-24 · John 1"
+        "reference": "Psalms 1"
       },
       {
-        "reference": "John 2-4"
+        "reference": "Psalms 23"
       },
       {
-        "reference": "John 5-7"
+        "reference": "Matthew 5"
       },
       {
-        "reference": "John 8-10"
+        "reference": "Matthew 6"
       },
       {
-        "reference": "John 11-13"
+        "reference": "Matthew 7"
       },
       {
-        "reference": "John 14-16"
+        "reference": "Hebrews 11"
       },
       {
-        "reference": "John 17-19"
-      },
-      {
-        "reference": "John 20-21 · Acts 1"
-      },
-      {
-        "reference": "Acts 2-3"
-      },
-      {
-        "reference": "Acts 4-6"
-      },
-      {
-        "reference": "Acts 7-9"
-      },
-      {
-        "reference": "Acts 10-12"
-      },
-      {
-        "reference": "Acts 13-15"
-      },
-      {
-        "reference": "Acts 16-18"
-      },
-      {
-        "reference": "Acts 19-21"
-      },
-      {
-        "reference": "Acts 22-24"
-      },
-      {
-        "reference": "Acts 25-27"
-      },
-      {
-        "reference": "Acts 28 · Romans 1"
-      },
-      {
-        "reference": "Romans 2-4"
-      },
-      {
-        "reference": "Romans 5-7"
-      },
-      {
-        "reference": "Romans 8-10"
-      },
-      {
-        "reference": "Romans 11-13"
-      },
-      {
-        "reference": "Romans 14-16"
-      },
-      {
-        "reference": "1 Corinthians 1-3"
-      },
-      {
-        "reference": "1 Corinthians 4-6"
-      },
-      {
-        "reference": "1 Corinthians 7-9"
-      },
-      {
-        "reference": "1 Corinthians 10-11"
-      },
-      {
-        "reference": "1 Corinthians 12-14"
-      },
-      {
-        "reference": "1 Corinthians 15-16 · 2 Corinthians 1"
-      },
-      {
-        "reference": "2 Corinthians 2-4"
-      },
-      {
-        "reference": "2 Corinthians 5-7"
-      },
-      {
-        "reference": "2 Corinthians 8-10"
-      },
-      {
-        "reference": "2 Corinthians 11-13"
-      },
-      {
-        "reference": "Galatians 1-3"
-      },
-      {
-        "reference": "Galatians 4-6"
-      },
-      {
-        "reference": "Ephesians 1-2"
-      },
+        "reference": "Revelation 21"
+      }
+    ]
+  },
+  {
+    "id": "proverbs-31",
+    "title": "A proverb a day",
+    "description": "Thirty-one chapters, thirty-one days. The oldest habit in Christian reading — start on the first of the month and the numbers line up.",
+    "category": "Start here",
+    "days": [
       {
-        "reference": "Ephesians 3-5"
+        "reference": "Proverbs 1"
       },
       {
-        "reference": "Ephesians 6 · Philippians 1-2"
+        "reference": "Proverbs 2"
       },
       {
-        "reference": "Philippians 3-4 · Colossians 1"
+        "reference": "Proverbs 3"
       },
       {
-        "reference": "Colossians 2-4"
+        "reference": "Proverbs 4"
       },
       {
-        "reference": "1 Thessalonians 1-3"
+        "reference": "Proverbs 5"
       },
       {
-        "reference": "1 Thessalonians 4-5 · 2 Thessalonians 1"
+        "reference": "Proverbs 6"
       },
       {
-        "reference": "2 Thessalonians 2-3 · 1 Timothy 1"
+        "reference": "Proverbs 7"
       },
       {
-        "reference": "1 Timothy 2-4"
+        "reference": "Proverbs 8"
       },
       {
-        "reference": "1 Timothy 5-6"
+        "reference": "Proverbs 9"
       },
       {
-        "reference": "2 Timothy 1-3"
+        "reference": "Proverbs 10"
       },
       {
-        "reference": "2 Timothy 4 · Titus 1-2"
+        "reference": "Proverbs 11"
       },
       {
-        "reference": "Titus 3 · Philemon 1 · Hebrews 1"
+        "reference": "Proverbs 12"
       },
       {
-        "reference": "Hebrews 2-4"
+        "reference": "Proverbs 13"
       },
       {
-        "reference": "Hebrews 5-7"
+        "reference": "Proverbs 14"
       },
       {
-        "reference": "Hebrews 8-10"
+        "reference": "Proverbs 15"
       },
       {
-        "reference": "Hebrews 11-13"
+        "reference": "Proverbs 16"
       },
       {
-        "reference": "James 1-3"
+        "reference": "Proverbs 17"
       },
       {
-        "reference": "James 4-5"
+        "reference": "Proverbs 18"
       },
       {
-        "reference": "1 Peter 1-3"
+        "reference": "Proverbs 19"
       },
       {
-        "reference": "1 Peter 4-5 · 2 Peter 1"
+        "reference": "Proverbs 20"
       },
       {
-        "reference": "2 Peter 2-3 · 1 John 1"
+        "reference": "Proverbs 21"
       },
       {
-        "reference": "1 John 2-4"
+        "reference": "Proverbs 22"
       },
       {
-        "reference": "1 John 5 · 2 John 1 · 3 John 1"
+        "reference": "Proverbs 23"
       },
       {
-        "reference": "Jude 1 · Revelation 1-2"
+        "reference": "Proverbs 24"
       },
       {
-        "reference": "Revelation 3-5"
+        "reference": "Proverbs 25"
       },
       {
-        "reference": "Revelation 6-8"
+        "reference": "Proverbs 26"
       },
       {
-        "reference": "Revelation 9-10"
+        "reference": "Proverbs 27"
       },
       {
-        "reference": "Revelation 11-13"
+        "reference": "Proverbs 28"
       },
       {
-        "reference": "Revelation 14-16"
+        "reference": "Proverbs 29"
       },
       {
-        "reference": "Revelation 17-19"
+        "reference": "Proverbs 30"
       },
       {
-        "reference": "Revelation 20-22"
+        "reference": "Proverbs 31"
       }
     ]
   },
   {
     "id": "bible-365",
-    "title": "The Bible in a year",
-    "description": "All 66 books, Genesis to Revelation, in 365 days. Roughly three chapters a day.",
+    "title": "The whole Bible in 365 days",
+    "description": "All 66 books, Genesis to Revelation, in a year. Roughly three chapters a day.",
+    "category": "The whole Bible",
     "days": [
       {
         "reference": "Genesis 1-3"
@@ -1647,5 +1444,4983 @@ export const PLAN_TEMPLATES: PlanTemplate[] = [
         "reference": "Revelation 20-22"
       }
     ]
+  },
+  {
+    "id": "bible-chronological-365",
+    "title": "The Bible in a year, in order of events",
+    "description": "The same 66 books in a year, but arranged by when the events happened rather than by where they sit in the binding — Job beside Genesis, the prophets among the kings.",
+    "category": "The whole Bible",
+    "days": [
+      {
+        "reference": "Genesis 1-3"
+      },
+      {
+        "reference": "Genesis 4-7"
+      },
+      {
+        "reference": "Genesis 8-10"
+      },
+      {
+        "reference": "Genesis 11-13"
+      },
+      {
+        "reference": "Genesis 14-16"
+      },
+      {
+        "reference": "Genesis 17-20"
+      },
+      {
+        "reference": "Genesis 21-23"
+      },
+      {
+        "reference": "Genesis 24-26"
+      },
+      {
+        "reference": "Genesis 27-29"
+      },
+      {
+        "reference": "Genesis 30-33"
+      },
+      {
+        "reference": "Genesis 34-36"
+      },
+      {
+        "reference": "Genesis 37-39"
+      },
+      {
+        "reference": "Genesis 40-42"
+      },
+      {
+        "reference": "Genesis 43-46"
+      },
+      {
+        "reference": "Genesis 47-49"
+      },
+      {
+        "reference": "Genesis 50 · Job 1-2"
+      },
+      {
+        "reference": "Job 3-5"
+      },
+      {
+        "reference": "Job 6-9"
+      },
+      {
+        "reference": "Job 10-12"
+      },
+      {
+        "reference": "Job 13-15"
+      },
+      {
+        "reference": "Job 16-18"
+      },
+      {
+        "reference": "Job 19-22"
+      },
+      {
+        "reference": "Job 23-25"
+      },
+      {
+        "reference": "Job 26-28"
+      },
+      {
+        "reference": "Job 29-31"
+      },
+      {
+        "reference": "Job 32-35"
+      },
+      {
+        "reference": "Job 36-38"
+      },
+      {
+        "reference": "Job 39-41"
+      },
+      {
+        "reference": "Job 42 · Exodus 1-2"
+      },
+      {
+        "reference": "Exodus 3-6"
+      },
+      {
+        "reference": "Exodus 7-9"
+      },
+      {
+        "reference": "Exodus 10-12"
+      },
+      {
+        "reference": "Exodus 13-15"
+      },
+      {
+        "reference": "Exodus 16-19"
+      },
+      {
+        "reference": "Exodus 20-22"
+      },
+      {
+        "reference": "Exodus 23-25"
+      },
+      {
+        "reference": "Exodus 26-29"
+      },
+      {
+        "reference": "Exodus 30-32"
+      },
+      {
+        "reference": "Exodus 33-35"
+      },
+      {
+        "reference": "Exodus 36-38"
+      },
+      {
+        "reference": "Exodus 39-40 · Leviticus 1-2"
+      },
+      {
+        "reference": "Leviticus 3-5"
+      },
+      {
+        "reference": "Leviticus 6-8"
+      },
+      {
+        "reference": "Leviticus 9-11"
+      },
+      {
+        "reference": "Leviticus 12-15"
+      },
+      {
+        "reference": "Leviticus 16-18"
+      },
+      {
+        "reference": "Leviticus 19-21"
+      },
+      {
+        "reference": "Leviticus 22-24"
+      },
+      {
+        "reference": "Leviticus 25-27 · Numbers 1"
+      },
+      {
+        "reference": "Numbers 2-4"
+      },
+      {
+        "reference": "Numbers 5-7"
+      },
+      {
+        "reference": "Numbers 8-10"
+      },
+      {
+        "reference": "Numbers 11-14"
+      },
+      {
+        "reference": "Numbers 15-17"
+      },
+      {
+        "reference": "Numbers 18-20"
+      },
+      {
+        "reference": "Numbers 21-23"
+      },
+      {
+        "reference": "Numbers 24-27"
+      },
+      {
+        "reference": "Numbers 28-30"
+      },
+      {
+        "reference": "Numbers 31-33"
+      },
+      {
+        "reference": "Numbers 34-36"
+      },
+      {
+        "reference": "Deuteronomy 1-4"
+      },
+      {
+        "reference": "Deuteronomy 5-7"
+      },
+      {
+        "reference": "Deuteronomy 8-10"
+      },
+      {
+        "reference": "Deuteronomy 11-13"
+      },
+      {
+        "reference": "Deuteronomy 14-17"
+      },
+      {
+        "reference": "Deuteronomy 18-20"
+      },
+      {
+        "reference": "Deuteronomy 21-23"
+      },
+      {
+        "reference": "Deuteronomy 24-27"
+      },
+      {
+        "reference": "Deuteronomy 28-30"
+      },
+      {
+        "reference": "Deuteronomy 31-33"
+      },
+      {
+        "reference": "Deuteronomy 34 · Joshua 1-2"
+      },
+      {
+        "reference": "Joshua 3-6"
+      },
+      {
+        "reference": "Joshua 7-9"
+      },
+      {
+        "reference": "Joshua 10-12"
+      },
+      {
+        "reference": "Joshua 13-15"
+      },
+      {
+        "reference": "Joshua 16-19"
+      },
+      {
+        "reference": "Joshua 20-22"
+      },
+      {
+        "reference": "Joshua 23-24 · Judges 1"
+      },
+      {
+        "reference": "Judges 2-4"
+      },
+      {
+        "reference": "Judges 5-8"
+      },
+      {
+        "reference": "Judges 9-11"
+      },
+      {
+        "reference": "Judges 12-14"
+      },
+      {
+        "reference": "Judges 15-17"
+      },
+      {
+        "reference": "Judges 18-21"
+      },
+      {
+        "reference": "Ruth 1-3"
+      },
+      {
+        "reference": "Ruth 4 · 1 Samuel 1-2"
+      },
+      {
+        "reference": "1 Samuel 3-5"
+      },
+      {
+        "reference": "1 Samuel 6-9"
+      },
+      {
+        "reference": "1 Samuel 10-12"
+      },
+      {
+        "reference": "1 Samuel 13-15"
+      },
+      {
+        "reference": "1 Samuel 16-18"
+      },
+      {
+        "reference": "1 Samuel 19-22"
+      },
+      {
+        "reference": "1 Samuel 23-25"
+      },
+      {
+        "reference": "1 Samuel 26-28"
+      },
+      {
+        "reference": "1 Samuel 29-31"
+      },
+      {
+        "reference": "2 Samuel 1-4"
+      },
+      {
+        "reference": "2 Samuel 5-7"
+      },
+      {
+        "reference": "2 Samuel 8-10"
+      },
+      {
+        "reference": "2 Samuel 11-13"
+      },
+      {
+        "reference": "2 Samuel 14-17"
+      },
+      {
+        "reference": "2 Samuel 18-20"
+      },
+      {
+        "reference": "2 Samuel 21-23"
+      },
+      {
+        "reference": "2 Samuel 24 · Psalms 1-3"
+      },
+      {
+        "reference": "Psalms 4-6"
+      },
+      {
+        "reference": "Psalms 7-9"
+      },
+      {
+        "reference": "Psalms 10-12"
+      },
+      {
+        "reference": "Psalms 13-16"
+      },
+      {
+        "reference": "Psalms 17-19"
+      },
+      {
+        "reference": "Psalms 20-22"
+      },
+      {
+        "reference": "Psalms 23-25"
+      },
+      {
+        "reference": "Psalms 26-29"
+      },
+      {
+        "reference": "Psalms 30-32"
+      },
+      {
+        "reference": "Psalms 33-35"
+      },
+      {
+        "reference": "Psalms 36-38"
+      },
+      {
+        "reference": "Psalms 39-42"
+      },
+      {
+        "reference": "Psalms 43-45"
+      },
+      {
+        "reference": "Psalms 46-48"
+      },
+      {
+        "reference": "Psalms 49-51"
+      },
+      {
+        "reference": "Psalms 52-55"
+      },
+      {
+        "reference": "Psalms 56-58"
+      },
+      {
+        "reference": "Psalms 59-61"
+      },
+      {
+        "reference": "Psalms 62-64"
+      },
+      {
+        "reference": "Psalms 65-68"
+      },
+      {
+        "reference": "Psalms 69-71"
+      },
+      {
+        "reference": "Psalms 72-74"
+      },
+      {
+        "reference": "Psalms 75-77"
+      },
+      {
+        "reference": "Psalms 78-81"
+      },
+      {
+        "reference": "Psalms 82-84"
+      },
+      {
+        "reference": "Psalms 85-87"
+      },
+      {
+        "reference": "Psalms 88-90"
+      },
+      {
+        "reference": "Psalms 91-94"
+      },
+      {
+        "reference": "Psalms 95-97"
+      },
+      {
+        "reference": "Psalms 98-100"
+      },
+      {
+        "reference": "Psalms 101-104"
+      },
+      {
+        "reference": "Psalms 105-107"
+      },
+      {
+        "reference": "Psalms 108-110"
+      },
+      {
+        "reference": "Psalms 111-113"
+      },
+      {
+        "reference": "Psalms 114-117"
+      },
+      {
+        "reference": "Psalms 118-120"
+      },
+      {
+        "reference": "Psalms 121-123"
+      },
+      {
+        "reference": "Psalms 124-126"
+      },
+      {
+        "reference": "Psalms 127-130"
+      },
+      {
+        "reference": "Psalms 131-133"
+      },
+      {
+        "reference": "Psalms 134-136"
+      },
+      {
+        "reference": "Psalms 137-139"
+      },
+      {
+        "reference": "Psalms 140-143"
+      },
+      {
+        "reference": "Psalms 144-146"
+      },
+      {
+        "reference": "Psalms 147-149"
+      },
+      {
+        "reference": "Psalms 150 · 1 Chronicles 1-2"
+      },
+      {
+        "reference": "1 Chronicles 3-6"
+      },
+      {
+        "reference": "1 Chronicles 7-9"
+      },
+      {
+        "reference": "1 Chronicles 10-12"
+      },
+      {
+        "reference": "1 Chronicles 13-15"
+      },
+      {
+        "reference": "1 Chronicles 16-19"
+      },
+      {
+        "reference": "1 Chronicles 20-22"
+      },
+      {
+        "reference": "1 Chronicles 23-25"
+      },
+      {
+        "reference": "1 Chronicles 26-28"
+      },
+      {
+        "reference": "1 Chronicles 29 · Proverbs 1-3"
+      },
+      {
+        "reference": "Proverbs 4-6"
+      },
+      {
+        "reference": "Proverbs 7-9"
+      },
+      {
+        "reference": "Proverbs 10-12"
+      },
+      {
+        "reference": "Proverbs 13-16"
+      },
+      {
+        "reference": "Proverbs 17-19"
+      },
+      {
+        "reference": "Proverbs 20-22"
+      },
+      {
+        "reference": "Proverbs 23-25"
+      },
+      {
+        "reference": "Proverbs 26-29"
+      },
+      {
+        "reference": "Proverbs 30-31 · Ecclesiastes 1"
+      },
+      {
+        "reference": "Ecclesiastes 2-4"
+      },
+      {
+        "reference": "Ecclesiastes 5-8"
+      },
+      {
+        "reference": "Ecclesiastes 9-11"
+      },
+      {
+        "reference": "Ecclesiastes 12 · Song of Solomon 1-2"
+      },
+      {
+        "reference": "Song of Solomon 3-5"
+      },
+      {
+        "reference": "Song of Solomon 6-8 · 1 Kings 1"
+      },
+      {
+        "reference": "1 Kings 2-4"
+      },
+      {
+        "reference": "1 Kings 5-7"
+      },
+      {
+        "reference": "1 Kings 8-10"
+      },
+      {
+        "reference": "1 Kings 11-14"
+      },
+      {
+        "reference": "1 Kings 15-17"
+      },
+      {
+        "reference": "1 Kings 18-20"
+      },
+      {
+        "reference": "1 Kings 21-22 · 2 Chronicles 1"
+      },
+      {
+        "reference": "2 Chronicles 2-5"
+      },
+      {
+        "reference": "2 Chronicles 6-8"
+      },
+      {
+        "reference": "2 Chronicles 9-11"
+      },
+      {
+        "reference": "2 Chronicles 12-14"
+      },
+      {
+        "reference": "2 Chronicles 15-18"
+      },
+      {
+        "reference": "2 Chronicles 19-21"
+      },
+      {
+        "reference": "2 Chronicles 22-24"
+      },
+      {
+        "reference": "2 Chronicles 25-27"
+      },
+      {
+        "reference": "2 Chronicles 28-31"
+      },
+      {
+        "reference": "2 Chronicles 32-34"
+      },
+      {
+        "reference": "2 Chronicles 35-36 · Obadiah 1"
+      },
+      {
+        "reference": "Joel 1-3"
+      },
+      {
+        "reference": "Jonah 1-4"
+      },
+      {
+        "reference": "Amos 1-3"
+      },
+      {
+        "reference": "Amos 4-6"
+      },
+      {
+        "reference": "Amos 7-9"
+      },
+      {
+        "reference": "Hosea 1-4"
+      },
+      {
+        "reference": "Hosea 5-7"
+      },
+      {
+        "reference": "Hosea 8-10"
+      },
+      {
+        "reference": "Hosea 11-14"
+      },
+      {
+        "reference": "Micah 1-3"
+      },
+      {
+        "reference": "Micah 4-6"
+      },
+      {
+        "reference": "Micah 7 · Isaiah 1-2"
+      },
+      {
+        "reference": "Isaiah 3-6"
+      },
+      {
+        "reference": "Isaiah 7-9"
+      },
+      {
+        "reference": "Isaiah 10-12"
+      },
+      {
+        "reference": "Isaiah 13-15"
+      },
+      {
+        "reference": "Isaiah 16-19"
+      },
+      {
+        "reference": "Isaiah 20-22"
+      },
+      {
+        "reference": "Isaiah 23-25"
+      },
+      {
+        "reference": "Isaiah 26-28"
+      },
+      {
+        "reference": "Isaiah 29-32"
+      },
+      {
+        "reference": "Isaiah 33-35"
+      },
+      {
+        "reference": "Isaiah 36-38"
+      },
+      {
+        "reference": "Isaiah 39-41"
+      },
+      {
+        "reference": "Isaiah 42-45"
+      },
+      {
+        "reference": "Isaiah 46-48"
+      },
+      {
+        "reference": "Isaiah 49-51"
+      },
+      {
+        "reference": "Isaiah 52-54"
+      },
+      {
+        "reference": "Isaiah 55-58"
+      },
+      {
+        "reference": "Isaiah 59-61"
+      },
+      {
+        "reference": "Isaiah 62-64"
+      },
+      {
+        "reference": "Isaiah 65-66 · Nahum 1"
+      },
+      {
+        "reference": "Nahum 2-3 · Zephaniah 1-2"
+      },
+      {
+        "reference": "Zephaniah 3 · Habakkuk 1-2"
+      },
+      {
+        "reference": "Habakkuk 3 · Jeremiah 1-2"
+      },
+      {
+        "reference": "Jeremiah 3-5"
+      },
+      {
+        "reference": "Jeremiah 6-9"
+      },
+      {
+        "reference": "Jeremiah 10-12"
+      },
+      {
+        "reference": "Jeremiah 13-15"
+      },
+      {
+        "reference": "Jeremiah 16-18"
+      },
+      {
+        "reference": "Jeremiah 19-22"
+      },
+      {
+        "reference": "Jeremiah 23-25"
+      },
+      {
+        "reference": "Jeremiah 26-28"
+      },
+      {
+        "reference": "Jeremiah 29-32"
+      },
+      {
+        "reference": "Jeremiah 33-35"
+      },
+      {
+        "reference": "Jeremiah 36-38"
+      },
+      {
+        "reference": "Jeremiah 39-41"
+      },
+      {
+        "reference": "Jeremiah 42-45"
+      },
+      {
+        "reference": "Jeremiah 46-48"
+      },
+      {
+        "reference": "Jeremiah 49-51"
+      },
+      {
+        "reference": "Jeremiah 52 · Lamentations 1-2"
+      },
+      {
+        "reference": "Lamentations 3-5 · 2 Kings 1"
+      },
+      {
+        "reference": "2 Kings 2-4"
+      },
+      {
+        "reference": "2 Kings 5-7"
+      },
+      {
+        "reference": "2 Kings 8-10"
+      },
+      {
+        "reference": "2 Kings 11-14"
+      },
+      {
+        "reference": "2 Kings 15-17"
+      },
+      {
+        "reference": "2 Kings 18-20"
+      },
+      {
+        "reference": "2 Kings 21-23"
+      },
+      {
+        "reference": "2 Kings 24-25 · Ezekiel 1-2"
+      },
+      {
+        "reference": "Ezekiel 3-5"
+      },
+      {
+        "reference": "Ezekiel 6-8"
+      },
+      {
+        "reference": "Ezekiel 9-11"
+      },
+      {
+        "reference": "Ezekiel 12-15"
+      },
+      {
+        "reference": "Ezekiel 16-18"
+      },
+      {
+        "reference": "Ezekiel 19-21"
+      },
+      {
+        "reference": "Ezekiel 22-24"
+      },
+      {
+        "reference": "Ezekiel 25-28"
+      },
+      {
+        "reference": "Ezekiel 29-31"
+      },
+      {
+        "reference": "Ezekiel 32-34"
+      },
+      {
+        "reference": "Ezekiel 35-37"
+      },
+      {
+        "reference": "Ezekiel 38-41"
+      },
+      {
+        "reference": "Ezekiel 42-44"
+      },
+      {
+        "reference": "Ezekiel 45-47"
+      },
+      {
+        "reference": "Ezekiel 48 · Daniel 1-3"
+      },
+      {
+        "reference": "Daniel 4-6"
+      },
+      {
+        "reference": "Daniel 7-9"
+      },
+      {
+        "reference": "Daniel 10-12"
+      },
+      {
+        "reference": "Ezra 1-4"
+      },
+      {
+        "reference": "Ezra 5-7"
+      },
+      {
+        "reference": "Ezra 8-10"
+      },
+      {
+        "reference": "Esther 1-3"
+      },
+      {
+        "reference": "Esther 4-7"
+      },
+      {
+        "reference": "Esther 8-10"
+      },
+      {
+        "reference": "Nehemiah 1-3"
+      },
+      {
+        "reference": "Nehemiah 4-6"
+      },
+      {
+        "reference": "Nehemiah 7-10"
+      },
+      {
+        "reference": "Nehemiah 11-13"
+      },
+      {
+        "reference": "Haggai 1-2 · Zechariah 1"
+      },
+      {
+        "reference": "Zechariah 2-4"
+      },
+      {
+        "reference": "Zechariah 5-8"
+      },
+      {
+        "reference": "Zechariah 9-11"
+      },
+      {
+        "reference": "Zechariah 12-14"
+      },
+      {
+        "reference": "Malachi 1-3"
+      },
+      {
+        "reference": "Malachi 4 · Luke 1-3"
+      },
+      {
+        "reference": "Luke 4-6"
+      },
+      {
+        "reference": "Luke 7-9"
+      },
+      {
+        "reference": "Luke 10-12"
+      },
+      {
+        "reference": "Luke 13-16"
+      },
+      {
+        "reference": "Luke 17-19"
+      },
+      {
+        "reference": "Luke 20-22"
+      },
+      {
+        "reference": "Luke 23-24 · Matthew 1"
+      },
+      {
+        "reference": "Matthew 2-5"
+      },
+      {
+        "reference": "Matthew 6-8"
+      },
+      {
+        "reference": "Matthew 9-11"
+      },
+      {
+        "reference": "Matthew 12-14"
+      },
+      {
+        "reference": "Matthew 15-18"
+      },
+      {
+        "reference": "Matthew 19-21"
+      },
+      {
+        "reference": "Matthew 22-24"
+      },
+      {
+        "reference": "Matthew 25-28"
+      },
+      {
+        "reference": "Mark 1-3"
+      },
+      {
+        "reference": "Mark 4-6"
+      },
+      {
+        "reference": "Mark 7-9"
+      },
+      {
+        "reference": "Mark 10-13"
+      },
+      {
+        "reference": "Mark 14-16"
+      },
+      {
+        "reference": "John 1-3"
+      },
+      {
+        "reference": "John 4-6"
+      },
+      {
+        "reference": "John 7-10"
+      },
+      {
+        "reference": "John 11-13"
+      },
+      {
+        "reference": "John 14-16"
+      },
+      {
+        "reference": "John 17-19"
+      },
+      {
+        "reference": "John 20-21 · Acts 1-2"
+      },
+      {
+        "reference": "Acts 3-5"
+      },
+      {
+        "reference": "Acts 6-8"
+      },
+      {
+        "reference": "Acts 9-11"
+      },
+      {
+        "reference": "Acts 12-15"
+      },
+      {
+        "reference": "Acts 16-18"
+      },
+      {
+        "reference": "Acts 19-21"
+      },
+      {
+        "reference": "Acts 22-24"
+      },
+      {
+        "reference": "Acts 25-28"
+      },
+      {
+        "reference": "James 1-3"
+      },
+      {
+        "reference": "James 4-5 · Galatians 1"
+      },
+      {
+        "reference": "Galatians 2-4"
+      },
+      {
+        "reference": "Galatians 5-6 · 1 Thessalonians 1-2"
+      },
+      {
+        "reference": "1 Thessalonians 3-5"
+      },
+      {
+        "reference": "2 Thessalonians 1-3"
+      },
+      {
+        "reference": "1 Corinthians 1-3"
+      },
+      {
+        "reference": "1 Corinthians 4-7"
+      },
+      {
+        "reference": "1 Corinthians 8-10"
+      },
+      {
+        "reference": "1 Corinthians 11-13"
+      },
+      {
+        "reference": "1 Corinthians 14-16 · 2 Corinthians 1"
+      },
+      {
+        "reference": "2 Corinthians 2-4"
+      },
+      {
+        "reference": "2 Corinthians 5-7"
+      },
+      {
+        "reference": "2 Corinthians 8-10"
+      },
+      {
+        "reference": "2 Corinthians 11-13 · Romans 1"
+      },
+      {
+        "reference": "Romans 2-4"
+      },
+      {
+        "reference": "Romans 5-7"
+      },
+      {
+        "reference": "Romans 8-10"
+      },
+      {
+        "reference": "Romans 11-14"
+      },
+      {
+        "reference": "Romans 15-16 · Ephesians 1"
+      },
+      {
+        "reference": "Ephesians 2-4"
+      },
+      {
+        "reference": "Ephesians 5-6 · Philippians 1"
+      },
+      {
+        "reference": "Philippians 2-4 · Colossians 1"
+      },
+      {
+        "reference": "Colossians 2-4"
+      },
+      {
+        "reference": "Philemon 1 · 1 Timothy 1-2"
+      },
+      {
+        "reference": "1 Timothy 3-5"
+      },
+      {
+        "reference": "1 Timothy 6 · Titus 1-3"
+      },
+      {
+        "reference": "1 Peter 1-3"
+      },
+      {
+        "reference": "1 Peter 4-5 · Hebrews 1"
+      },
+      {
+        "reference": "Hebrews 2-4"
+      },
+      {
+        "reference": "Hebrews 5-8"
+      },
+      {
+        "reference": "Hebrews 9-11"
+      },
+      {
+        "reference": "Hebrews 12-13 · 2 Timothy 1"
+      },
+      {
+        "reference": "2 Timothy 2-4"
+      },
+      {
+        "reference": "2 Peter 1-3 · Jude 1"
+      },
+      {
+        "reference": "1 John 1-3"
+      },
+      {
+        "reference": "1 John 4-5 · 2 John 1"
+      },
+      {
+        "reference": "3 John 1 · Revelation 1-2"
+      },
+      {
+        "reference": "Revelation 3-6"
+      },
+      {
+        "reference": "Revelation 7-9"
+      },
+      {
+        "reference": "Revelation 10-12"
+      },
+      {
+        "reference": "Revelation 13-15"
+      },
+      {
+        "reference": "Revelation 16-19"
+      },
+      {
+        "reference": "Revelation 20-22"
+      }
+    ]
+  },
+  {
+    "id": "bible-180",
+    "title": "The whole Bible in 180 days",
+    "description": "Genesis to Revelation in six months. Around seven chapters a day — demanding, and it moves fast enough to feel like one story.",
+    "category": "The whole Bible",
+    "days": [
+      {
+        "reference": "Genesis 1-7"
+      },
+      {
+        "reference": "Genesis 8-13"
+      },
+      {
+        "reference": "Genesis 14-20"
+      },
+      {
+        "reference": "Genesis 21-26"
+      },
+      {
+        "reference": "Genesis 27-33"
+      },
+      {
+        "reference": "Genesis 34-40"
+      },
+      {
+        "reference": "Genesis 41-46"
+      },
+      {
+        "reference": "Genesis 47-50 · Exodus 1-3"
+      },
+      {
+        "reference": "Exodus 4-9"
+      },
+      {
+        "reference": "Exodus 10-16"
+      },
+      {
+        "reference": "Exodus 17-23"
+      },
+      {
+        "reference": "Exodus 24-29"
+      },
+      {
+        "reference": "Exodus 30-36"
+      },
+      {
+        "reference": "Exodus 37-40 · Leviticus 1-2"
+      },
+      {
+        "reference": "Leviticus 3-9"
+      },
+      {
+        "reference": "Leviticus 10-16"
+      },
+      {
+        "reference": "Leviticus 17-22"
+      },
+      {
+        "reference": "Leviticus 23-27 · Numbers 1-2"
+      },
+      {
+        "reference": "Numbers 3-9"
+      },
+      {
+        "reference": "Numbers 10-15"
+      },
+      {
+        "reference": "Numbers 16-22"
+      },
+      {
+        "reference": "Numbers 23-28"
+      },
+      {
+        "reference": "Numbers 29-35"
+      },
+      {
+        "reference": "Numbers 36 · Deuteronomy 1-6"
+      },
+      {
+        "reference": "Deuteronomy 7-12"
+      },
+      {
+        "reference": "Deuteronomy 13-19"
+      },
+      {
+        "reference": "Deuteronomy 20-25"
+      },
+      {
+        "reference": "Deuteronomy 26-32"
+      },
+      {
+        "reference": "Deuteronomy 33-34 · Joshua 1-5"
+      },
+      {
+        "reference": "Joshua 6-11"
+      },
+      {
+        "reference": "Joshua 12-18"
+      },
+      {
+        "reference": "Joshua 19-24"
+      },
+      {
+        "reference": "Judges 1-7"
+      },
+      {
+        "reference": "Judges 8-14"
+      },
+      {
+        "reference": "Judges 15-20"
+      },
+      {
+        "reference": "Judges 21 · Ruth 1-4 · 1 Samuel 1-2"
+      },
+      {
+        "reference": "1 Samuel 3-8"
+      },
+      {
+        "reference": "1 Samuel 9-15"
+      },
+      {
+        "reference": "1 Samuel 16-22"
+      },
+      {
+        "reference": "1 Samuel 23-28"
+      },
+      {
+        "reference": "1 Samuel 29-31 · 2 Samuel 1-4"
+      },
+      {
+        "reference": "2 Samuel 5-10"
+      },
+      {
+        "reference": "2 Samuel 11-17"
+      },
+      {
+        "reference": "2 Samuel 18-24"
+      },
+      {
+        "reference": "1 Kings 1-6"
+      },
+      {
+        "reference": "1 Kings 7-13"
+      },
+      {
+        "reference": "1 Kings 14-19"
+      },
+      {
+        "reference": "1 Kings 20-22 · 2 Kings 1-4"
+      },
+      {
+        "reference": "2 Kings 5-11"
+      },
+      {
+        "reference": "2 Kings 12-17"
+      },
+      {
+        "reference": "2 Kings 18-24"
+      },
+      {
+        "reference": "2 Kings 25 · 1 Chronicles 1-5"
+      },
+      {
+        "reference": "1 Chronicles 6-12"
+      },
+      {
+        "reference": "1 Chronicles 13-19"
+      },
+      {
+        "reference": "1 Chronicles 20-25"
+      },
+      {
+        "reference": "1 Chronicles 26-29 · 2 Chronicles 1-3"
+      },
+      {
+        "reference": "2 Chronicles 4-10"
+      },
+      {
+        "reference": "2 Chronicles 11-16"
+      },
+      {
+        "reference": "2 Chronicles 17-23"
+      },
+      {
+        "reference": "2 Chronicles 24-29"
+      },
+      {
+        "reference": "2 Chronicles 30-36"
+      },
+      {
+        "reference": "Ezra 1-7"
+      },
+      {
+        "reference": "Ezra 8-10 · Nehemiah 1-3"
+      },
+      {
+        "reference": "Nehemiah 4-10"
+      },
+      {
+        "reference": "Nehemiah 11-13 · Esther 1-3"
+      },
+      {
+        "reference": "Esther 4-10"
+      },
+      {
+        "reference": "Job 1-7"
+      },
+      {
+        "reference": "Job 8-13"
+      },
+      {
+        "reference": "Job 14-20"
+      },
+      {
+        "reference": "Job 21-26"
+      },
+      {
+        "reference": "Job 27-33"
+      },
+      {
+        "reference": "Job 34-40"
+      },
+      {
+        "reference": "Job 41-42 · Psalms 1-4"
+      },
+      {
+        "reference": "Psalms 5-11"
+      },
+      {
+        "reference": "Psalms 12-17"
+      },
+      {
+        "reference": "Psalms 18-24"
+      },
+      {
+        "reference": "Psalms 25-31"
+      },
+      {
+        "reference": "Psalms 32-37"
+      },
+      {
+        "reference": "Psalms 38-44"
+      },
+      {
+        "reference": "Psalms 45-50"
+      },
+      {
+        "reference": "Psalms 51-57"
+      },
+      {
+        "reference": "Psalms 58-64"
+      },
+      {
+        "reference": "Psalms 65-70"
+      },
+      {
+        "reference": "Psalms 71-77"
+      },
+      {
+        "reference": "Psalms 78-83"
+      },
+      {
+        "reference": "Psalms 84-90"
+      },
+      {
+        "reference": "Psalms 91-97"
+      },
+      {
+        "reference": "Psalms 98-103"
+      },
+      {
+        "reference": "Psalms 104-110"
+      },
+      {
+        "reference": "Psalms 111-117"
+      },
+      {
+        "reference": "Psalms 118-123"
+      },
+      {
+        "reference": "Psalms 124-130"
+      },
+      {
+        "reference": "Psalms 131-136"
+      },
+      {
+        "reference": "Psalms 137-143"
+      },
+      {
+        "reference": "Psalms 144-150"
+      },
+      {
+        "reference": "Proverbs 1-6"
+      },
+      {
+        "reference": "Proverbs 7-13"
+      },
+      {
+        "reference": "Proverbs 14-19"
+      },
+      {
+        "reference": "Proverbs 20-26"
+      },
+      {
+        "reference": "Proverbs 27-31 · Ecclesiastes 1-2"
+      },
+      {
+        "reference": "Ecclesiastes 3-8"
+      },
+      {
+        "reference": "Ecclesiastes 9-12 · Song of Solomon 1-3"
+      },
+      {
+        "reference": "Song of Solomon 4-8 · Isaiah 1"
+      },
+      {
+        "reference": "Isaiah 2-8"
+      },
+      {
+        "reference": "Isaiah 9-15"
+      },
+      {
+        "reference": "Isaiah 16-21"
+      },
+      {
+        "reference": "Isaiah 22-28"
+      },
+      {
+        "reference": "Isaiah 29-34"
+      },
+      {
+        "reference": "Isaiah 35-41"
+      },
+      {
+        "reference": "Isaiah 42-48"
+      },
+      {
+        "reference": "Isaiah 49-54"
+      },
+      {
+        "reference": "Isaiah 55-61"
+      },
+      {
+        "reference": "Isaiah 62-66 · Jeremiah 1"
+      },
+      {
+        "reference": "Jeremiah 2-8"
+      },
+      {
+        "reference": "Jeremiah 9-15"
+      },
+      {
+        "reference": "Jeremiah 16-21"
+      },
+      {
+        "reference": "Jeremiah 22-28"
+      },
+      {
+        "reference": "Jeremiah 29-34"
+      },
+      {
+        "reference": "Jeremiah 35-41"
+      },
+      {
+        "reference": "Jeremiah 42-48"
+      },
+      {
+        "reference": "Jeremiah 49-52 · Lamentations 1-2"
+      },
+      {
+        "reference": "Lamentations 3-5 · Ezekiel 1-4"
+      },
+      {
+        "reference": "Ezekiel 5-10"
+      },
+      {
+        "reference": "Ezekiel 11-17"
+      },
+      {
+        "reference": "Ezekiel 18-24"
+      },
+      {
+        "reference": "Ezekiel 25-30"
+      },
+      {
+        "reference": "Ezekiel 31-37"
+      },
+      {
+        "reference": "Ezekiel 38-44"
+      },
+      {
+        "reference": "Ezekiel 45-48 · Daniel 1-2"
+      },
+      {
+        "reference": "Daniel 3-9"
+      },
+      {
+        "reference": "Daniel 10-12 · Hosea 1-3"
+      },
+      {
+        "reference": "Hosea 4-10"
+      },
+      {
+        "reference": "Hosea 11-14 · Joel 1-3"
+      },
+      {
+        "reference": "Amos 1-6"
+      },
+      {
+        "reference": "Amos 7-9 · Obadiah 1 · Jonah 1-3"
+      },
+      {
+        "reference": "Jonah 4 · Micah 1-5"
+      },
+      {
+        "reference": "Micah 6-7 · Nahum 1-3 · Habakkuk 1-2"
+      },
+      {
+        "reference": "Habakkuk 3 · Zephaniah 1-3 · Haggai 1-2 · Zechariah 1"
+      },
+      {
+        "reference": "Zechariah 2-7"
+      },
+      {
+        "reference": "Zechariah 8-14"
+      },
+      {
+        "reference": "Malachi 1-4 · Matthew 1-2"
+      },
+      {
+        "reference": "Matthew 3-9"
+      },
+      {
+        "reference": "Matthew 10-16"
+      },
+      {
+        "reference": "Matthew 17-22"
+      },
+      {
+        "reference": "Matthew 23-28 · Mark 1"
+      },
+      {
+        "reference": "Mark 2-7"
+      },
+      {
+        "reference": "Mark 8-14"
+      },
+      {
+        "reference": "Mark 15-16 · Luke 1-5"
+      },
+      {
+        "reference": "Luke 6-11"
+      },
+      {
+        "reference": "Luke 12-18"
+      },
+      {
+        "reference": "Luke 19-24"
+      },
+      {
+        "reference": "John 1-7"
+      },
+      {
+        "reference": "John 8-14"
+      },
+      {
+        "reference": "John 15-20"
+      },
+      {
+        "reference": "John 21 · Acts 1-6"
+      },
+      {
+        "reference": "Acts 7-12"
+      },
+      {
+        "reference": "Acts 13-19"
+      },
+      {
+        "reference": "Acts 20-26"
+      },
+      {
+        "reference": "Acts 27-28 · Romans 1-4"
+      },
+      {
+        "reference": "Romans 5-11"
+      },
+      {
+        "reference": "Romans 12-16 · 1 Corinthians 1"
+      },
+      {
+        "reference": "1 Corinthians 2-8"
+      },
+      {
+        "reference": "1 Corinthians 9-15"
+      },
+      {
+        "reference": "1 Corinthians 16 · 2 Corinthians 1-5"
+      },
+      {
+        "reference": "2 Corinthians 6-12"
+      },
+      {
+        "reference": "2 Corinthians 13 · Galatians 1-6"
+      },
+      {
+        "reference": "Ephesians 1-6"
+      },
+      {
+        "reference": "Philippians 1-4 · Colossians 1-3"
+      },
+      {
+        "reference": "Colossians 4 · 1 Thessalonians 1-5"
+      },
+      {
+        "reference": "2 Thessalonians 1-3 · 1 Timothy 1-4"
+      },
+      {
+        "reference": "1 Timothy 5-6 · 2 Timothy 1-4 · Titus 1"
+      },
+      {
+        "reference": "Titus 2-3 · Philemon 1 · Hebrews 1-3"
+      },
+      {
+        "reference": "Hebrews 4-10"
+      },
+      {
+        "reference": "Hebrews 11-13 · James 1-3"
+      },
+      {
+        "reference": "James 4-5 · 1 Peter 1-5"
+      },
+      {
+        "reference": "2 Peter 1-3 · 1 John 1-4"
+      },
+      {
+        "reference": "1 John 5 · 2 John 1 · 3 John 1 · Jude 1 · Revelation 1-2"
+      },
+      {
+        "reference": "Revelation 3-9"
+      },
+      {
+        "reference": "Revelation 10-15"
+      },
+      {
+        "reference": "Revelation 16-22"
+      }
+    ]
+  },
+  {
+    "id": "ot-180",
+    "title": "The Old Testament in 180 days",
+    "description": "Genesis through Malachi in six months. About five chapters a day.",
+    "category": "The whole Bible",
+    "days": [
+      {
+        "reference": "Genesis 1-5"
+      },
+      {
+        "reference": "Genesis 6-10"
+      },
+      {
+        "reference": "Genesis 11-15"
+      },
+      {
+        "reference": "Genesis 16-21"
+      },
+      {
+        "reference": "Genesis 22-26"
+      },
+      {
+        "reference": "Genesis 27-31"
+      },
+      {
+        "reference": "Genesis 32-36"
+      },
+      {
+        "reference": "Genesis 37-41"
+      },
+      {
+        "reference": "Genesis 42-46"
+      },
+      {
+        "reference": "Genesis 47-50 · Exodus 1-2"
+      },
+      {
+        "reference": "Exodus 3-7"
+      },
+      {
+        "reference": "Exodus 8-12"
+      },
+      {
+        "reference": "Exodus 13-17"
+      },
+      {
+        "reference": "Exodus 18-22"
+      },
+      {
+        "reference": "Exodus 23-27"
+      },
+      {
+        "reference": "Exodus 28-33"
+      },
+      {
+        "reference": "Exodus 34-38"
+      },
+      {
+        "reference": "Exodus 39-40 · Leviticus 1-3"
+      },
+      {
+        "reference": "Leviticus 4-8"
+      },
+      {
+        "reference": "Leviticus 9-13"
+      },
+      {
+        "reference": "Leviticus 14-18"
+      },
+      {
+        "reference": "Leviticus 19-24"
+      },
+      {
+        "reference": "Leviticus 25-27 · Numbers 1-2"
+      },
+      {
+        "reference": "Numbers 3-7"
+      },
+      {
+        "reference": "Numbers 8-12"
+      },
+      {
+        "reference": "Numbers 13-17"
+      },
+      {
+        "reference": "Numbers 18-22"
+      },
+      {
+        "reference": "Numbers 23-28"
+      },
+      {
+        "reference": "Numbers 29-33"
+      },
+      {
+        "reference": "Numbers 34-36 · Deuteronomy 1-2"
+      },
+      {
+        "reference": "Deuteronomy 3-7"
+      },
+      {
+        "reference": "Deuteronomy 8-12"
+      },
+      {
+        "reference": "Deuteronomy 13-17"
+      },
+      {
+        "reference": "Deuteronomy 18-22"
+      },
+      {
+        "reference": "Deuteronomy 23-28"
+      },
+      {
+        "reference": "Deuteronomy 29-33"
+      },
+      {
+        "reference": "Deuteronomy 34 · Joshua 1-4"
+      },
+      {
+        "reference": "Joshua 5-9"
+      },
+      {
+        "reference": "Joshua 10-14"
+      },
+      {
+        "reference": "Joshua 15-19"
+      },
+      {
+        "reference": "Joshua 20-24 · Judges 1"
+      },
+      {
+        "reference": "Judges 2-6"
+      },
+      {
+        "reference": "Judges 7-11"
+      },
+      {
+        "reference": "Judges 12-16"
+      },
+      {
+        "reference": "Judges 17-21"
+      },
+      {
+        "reference": "Ruth 1-4 · 1 Samuel 1"
+      },
+      {
+        "reference": "1 Samuel 2-7"
+      },
+      {
+        "reference": "1 Samuel 8-12"
+      },
+      {
+        "reference": "1 Samuel 13-17"
+      },
+      {
+        "reference": "1 Samuel 18-22"
+      },
+      {
+        "reference": "1 Samuel 23-27"
+      },
+      {
+        "reference": "1 Samuel 28-31 · 2 Samuel 1"
+      },
+      {
+        "reference": "2 Samuel 2-7"
+      },
+      {
+        "reference": "2 Samuel 8-12"
+      },
+      {
+        "reference": "2 Samuel 13-17"
+      },
+      {
+        "reference": "2 Samuel 18-22"
+      },
+      {
+        "reference": "2 Samuel 23-24 · 1 Kings 1-3"
+      },
+      {
+        "reference": "1 Kings 4-8"
+      },
+      {
+        "reference": "1 Kings 9-14"
+      },
+      {
+        "reference": "1 Kings 15-19"
+      },
+      {
+        "reference": "1 Kings 20-22 · 2 Kings 1-2"
+      },
+      {
+        "reference": "2 Kings 3-7"
+      },
+      {
+        "reference": "2 Kings 8-12"
+      },
+      {
+        "reference": "2 Kings 13-17"
+      },
+      {
+        "reference": "2 Kings 18-22"
+      },
+      {
+        "reference": "2 Kings 23-25 · 1 Chronicles 1-3"
+      },
+      {
+        "reference": "1 Chronicles 4-8"
+      },
+      {
+        "reference": "1 Chronicles 9-13"
+      },
+      {
+        "reference": "1 Chronicles 14-18"
+      },
+      {
+        "reference": "1 Chronicles 19-23"
+      },
+      {
+        "reference": "1 Chronicles 24-28"
+      },
+      {
+        "reference": "1 Chronicles 29 · 2 Chronicles 1-5"
+      },
+      {
+        "reference": "2 Chronicles 6-10"
+      },
+      {
+        "reference": "2 Chronicles 11-15"
+      },
+      {
+        "reference": "2 Chronicles 16-20"
+      },
+      {
+        "reference": "2 Chronicles 21-25"
+      },
+      {
+        "reference": "2 Chronicles 26-30"
+      },
+      {
+        "reference": "2 Chronicles 31-36"
+      },
+      {
+        "reference": "Ezra 1-5"
+      },
+      {
+        "reference": "Ezra 6-10"
+      },
+      {
+        "reference": "Nehemiah 1-5"
+      },
+      {
+        "reference": "Nehemiah 6-10"
+      },
+      {
+        "reference": "Nehemiah 11-13 · Esther 1-2"
+      },
+      {
+        "reference": "Esther 3-8"
+      },
+      {
+        "reference": "Esther 9-10 · Job 1-3"
+      },
+      {
+        "reference": "Job 4-8"
+      },
+      {
+        "reference": "Job 9-13"
+      },
+      {
+        "reference": "Job 14-18"
+      },
+      {
+        "reference": "Job 19-23"
+      },
+      {
+        "reference": "Job 24-29"
+      },
+      {
+        "reference": "Job 30-34"
+      },
+      {
+        "reference": "Job 35-39"
+      },
+      {
+        "reference": "Job 40-42 · Psalms 1-2"
+      },
+      {
+        "reference": "Psalms 3-7"
+      },
+      {
+        "reference": "Psalms 8-12"
+      },
+      {
+        "reference": "Psalms 13-17"
+      },
+      {
+        "reference": "Psalms 18-23"
+      },
+      {
+        "reference": "Psalms 24-28"
+      },
+      {
+        "reference": "Psalms 29-33"
+      },
+      {
+        "reference": "Psalms 34-38"
+      },
+      {
+        "reference": "Psalms 39-43"
+      },
+      {
+        "reference": "Psalms 44-48"
+      },
+      {
+        "reference": "Psalms 49-54"
+      },
+      {
+        "reference": "Psalms 55-59"
+      },
+      {
+        "reference": "Psalms 60-64"
+      },
+      {
+        "reference": "Psalms 65-69"
+      },
+      {
+        "reference": "Psalms 70-74"
+      },
+      {
+        "reference": "Psalms 75-79"
+      },
+      {
+        "reference": "Psalms 80-85"
+      },
+      {
+        "reference": "Psalms 86-90"
+      },
+      {
+        "reference": "Psalms 91-95"
+      },
+      {
+        "reference": "Psalms 96-100"
+      },
+      {
+        "reference": "Psalms 101-105"
+      },
+      {
+        "reference": "Psalms 106-110"
+      },
+      {
+        "reference": "Psalms 111-116"
+      },
+      {
+        "reference": "Psalms 117-121"
+      },
+      {
+        "reference": "Psalms 122-126"
+      },
+      {
+        "reference": "Psalms 127-131"
+      },
+      {
+        "reference": "Psalms 132-136"
+      },
+      {
+        "reference": "Psalms 137-141"
+      },
+      {
+        "reference": "Psalms 142-146"
+      },
+      {
+        "reference": "Psalms 147-150 · Proverbs 1-2"
+      },
+      {
+        "reference": "Proverbs 3-7"
+      },
+      {
+        "reference": "Proverbs 8-12"
+      },
+      {
+        "reference": "Proverbs 13-17"
+      },
+      {
+        "reference": "Proverbs 18-22"
+      },
+      {
+        "reference": "Proverbs 23-27"
+      },
+      {
+        "reference": "Proverbs 28-31 · Ecclesiastes 1-2"
+      },
+      {
+        "reference": "Ecclesiastes 3-7"
+      },
+      {
+        "reference": "Ecclesiastes 8-12"
+      },
+      {
+        "reference": "Song of Solomon 1-5"
+      },
+      {
+        "reference": "Song of Solomon 6-8 · Isaiah 1-2"
+      },
+      {
+        "reference": "Isaiah 3-7"
+      },
+      {
+        "reference": "Isaiah 8-13"
+      },
+      {
+        "reference": "Isaiah 14-18"
+      },
+      {
+        "reference": "Isaiah 19-23"
+      },
+      {
+        "reference": "Isaiah 24-28"
+      },
+      {
+        "reference": "Isaiah 29-33"
+      },
+      {
+        "reference": "Isaiah 34-38"
+      },
+      {
+        "reference": "Isaiah 39-44"
+      },
+      {
+        "reference": "Isaiah 45-49"
+      },
+      {
+        "reference": "Isaiah 50-54"
+      },
+      {
+        "reference": "Isaiah 55-59"
+      },
+      {
+        "reference": "Isaiah 60-64"
+      },
+      {
+        "reference": "Isaiah 65-66 · Jeremiah 1-3"
+      },
+      {
+        "reference": "Jeremiah 4-9"
+      },
+      {
+        "reference": "Jeremiah 10-14"
+      },
+      {
+        "reference": "Jeremiah 15-19"
+      },
+      {
+        "reference": "Jeremiah 20-24"
+      },
+      {
+        "reference": "Jeremiah 25-29"
+      },
+      {
+        "reference": "Jeremiah 30-34"
+      },
+      {
+        "reference": "Jeremiah 35-39"
+      },
+      {
+        "reference": "Jeremiah 40-45"
+      },
+      {
+        "reference": "Jeremiah 46-50"
+      },
+      {
+        "reference": "Jeremiah 51-52 · Lamentations 1-3"
+      },
+      {
+        "reference": "Lamentations 4-5 · Ezekiel 1-3"
+      },
+      {
+        "reference": "Ezekiel 4-8"
+      },
+      {
+        "reference": "Ezekiel 9-13"
+      },
+      {
+        "reference": "Ezekiel 14-19"
+      },
+      {
+        "reference": "Ezekiel 20-24"
+      },
+      {
+        "reference": "Ezekiel 25-29"
+      },
+      {
+        "reference": "Ezekiel 30-34"
+      },
+      {
+        "reference": "Ezekiel 35-39"
+      },
+      {
+        "reference": "Ezekiel 40-44"
+      },
+      {
+        "reference": "Ezekiel 45-48 · Daniel 1-2"
+      },
+      {
+        "reference": "Daniel 3-7"
+      },
+      {
+        "reference": "Daniel 8-12"
+      },
+      {
+        "reference": "Hosea 1-5"
+      },
+      {
+        "reference": "Hosea 6-10"
+      },
+      {
+        "reference": "Hosea 11-14 · Joel 1"
+      },
+      {
+        "reference": "Joel 2-3 · Amos 1-4"
+      },
+      {
+        "reference": "Amos 5-9"
+      },
+      {
+        "reference": "Obadiah 1 · Jonah 1-4"
+      },
+      {
+        "reference": "Micah 1-5"
+      },
+      {
+        "reference": "Micah 6-7 · Nahum 1-3"
+      },
+      {
+        "reference": "Habakkuk 1-3 · Zephaniah 1-2"
+      },
+      {
+        "reference": "Zephaniah 3 · Haggai 1-2 · Zechariah 1-3"
+      },
+      {
+        "reference": "Zechariah 4-8"
+      },
+      {
+        "reference": "Zechariah 9-13"
+      },
+      {
+        "reference": "Zechariah 14 · Malachi 1-4"
+      }
+    ]
+  },
+  {
+    "id": "nt-90",
+    "title": "The New Testament in 90 days",
+    "description": "Matthew through Revelation in three months. About three chapters a day.",
+    "category": "The whole Bible",
+    "days": [
+      {
+        "reference": "Matthew 1-3"
+      },
+      {
+        "reference": "Matthew 4-6"
+      },
+      {
+        "reference": "Matthew 7-9"
+      },
+      {
+        "reference": "Matthew 10-12"
+      },
+      {
+        "reference": "Matthew 13-14"
+      },
+      {
+        "reference": "Matthew 15-17"
+      },
+      {
+        "reference": "Matthew 18-20"
+      },
+      {
+        "reference": "Matthew 21-23"
+      },
+      {
+        "reference": "Matthew 24-26"
+      },
+      {
+        "reference": "Matthew 27-28 · Mark 1"
+      },
+      {
+        "reference": "Mark 2-4"
+      },
+      {
+        "reference": "Mark 5-7"
+      },
+      {
+        "reference": "Mark 8-10"
+      },
+      {
+        "reference": "Mark 11-12"
+      },
+      {
+        "reference": "Mark 13-15"
+      },
+      {
+        "reference": "Mark 16 · Luke 1-2"
+      },
+      {
+        "reference": "Luke 3-5"
+      },
+      {
+        "reference": "Luke 6-8"
+      },
+      {
+        "reference": "Luke 9-11"
+      },
+      {
+        "reference": "Luke 12-14"
+      },
+      {
+        "reference": "Luke 15-17"
+      },
+      {
+        "reference": "Luke 18-20"
+      },
+      {
+        "reference": "Luke 21-22"
+      },
+      {
+        "reference": "Luke 23-24 · John 1"
+      },
+      {
+        "reference": "John 2-4"
+      },
+      {
+        "reference": "John 5-7"
+      },
+      {
+        "reference": "John 8-10"
+      },
+      {
+        "reference": "John 11-13"
+      },
+      {
+        "reference": "John 14-16"
+      },
+      {
+        "reference": "John 17-19"
+      },
+      {
+        "reference": "John 20-21 · Acts 1"
+      },
+      {
+        "reference": "Acts 2-3"
+      },
+      {
+        "reference": "Acts 4-6"
+      },
+      {
+        "reference": "Acts 7-9"
+      },
+      {
+        "reference": "Acts 10-12"
+      },
+      {
+        "reference": "Acts 13-15"
+      },
+      {
+        "reference": "Acts 16-18"
+      },
+      {
+        "reference": "Acts 19-21"
+      },
+      {
+        "reference": "Acts 22-24"
+      },
+      {
+        "reference": "Acts 25-27"
+      },
+      {
+        "reference": "Acts 28 · Romans 1"
+      },
+      {
+        "reference": "Romans 2-4"
+      },
+      {
+        "reference": "Romans 5-7"
+      },
+      {
+        "reference": "Romans 8-10"
+      },
+      {
+        "reference": "Romans 11-13"
+      },
+      {
+        "reference": "Romans 14-16"
+      },
+      {
+        "reference": "1 Corinthians 1-3"
+      },
+      {
+        "reference": "1 Corinthians 4-6"
+      },
+      {
+        "reference": "1 Corinthians 7-9"
+      },
+      {
+        "reference": "1 Corinthians 10-11"
+      },
+      {
+        "reference": "1 Corinthians 12-14"
+      },
+      {
+        "reference": "1 Corinthians 15-16 · 2 Corinthians 1"
+      },
+      {
+        "reference": "2 Corinthians 2-4"
+      },
+      {
+        "reference": "2 Corinthians 5-7"
+      },
+      {
+        "reference": "2 Corinthians 8-10"
+      },
+      {
+        "reference": "2 Corinthians 11-13"
+      },
+      {
+        "reference": "Galatians 1-3"
+      },
+      {
+        "reference": "Galatians 4-6"
+      },
+      {
+        "reference": "Ephesians 1-2"
+      },
+      {
+        "reference": "Ephesians 3-5"
+      },
+      {
+        "reference": "Ephesians 6 · Philippians 1-2"
+      },
+      {
+        "reference": "Philippians 3-4 · Colossians 1"
+      },
+      {
+        "reference": "Colossians 2-4"
+      },
+      {
+        "reference": "1 Thessalonians 1-3"
+      },
+      {
+        "reference": "1 Thessalonians 4-5 · 2 Thessalonians 1"
+      },
+      {
+        "reference": "2 Thessalonians 2-3 · 1 Timothy 1"
+      },
+      {
+        "reference": "1 Timothy 2-4"
+      },
+      {
+        "reference": "1 Timothy 5-6"
+      },
+      {
+        "reference": "2 Timothy 1-3"
+      },
+      {
+        "reference": "2 Timothy 4 · Titus 1-2"
+      },
+      {
+        "reference": "Titus 3 · Philemon 1 · Hebrews 1"
+      },
+      {
+        "reference": "Hebrews 2-4"
+      },
+      {
+        "reference": "Hebrews 5-7"
+      },
+      {
+        "reference": "Hebrews 8-10"
+      },
+      {
+        "reference": "Hebrews 11-13"
+      },
+      {
+        "reference": "James 1-3"
+      },
+      {
+        "reference": "James 4-5"
+      },
+      {
+        "reference": "1 Peter 1-3"
+      },
+      {
+        "reference": "1 Peter 4-5 · 2 Peter 1"
+      },
+      {
+        "reference": "2 Peter 2-3 · 1 John 1"
+      },
+      {
+        "reference": "1 John 2-4"
+      },
+      {
+        "reference": "1 John 5 · 2 John 1 · 3 John 1"
+      },
+      {
+        "reference": "Jude 1 · Revelation 1-2"
+      },
+      {
+        "reference": "Revelation 3-5"
+      },
+      {
+        "reference": "Revelation 6-8"
+      },
+      {
+        "reference": "Revelation 9-10"
+      },
+      {
+        "reference": "Revelation 11-13"
+      },
+      {
+        "reference": "Revelation 14-16"
+      },
+      {
+        "reference": "Revelation 17-19"
+      },
+      {
+        "reference": "Revelation 20-22"
+      }
+    ]
+  },
+  {
+    "id": "nt-30",
+    "title": "The New Testament in 30 days",
+    "description": "The whole New Testament in a month. Nine chapters a day — a serious commitment, and a very different view of the shape of it.",
+    "category": "The whole Bible",
+    "days": [
+      {
+        "reference": "Matthew 1-9"
+      },
+      {
+        "reference": "Matthew 10-17"
+      },
+      {
+        "reference": "Matthew 18-26"
+      },
+      {
+        "reference": "Matthew 27-28 · Mark 1-7"
+      },
+      {
+        "reference": "Mark 8-15"
+      },
+      {
+        "reference": "Mark 16 · Luke 1-8"
+      },
+      {
+        "reference": "Luke 9-17"
+      },
+      {
+        "reference": "Luke 18-24 · John 1"
+      },
+      {
+        "reference": "John 2-10"
+      },
+      {
+        "reference": "John 11-19"
+      },
+      {
+        "reference": "John 20-21 · Acts 1-6"
+      },
+      {
+        "reference": "Acts 7-15"
+      },
+      {
+        "reference": "Acts 16-24"
+      },
+      {
+        "reference": "Acts 25-28 · Romans 1-4"
+      },
+      {
+        "reference": "Romans 5-13"
+      },
+      {
+        "reference": "Romans 14-16 · 1 Corinthians 1-6"
+      },
+      {
+        "reference": "1 Corinthians 7-14"
+      },
+      {
+        "reference": "1 Corinthians 15-16 · 2 Corinthians 1-7"
+      },
+      {
+        "reference": "2 Corinthians 8-13 · Galatians 1-3"
+      },
+      {
+        "reference": "Galatians 4-6 · Ephesians 1-5"
+      },
+      {
+        "reference": "Ephesians 6 · Philippians 1-4 · Colossians 1-4"
+      },
+      {
+        "reference": "1 Thessalonians 1-5 · 2 Thessalonians 1-3 · 1 Timothy 1"
+      },
+      {
+        "reference": "1 Timothy 2-6 · 2 Timothy 1-3"
+      },
+      {
+        "reference": "2 Timothy 4 · Titus 1-3 · Philemon 1 · Hebrews 1-4"
+      },
+      {
+        "reference": "Hebrews 5-13"
+      },
+      {
+        "reference": "James 1-5 · 1 Peter 1-3"
+      },
+      {
+        "reference": "1 Peter 4-5 · 2 Peter 1-3 · 1 John 1-4"
+      },
+      {
+        "reference": "1 John 5 · 2 John 1 · 3 John 1 · Jude 1 · Revelation 1-5"
+      },
+      {
+        "reference": "Revelation 6-13"
+      },
+      {
+        "reference": "Revelation 14-22"
+      }
+    ]
+  },
+  {
+    "id": "gospels-40",
+    "title": "The four gospels in 40 days",
+    "description": "Matthew, Mark, Luke and John — the same life told four ways. Around two chapters a day.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Matthew 1-2"
+      },
+      {
+        "reference": "Matthew 3-4"
+      },
+      {
+        "reference": "Matthew 5-7"
+      },
+      {
+        "reference": "Matthew 8-9"
+      },
+      {
+        "reference": "Matthew 10-11"
+      },
+      {
+        "reference": "Matthew 12-13"
+      },
+      {
+        "reference": "Matthew 14-16"
+      },
+      {
+        "reference": "Matthew 17-18"
+      },
+      {
+        "reference": "Matthew 19-20"
+      },
+      {
+        "reference": "Matthew 21-22"
+      },
+      {
+        "reference": "Matthew 23-24"
+      },
+      {
+        "reference": "Matthew 25-27"
+      },
+      {
+        "reference": "Matthew 28 · Mark 1"
+      },
+      {
+        "reference": "Mark 2-3"
+      },
+      {
+        "reference": "Mark 4-5"
+      },
+      {
+        "reference": "Mark 6-8"
+      },
+      {
+        "reference": "Mark 9-10"
+      },
+      {
+        "reference": "Mark 11-12"
+      },
+      {
+        "reference": "Mark 13-14"
+      },
+      {
+        "reference": "Mark 15-16 · Luke 1"
+      },
+      {
+        "reference": "Luke 2-3"
+      },
+      {
+        "reference": "Luke 4-5"
+      },
+      {
+        "reference": "Luke 6-7"
+      },
+      {
+        "reference": "Luke 8-9"
+      },
+      {
+        "reference": "Luke 10-12"
+      },
+      {
+        "reference": "Luke 13-14"
+      },
+      {
+        "reference": "Luke 15-16"
+      },
+      {
+        "reference": "Luke 17-18"
+      },
+      {
+        "reference": "Luke 19-21"
+      },
+      {
+        "reference": "Luke 22-23"
+      },
+      {
+        "reference": "Luke 24 · John 1"
+      },
+      {
+        "reference": "John 2-3"
+      },
+      {
+        "reference": "John 4-5"
+      },
+      {
+        "reference": "John 6-8"
+      },
+      {
+        "reference": "John 9-10"
+      },
+      {
+        "reference": "John 11-12"
+      },
+      {
+        "reference": "John 13-14"
+      },
+      {
+        "reference": "John 15-17"
+      },
+      {
+        "reference": "John 18-19"
+      },
+      {
+        "reference": "John 20-21"
+      }
+    ]
+  },
+  {
+    "id": "luke-24",
+    "title": "Luke in 24 days",
+    "description": "A chapter a day through the fullest account of Jesus’ life, written for someone who wanted the story checked and ordered.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Luke 1"
+      },
+      {
+        "reference": "Luke 2"
+      },
+      {
+        "reference": "Luke 3"
+      },
+      {
+        "reference": "Luke 4"
+      },
+      {
+        "reference": "Luke 5"
+      },
+      {
+        "reference": "Luke 6"
+      },
+      {
+        "reference": "Luke 7"
+      },
+      {
+        "reference": "Luke 8"
+      },
+      {
+        "reference": "Luke 9"
+      },
+      {
+        "reference": "Luke 10"
+      },
+      {
+        "reference": "Luke 11"
+      },
+      {
+        "reference": "Luke 12"
+      },
+      {
+        "reference": "Luke 13"
+      },
+      {
+        "reference": "Luke 14"
+      },
+      {
+        "reference": "Luke 15"
+      },
+      {
+        "reference": "Luke 16"
+      },
+      {
+        "reference": "Luke 17"
+      },
+      {
+        "reference": "Luke 18"
+      },
+      {
+        "reference": "Luke 19"
+      },
+      {
+        "reference": "Luke 20"
+      },
+      {
+        "reference": "Luke 21"
+      },
+      {
+        "reference": "Luke 22"
+      },
+      {
+        "reference": "Luke 23"
+      },
+      {
+        "reference": "Luke 24"
+      }
+    ]
+  },
+  {
+    "id": "matthew-28",
+    "title": "Matthew in 28 days",
+    "description": "Four weeks, a chapter a day, through the gospel that ties everything back to what was promised.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Matthew 1"
+      },
+      {
+        "reference": "Matthew 2"
+      },
+      {
+        "reference": "Matthew 3"
+      },
+      {
+        "reference": "Matthew 4"
+      },
+      {
+        "reference": "Matthew 5"
+      },
+      {
+        "reference": "Matthew 6"
+      },
+      {
+        "reference": "Matthew 7"
+      },
+      {
+        "reference": "Matthew 8"
+      },
+      {
+        "reference": "Matthew 9"
+      },
+      {
+        "reference": "Matthew 10"
+      },
+      {
+        "reference": "Matthew 11"
+      },
+      {
+        "reference": "Matthew 12"
+      },
+      {
+        "reference": "Matthew 13"
+      },
+      {
+        "reference": "Matthew 14"
+      },
+      {
+        "reference": "Matthew 15"
+      },
+      {
+        "reference": "Matthew 16"
+      },
+      {
+        "reference": "Matthew 17"
+      },
+      {
+        "reference": "Matthew 18"
+      },
+      {
+        "reference": "Matthew 19"
+      },
+      {
+        "reference": "Matthew 20"
+      },
+      {
+        "reference": "Matthew 21"
+      },
+      {
+        "reference": "Matthew 22"
+      },
+      {
+        "reference": "Matthew 23"
+      },
+      {
+        "reference": "Matthew 24"
+      },
+      {
+        "reference": "Matthew 25"
+      },
+      {
+        "reference": "Matthew 26"
+      },
+      {
+        "reference": "Matthew 27"
+      },
+      {
+        "reference": "Matthew 28"
+      }
+    ]
+  },
+  {
+    "id": "acts-28",
+    "title": "Acts in 28 days",
+    "description": "How a frightened handful in a locked room became a church across an empire. A chapter a day.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Acts 1"
+      },
+      {
+        "reference": "Acts 2"
+      },
+      {
+        "reference": "Acts 3"
+      },
+      {
+        "reference": "Acts 4"
+      },
+      {
+        "reference": "Acts 5"
+      },
+      {
+        "reference": "Acts 6"
+      },
+      {
+        "reference": "Acts 7"
+      },
+      {
+        "reference": "Acts 8"
+      },
+      {
+        "reference": "Acts 9"
+      },
+      {
+        "reference": "Acts 10"
+      },
+      {
+        "reference": "Acts 11"
+      },
+      {
+        "reference": "Acts 12"
+      },
+      {
+        "reference": "Acts 13"
+      },
+      {
+        "reference": "Acts 14"
+      },
+      {
+        "reference": "Acts 15"
+      },
+      {
+        "reference": "Acts 16"
+      },
+      {
+        "reference": "Acts 17"
+      },
+      {
+        "reference": "Acts 18"
+      },
+      {
+        "reference": "Acts 19"
+      },
+      {
+        "reference": "Acts 20"
+      },
+      {
+        "reference": "Acts 21"
+      },
+      {
+        "reference": "Acts 22"
+      },
+      {
+        "reference": "Acts 23"
+      },
+      {
+        "reference": "Acts 24"
+      },
+      {
+        "reference": "Acts 25"
+      },
+      {
+        "reference": "Acts 26"
+      },
+      {
+        "reference": "Acts 27"
+      },
+      {
+        "reference": "Acts 28"
+      }
+    ]
+  },
+  {
+    "id": "romans-16",
+    "title": "Romans in 16 days",
+    "description": "Paul’s longest and most careful argument, a chapter a day. Slow reading rewards this one.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Romans 1"
+      },
+      {
+        "reference": "Romans 2"
+      },
+      {
+        "reference": "Romans 3"
+      },
+      {
+        "reference": "Romans 4"
+      },
+      {
+        "reference": "Romans 5"
+      },
+      {
+        "reference": "Romans 6"
+      },
+      {
+        "reference": "Romans 7"
+      },
+      {
+        "reference": "Romans 8"
+      },
+      {
+        "reference": "Romans 9"
+      },
+      {
+        "reference": "Romans 10"
+      },
+      {
+        "reference": "Romans 11"
+      },
+      {
+        "reference": "Romans 12"
+      },
+      {
+        "reference": "Romans 13"
+      },
+      {
+        "reference": "Romans 14"
+      },
+      {
+        "reference": "Romans 15"
+      },
+      {
+        "reference": "Romans 16"
+      }
+    ]
+  },
+  {
+    "id": "genesis-50",
+    "title": "Genesis in 50 days",
+    "description": "Creation, the flood, and one family followed for four generations. A chapter a day.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Genesis 1"
+      },
+      {
+        "reference": "Genesis 2"
+      },
+      {
+        "reference": "Genesis 3"
+      },
+      {
+        "reference": "Genesis 4"
+      },
+      {
+        "reference": "Genesis 5"
+      },
+      {
+        "reference": "Genesis 6"
+      },
+      {
+        "reference": "Genesis 7"
+      },
+      {
+        "reference": "Genesis 8"
+      },
+      {
+        "reference": "Genesis 9"
+      },
+      {
+        "reference": "Genesis 10"
+      },
+      {
+        "reference": "Genesis 11"
+      },
+      {
+        "reference": "Genesis 12"
+      },
+      {
+        "reference": "Genesis 13"
+      },
+      {
+        "reference": "Genesis 14"
+      },
+      {
+        "reference": "Genesis 15"
+      },
+      {
+        "reference": "Genesis 16"
+      },
+      {
+        "reference": "Genesis 17"
+      },
+      {
+        "reference": "Genesis 18"
+      },
+      {
+        "reference": "Genesis 19"
+      },
+      {
+        "reference": "Genesis 20"
+      },
+      {
+        "reference": "Genesis 21"
+      },
+      {
+        "reference": "Genesis 22"
+      },
+      {
+        "reference": "Genesis 23"
+      },
+      {
+        "reference": "Genesis 24"
+      },
+      {
+        "reference": "Genesis 25"
+      },
+      {
+        "reference": "Genesis 26"
+      },
+      {
+        "reference": "Genesis 27"
+      },
+      {
+        "reference": "Genesis 28"
+      },
+      {
+        "reference": "Genesis 29"
+      },
+      {
+        "reference": "Genesis 30"
+      },
+      {
+        "reference": "Genesis 31"
+      },
+      {
+        "reference": "Genesis 32"
+      },
+      {
+        "reference": "Genesis 33"
+      },
+      {
+        "reference": "Genesis 34"
+      },
+      {
+        "reference": "Genesis 35"
+      },
+      {
+        "reference": "Genesis 36"
+      },
+      {
+        "reference": "Genesis 37"
+      },
+      {
+        "reference": "Genesis 38"
+      },
+      {
+        "reference": "Genesis 39"
+      },
+      {
+        "reference": "Genesis 40"
+      },
+      {
+        "reference": "Genesis 41"
+      },
+      {
+        "reference": "Genesis 42"
+      },
+      {
+        "reference": "Genesis 43"
+      },
+      {
+        "reference": "Genesis 44"
+      },
+      {
+        "reference": "Genesis 45"
+      },
+      {
+        "reference": "Genesis 46"
+      },
+      {
+        "reference": "Genesis 47"
+      },
+      {
+        "reference": "Genesis 48"
+      },
+      {
+        "reference": "Genesis 49"
+      },
+      {
+        "reference": "Genesis 50"
+      }
+    ]
+  },
+  {
+    "id": "psalms-60",
+    "title": "The Psalms in 60 days",
+    "description": "All 150, two or three a day. Israel’s prayers for every mood there is — including the ones people avoid praying.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Psalms 1-3"
+      },
+      {
+        "reference": "Psalms 4-5"
+      },
+      {
+        "reference": "Psalms 6-8"
+      },
+      {
+        "reference": "Psalms 9-10"
+      },
+      {
+        "reference": "Psalms 11-13"
+      },
+      {
+        "reference": "Psalms 14-15"
+      },
+      {
+        "reference": "Psalms 16-18"
+      },
+      {
+        "reference": "Psalms 19-20"
+      },
+      {
+        "reference": "Psalms 21-23"
+      },
+      {
+        "reference": "Psalms 24-25"
+      },
+      {
+        "reference": "Psalms 26-28"
+      },
+      {
+        "reference": "Psalms 29-30"
+      },
+      {
+        "reference": "Psalms 31-33"
+      },
+      {
+        "reference": "Psalms 34-35"
+      },
+      {
+        "reference": "Psalms 36-38"
+      },
+      {
+        "reference": "Psalms 39-40"
+      },
+      {
+        "reference": "Psalms 41-43"
+      },
+      {
+        "reference": "Psalms 44-45"
+      },
+      {
+        "reference": "Psalms 46-48"
+      },
+      {
+        "reference": "Psalms 49-50"
+      },
+      {
+        "reference": "Psalms 51-53"
+      },
+      {
+        "reference": "Psalms 54-55"
+      },
+      {
+        "reference": "Psalms 56-58"
+      },
+      {
+        "reference": "Psalms 59-60"
+      },
+      {
+        "reference": "Psalms 61-63"
+      },
+      {
+        "reference": "Psalms 64-65"
+      },
+      {
+        "reference": "Psalms 66-68"
+      },
+      {
+        "reference": "Psalms 69-70"
+      },
+      {
+        "reference": "Psalms 71-73"
+      },
+      {
+        "reference": "Psalms 74-75"
+      },
+      {
+        "reference": "Psalms 76-78"
+      },
+      {
+        "reference": "Psalms 79-80"
+      },
+      {
+        "reference": "Psalms 81-83"
+      },
+      {
+        "reference": "Psalms 84-85"
+      },
+      {
+        "reference": "Psalms 86-88"
+      },
+      {
+        "reference": "Psalms 89-90"
+      },
+      {
+        "reference": "Psalms 91-93"
+      },
+      {
+        "reference": "Psalms 94-95"
+      },
+      {
+        "reference": "Psalms 96-98"
+      },
+      {
+        "reference": "Psalms 99-100"
+      },
+      {
+        "reference": "Psalms 101-103"
+      },
+      {
+        "reference": "Psalms 104-105"
+      },
+      {
+        "reference": "Psalms 106-108"
+      },
+      {
+        "reference": "Psalms 109-110"
+      },
+      {
+        "reference": "Psalms 111-113"
+      },
+      {
+        "reference": "Psalms 114-115"
+      },
+      {
+        "reference": "Psalms 116-118"
+      },
+      {
+        "reference": "Psalms 119-120"
+      },
+      {
+        "reference": "Psalms 121-123"
+      },
+      {
+        "reference": "Psalms 124-125"
+      },
+      {
+        "reference": "Psalms 126-128"
+      },
+      {
+        "reference": "Psalms 129-130"
+      },
+      {
+        "reference": "Psalms 131-133"
+      },
+      {
+        "reference": "Psalms 134-135"
+      },
+      {
+        "reference": "Psalms 136-138"
+      },
+      {
+        "reference": "Psalms 139-140"
+      },
+      {
+        "reference": "Psalms 141-143"
+      },
+      {
+        "reference": "Psalms 144-145"
+      },
+      {
+        "reference": "Psalms 146-148"
+      },
+      {
+        "reference": "Psalms 149-150"
+      }
+    ]
+  },
+  {
+    "id": "psalms-proverbs-60",
+    "title": "Psalms & Proverbs in 60 days",
+    "description": "The songbook and the wisdom of Israel, side by side. Short readings, good for a busy season.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Psalms 1-3"
+      },
+      {
+        "reference": "Psalms 4-6"
+      },
+      {
+        "reference": "Psalms 7-9"
+      },
+      {
+        "reference": "Psalms 10-12"
+      },
+      {
+        "reference": "Psalms 13-15"
+      },
+      {
+        "reference": "Psalms 16-18"
+      },
+      {
+        "reference": "Psalms 19-21"
+      },
+      {
+        "reference": "Psalms 22-24"
+      },
+      {
+        "reference": "Psalms 25-27"
+      },
+      {
+        "reference": "Psalms 28-30"
+      },
+      {
+        "reference": "Psalms 31-33"
+      },
+      {
+        "reference": "Psalms 34-36"
+      },
+      {
+        "reference": "Psalms 37-39"
+      },
+      {
+        "reference": "Psalms 40-42"
+      },
+      {
+        "reference": "Psalms 43-45"
+      },
+      {
+        "reference": "Psalms 46-48"
+      },
+      {
+        "reference": "Psalms 49-51"
+      },
+      {
+        "reference": "Psalms 52-54"
+      },
+      {
+        "reference": "Psalms 55-57"
+      },
+      {
+        "reference": "Psalms 58-60"
+      },
+      {
+        "reference": "Psalms 61-63"
+      },
+      {
+        "reference": "Psalms 64-66"
+      },
+      {
+        "reference": "Psalms 67-69"
+      },
+      {
+        "reference": "Psalms 70-72"
+      },
+      {
+        "reference": "Psalms 73-75"
+      },
+      {
+        "reference": "Psalms 76-78"
+      },
+      {
+        "reference": "Psalms 79-81"
+      },
+      {
+        "reference": "Psalms 82-84"
+      },
+      {
+        "reference": "Psalms 85-87"
+      },
+      {
+        "reference": "Psalms 88-91"
+      },
+      {
+        "reference": "Psalms 92-94"
+      },
+      {
+        "reference": "Psalms 95-97"
+      },
+      {
+        "reference": "Psalms 98-100"
+      },
+      {
+        "reference": "Psalms 101-103"
+      },
+      {
+        "reference": "Psalms 104-106"
+      },
+      {
+        "reference": "Psalms 107-109"
+      },
+      {
+        "reference": "Psalms 110-112"
+      },
+      {
+        "reference": "Psalms 113-115"
+      },
+      {
+        "reference": "Psalms 116-118"
+      },
+      {
+        "reference": "Psalms 119-121"
+      },
+      {
+        "reference": "Psalms 122-124"
+      },
+      {
+        "reference": "Psalms 125-127"
+      },
+      {
+        "reference": "Psalms 128-130"
+      },
+      {
+        "reference": "Psalms 131-133"
+      },
+      {
+        "reference": "Psalms 134-136"
+      },
+      {
+        "reference": "Psalms 137-139"
+      },
+      {
+        "reference": "Psalms 140-142"
+      },
+      {
+        "reference": "Psalms 143-145"
+      },
+      {
+        "reference": "Psalms 146-148"
+      },
+      {
+        "reference": "Psalms 149-150 · Proverbs 1"
+      },
+      {
+        "reference": "Proverbs 2-4"
+      },
+      {
+        "reference": "Proverbs 5-7"
+      },
+      {
+        "reference": "Proverbs 8-10"
+      },
+      {
+        "reference": "Proverbs 11-13"
+      },
+      {
+        "reference": "Proverbs 14-16"
+      },
+      {
+        "reference": "Proverbs 17-19"
+      },
+      {
+        "reference": "Proverbs 20-22"
+      },
+      {
+        "reference": "Proverbs 23-25"
+      },
+      {
+        "reference": "Proverbs 26-28"
+      },
+      {
+        "reference": "Proverbs 29-31"
+      }
+    ]
+  },
+  {
+    "id": "torah-60",
+    "title": "The first five books in 60 days",
+    "description": "Genesis through Deuteronomy — the foundation everything after it refers back to. Around three chapters a day.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Genesis 1-3"
+      },
+      {
+        "reference": "Genesis 4-6"
+      },
+      {
+        "reference": "Genesis 7-9"
+      },
+      {
+        "reference": "Genesis 10-12"
+      },
+      {
+        "reference": "Genesis 13-16"
+      },
+      {
+        "reference": "Genesis 17-19"
+      },
+      {
+        "reference": "Genesis 20-22"
+      },
+      {
+        "reference": "Genesis 23-25"
+      },
+      {
+        "reference": "Genesis 26-28"
+      },
+      {
+        "reference": "Genesis 29-31"
+      },
+      {
+        "reference": "Genesis 32-34"
+      },
+      {
+        "reference": "Genesis 35-37"
+      },
+      {
+        "reference": "Genesis 38-41"
+      },
+      {
+        "reference": "Genesis 42-44"
+      },
+      {
+        "reference": "Genesis 45-47"
+      },
+      {
+        "reference": "Genesis 48-50"
+      },
+      {
+        "reference": "Exodus 1-3"
+      },
+      {
+        "reference": "Exodus 4-6"
+      },
+      {
+        "reference": "Exodus 7-9"
+      },
+      {
+        "reference": "Exodus 10-12"
+      },
+      {
+        "reference": "Exodus 13-15"
+      },
+      {
+        "reference": "Exodus 16-19"
+      },
+      {
+        "reference": "Exodus 20-22"
+      },
+      {
+        "reference": "Exodus 23-25"
+      },
+      {
+        "reference": "Exodus 26-28"
+      },
+      {
+        "reference": "Exodus 29-31"
+      },
+      {
+        "reference": "Exodus 32-34"
+      },
+      {
+        "reference": "Exodus 35-37"
+      },
+      {
+        "reference": "Exodus 38-40"
+      },
+      {
+        "reference": "Leviticus 1-4"
+      },
+      {
+        "reference": "Leviticus 5-7"
+      },
+      {
+        "reference": "Leviticus 8-10"
+      },
+      {
+        "reference": "Leviticus 11-13"
+      },
+      {
+        "reference": "Leviticus 14-16"
+      },
+      {
+        "reference": "Leviticus 17-19"
+      },
+      {
+        "reference": "Leviticus 20-22"
+      },
+      {
+        "reference": "Leviticus 23-25"
+      },
+      {
+        "reference": "Leviticus 26-27 · Numbers 1"
+      },
+      {
+        "reference": "Numbers 2-5"
+      },
+      {
+        "reference": "Numbers 6-8"
+      },
+      {
+        "reference": "Numbers 9-11"
+      },
+      {
+        "reference": "Numbers 12-14"
+      },
+      {
+        "reference": "Numbers 15-17"
+      },
+      {
+        "reference": "Numbers 18-20"
+      },
+      {
+        "reference": "Numbers 21-23"
+      },
+      {
+        "reference": "Numbers 24-26"
+      },
+      {
+        "reference": "Numbers 27-29"
+      },
+      {
+        "reference": "Numbers 30-33"
+      },
+      {
+        "reference": "Numbers 34-36"
+      },
+      {
+        "reference": "Deuteronomy 1-3"
+      },
+      {
+        "reference": "Deuteronomy 4-6"
+      },
+      {
+        "reference": "Deuteronomy 7-9"
+      },
+      {
+        "reference": "Deuteronomy 10-12"
+      },
+      {
+        "reference": "Deuteronomy 13-15"
+      },
+      {
+        "reference": "Deuteronomy 16-18"
+      },
+      {
+        "reference": "Deuteronomy 19-22"
+      },
+      {
+        "reference": "Deuteronomy 23-25"
+      },
+      {
+        "reference": "Deuteronomy 26-28"
+      },
+      {
+        "reference": "Deuteronomy 29-31"
+      },
+      {
+        "reference": "Deuteronomy 32-34"
+      }
+    ]
+  },
+  {
+    "id": "paul-letters-45",
+    "title": "Paul’s letters in 45 days",
+    "description": "Romans through Philemon — thirteen letters to real churches with real problems, in six and a half weeks.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Romans 1-2"
+      },
+      {
+        "reference": "Romans 3-4"
+      },
+      {
+        "reference": "Romans 5-6"
+      },
+      {
+        "reference": "Romans 7-8"
+      },
+      {
+        "reference": "Romans 9-10"
+      },
+      {
+        "reference": "Romans 11-12"
+      },
+      {
+        "reference": "Romans 13-14"
+      },
+      {
+        "reference": "Romans 15"
+      },
+      {
+        "reference": "Romans 16 · 1 Corinthians 1"
+      },
+      {
+        "reference": "1 Corinthians 2-3"
+      },
+      {
+        "reference": "1 Corinthians 4-5"
+      },
+      {
+        "reference": "1 Corinthians 6-7"
+      },
+      {
+        "reference": "1 Corinthians 8-9"
+      },
+      {
+        "reference": "1 Corinthians 10-11"
+      },
+      {
+        "reference": "1 Corinthians 12-13"
+      },
+      {
+        "reference": "1 Corinthians 14-15"
+      },
+      {
+        "reference": "1 Corinthians 16 · 2 Corinthians 1"
+      },
+      {
+        "reference": "2 Corinthians 2-3"
+      },
+      {
+        "reference": "2 Corinthians 4-5"
+      },
+      {
+        "reference": "2 Corinthians 6-7"
+      },
+      {
+        "reference": "2 Corinthians 8-9"
+      },
+      {
+        "reference": "2 Corinthians 10-11"
+      },
+      {
+        "reference": "2 Corinthians 12"
+      },
+      {
+        "reference": "2 Corinthians 13 · Galatians 1"
+      },
+      {
+        "reference": "Galatians 2-3"
+      },
+      {
+        "reference": "Galatians 4-5"
+      },
+      {
+        "reference": "Galatians 6 · Ephesians 1"
+      },
+      {
+        "reference": "Ephesians 2-3"
+      },
+      {
+        "reference": "Ephesians 4-5"
+      },
+      {
+        "reference": "Ephesians 6 · Philippians 1"
+      },
+      {
+        "reference": "Philippians 2-3"
+      },
+      {
+        "reference": "Philippians 4 · Colossians 1"
+      },
+      {
+        "reference": "Colossians 2-3"
+      },
+      {
+        "reference": "Colossians 4 · 1 Thessalonians 1"
+      },
+      {
+        "reference": "1 Thessalonians 2-3"
+      },
+      {
+        "reference": "1 Thessalonians 4-5"
+      },
+      {
+        "reference": "2 Thessalonians 1-2"
+      },
+      {
+        "reference": "2 Thessalonians 3"
+      },
+      {
+        "reference": "1 Timothy 1-2"
+      },
+      {
+        "reference": "1 Timothy 3-4"
+      },
+      {
+        "reference": "1 Timothy 5-6"
+      },
+      {
+        "reference": "2 Timothy 1-2"
+      },
+      {
+        "reference": "2 Timothy 3-4"
+      },
+      {
+        "reference": "Titus 1-2"
+      },
+      {
+        "reference": "Titus 3 · Philemon 1"
+      }
+    ]
+  },
+  {
+    "id": "minor-prophets-36",
+    "title": "The twelve prophets in 36 days",
+    "description": "Hosea to Malachi. Short books, mostly skipped, and some of the fiercest writing about justice and mercy anywhere in the Bible.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Hosea 1-2"
+      },
+      {
+        "reference": "Hosea 3-4"
+      },
+      {
+        "reference": "Hosea 5-6"
+      },
+      {
+        "reference": "Hosea 7"
+      },
+      {
+        "reference": "Hosea 8-9"
+      },
+      {
+        "reference": "Hosea 10-11"
+      },
+      {
+        "reference": "Hosea 12-13"
+      },
+      {
+        "reference": "Hosea 14 · Joel 1"
+      },
+      {
+        "reference": "Joel 2-3"
+      },
+      {
+        "reference": "Amos 1-2"
+      },
+      {
+        "reference": "Amos 3"
+      },
+      {
+        "reference": "Amos 4-5"
+      },
+      {
+        "reference": "Amos 6-7"
+      },
+      {
+        "reference": "Amos 8-9"
+      },
+      {
+        "reference": "Obadiah 1 · Jonah 1"
+      },
+      {
+        "reference": "Jonah 2-3"
+      },
+      {
+        "reference": "Jonah 4 · Micah 1"
+      },
+      {
+        "reference": "Micah 2-3"
+      },
+      {
+        "reference": "Micah 4"
+      },
+      {
+        "reference": "Micah 5-6"
+      },
+      {
+        "reference": "Micah 7 · Nahum 1"
+      },
+      {
+        "reference": "Nahum 2-3"
+      },
+      {
+        "reference": "Habakkuk 1-2"
+      },
+      {
+        "reference": "Habakkuk 3 · Zephaniah 1"
+      },
+      {
+        "reference": "Zephaniah 2-3"
+      },
+      {
+        "reference": "Haggai 1"
+      },
+      {
+        "reference": "Haggai 2 · Zechariah 1"
+      },
+      {
+        "reference": "Zechariah 2-3"
+      },
+      {
+        "reference": "Zechariah 4-5"
+      },
+      {
+        "reference": "Zechariah 6-7"
+      },
+      {
+        "reference": "Zechariah 8-9"
+      },
+      {
+        "reference": "Zechariah 10-11"
+      },
+      {
+        "reference": "Zechariah 12"
+      },
+      {
+        "reference": "Zechariah 13-14"
+      },
+      {
+        "reference": "Malachi 1-2"
+      },
+      {
+        "reference": "Malachi 3-4"
+      }
+    ]
+  },
+  {
+    "id": "wisdom-40",
+    "title": "The wisdom books in 40 days",
+    "description": "Job, Ecclesiastes and Song of Solomon — suffering, meaning, and love. The three books that argue with easy answers.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Job 1-2"
+      },
+      {
+        "reference": "Job 3"
+      },
+      {
+        "reference": "Job 4-5"
+      },
+      {
+        "reference": "Job 6"
+      },
+      {
+        "reference": "Job 7-8"
+      },
+      {
+        "reference": "Job 9"
+      },
+      {
+        "reference": "Job 10-11"
+      },
+      {
+        "reference": "Job 12"
+      },
+      {
+        "reference": "Job 13-14"
+      },
+      {
+        "reference": "Job 15-16"
+      },
+      {
+        "reference": "Job 17"
+      },
+      {
+        "reference": "Job 18-19"
+      },
+      {
+        "reference": "Job 20"
+      },
+      {
+        "reference": "Job 21-22"
+      },
+      {
+        "reference": "Job 23"
+      },
+      {
+        "reference": "Job 24-25"
+      },
+      {
+        "reference": "Job 26"
+      },
+      {
+        "reference": "Job 27-28"
+      },
+      {
+        "reference": "Job 29"
+      },
+      {
+        "reference": "Job 30-31"
+      },
+      {
+        "reference": "Job 32-33"
+      },
+      {
+        "reference": "Job 34"
+      },
+      {
+        "reference": "Job 35-36"
+      },
+      {
+        "reference": "Job 37"
+      },
+      {
+        "reference": "Job 38-39"
+      },
+      {
+        "reference": "Job 40"
+      },
+      {
+        "reference": "Job 41-42"
+      },
+      {
+        "reference": "Ecclesiastes 1"
+      },
+      {
+        "reference": "Ecclesiastes 2-3"
+      },
+      {
+        "reference": "Ecclesiastes 4-5"
+      },
+      {
+        "reference": "Ecclesiastes 6"
+      },
+      {
+        "reference": "Ecclesiastes 7-8"
+      },
+      {
+        "reference": "Ecclesiastes 9"
+      },
+      {
+        "reference": "Ecclesiastes 10-11"
+      },
+      {
+        "reference": "Ecclesiastes 12"
+      },
+      {
+        "reference": "Song of Solomon 1-2"
+      },
+      {
+        "reference": "Song of Solomon 3"
+      },
+      {
+        "reference": "Song of Solomon 4-5"
+      },
+      {
+        "reference": "Song of Solomon 6"
+      },
+      {
+        "reference": "Song of Solomon 7-8"
+      }
+    ]
+  },
+  {
+    "id": "revelation-22",
+    "title": "Revelation in 22 days",
+    "description": "A chapter a day through the last book — written to churches under pressure, not as a puzzle to solve.",
+    "category": "Books of the Bible",
+    "days": [
+      {
+        "reference": "Revelation 1"
+      },
+      {
+        "reference": "Revelation 2"
+      },
+      {
+        "reference": "Revelation 3"
+      },
+      {
+        "reference": "Revelation 4"
+      },
+      {
+        "reference": "Revelation 5"
+      },
+      {
+        "reference": "Revelation 6"
+      },
+      {
+        "reference": "Revelation 7"
+      },
+      {
+        "reference": "Revelation 8"
+      },
+      {
+        "reference": "Revelation 9"
+      },
+      {
+        "reference": "Revelation 10"
+      },
+      {
+        "reference": "Revelation 11"
+      },
+      {
+        "reference": "Revelation 12"
+      },
+      {
+        "reference": "Revelation 13"
+      },
+      {
+        "reference": "Revelation 14"
+      },
+      {
+        "reference": "Revelation 15"
+      },
+      {
+        "reference": "Revelation 16"
+      },
+      {
+        "reference": "Revelation 17"
+      },
+      {
+        "reference": "Revelation 18"
+      },
+      {
+        "reference": "Revelation 19"
+      },
+      {
+        "reference": "Revelation 20"
+      },
+      {
+        "reference": "Revelation 21"
+      },
+      {
+        "reference": "Revelation 22"
+      }
+    ]
+  },
+  {
+    "id": "holy-week-8",
+    "title": "Holy Week",
+    "description": "Palm Sunday to the empty tomb, one day at a time, in the order it happened.",
+    "category": "Seasons",
+    "days": [
+      {
+        "reference": "Matthew 21"
+      },
+      {
+        "reference": "Mark 11"
+      },
+      {
+        "reference": "Matthew 24"
+      },
+      {
+        "reference": "John 13"
+      },
+      {
+        "reference": "Matthew 26"
+      },
+      {
+        "reference": "John 17"
+      },
+      {
+        "reference": "John 19"
+      },
+      {
+        "reference": "John 20"
+      }
+    ]
+  },
+  {
+    "id": "advent-25",
+    "title": "Advent, 25 days to Christmas",
+    "description": "What was promised, and then what arrived. Fifteen days in the prophets and psalms, ten in the gospels.",
+    "category": "Seasons",
+    "days": [
+      {
+        "reference": "Genesis 3"
+      },
+      {
+        "reference": "Genesis 12"
+      },
+      {
+        "reference": "Isaiah 7"
+      },
+      {
+        "reference": "Isaiah 9"
+      },
+      {
+        "reference": "Isaiah 11"
+      },
+      {
+        "reference": "Isaiah 40"
+      },
+      {
+        "reference": "Isaiah 53"
+      },
+      {
+        "reference": "Micah 5"
+      },
+      {
+        "reference": "Jeremiah 23"
+      },
+      {
+        "reference": "Zechariah 9"
+      },
+      {
+        "reference": "Malachi 3"
+      },
+      {
+        "reference": "Psalms 2"
+      },
+      {
+        "reference": "Psalms 22"
+      },
+      {
+        "reference": "Psalms 72"
+      },
+      {
+        "reference": "Psalms 110"
+      },
+      {
+        "reference": "Luke 1"
+      },
+      {
+        "reference": "Matthew 1"
+      },
+      {
+        "reference": "Luke 2"
+      },
+      {
+        "reference": "Matthew 2"
+      },
+      {
+        "reference": "John 1"
+      },
+      {
+        "reference": "Galatians 4"
+      },
+      {
+        "reference": "Philippians 2"
+      },
+      {
+        "reference": "Hebrews 1"
+      },
+      {
+        "reference": "Titus 2"
+      },
+      {
+        "reference": "Revelation 21"
+      }
+    ]
+  },
+  {
+    "id": "lent-40",
+    "title": "Lent, 40 days",
+    "description": "Forty days through wilderness, repentance and the road to the cross — the passages the season has always been built on.",
+    "category": "Seasons",
+    "days": [
+      {
+        "reference": "Genesis 3"
+      },
+      {
+        "reference": "Exodus 16"
+      },
+      {
+        "reference": "Exodus 20"
+      },
+      {
+        "reference": "Numbers 14"
+      },
+      {
+        "reference": "Deuteronomy 8"
+      },
+      {
+        "reference": "Deuteronomy 30"
+      },
+      {
+        "reference": "1 Kings 19"
+      },
+      {
+        "reference": "2 Chronicles 7"
+      },
+      {
+        "reference": "Nehemiah 9"
+      },
+      {
+        "reference": "Job 42"
+      },
+      {
+        "reference": "Psalms 6"
+      },
+      {
+        "reference": "Psalms 32"
+      },
+      {
+        "reference": "Psalms 38"
+      },
+      {
+        "reference": "Psalms 51"
+      },
+      {
+        "reference": "Psalms 102"
+      },
+      {
+        "reference": "Psalms 130"
+      },
+      {
+        "reference": "Psalms 143"
+      },
+      {
+        "reference": "Isaiah 1"
+      },
+      {
+        "reference": "Isaiah 53"
+      },
+      {
+        "reference": "Isaiah 55"
+      },
+      {
+        "reference": "Isaiah 58"
+      },
+      {
+        "reference": "Jeremiah 31"
+      },
+      {
+        "reference": "Lamentations 3"
+      },
+      {
+        "reference": "Ezekiel 36"
+      },
+      {
+        "reference": "Daniel 9"
+      },
+      {
+        "reference": "Hosea 6"
+      },
+      {
+        "reference": "Joel 2"
+      },
+      {
+        "reference": "Jonah 3"
+      },
+      {
+        "reference": "Micah 6"
+      },
+      {
+        "reference": "Zechariah 7"
+      },
+      {
+        "reference": "Matthew 4"
+      },
+      {
+        "reference": "Matthew 5"
+      },
+      {
+        "reference": "Matthew 6"
+      },
+      {
+        "reference": "Luke 15"
+      },
+      {
+        "reference": "Luke 18"
+      },
+      {
+        "reference": "Luke 22"
+      },
+      {
+        "reference": "Luke 23"
+      },
+      {
+        "reference": "John 12"
+      },
+      {
+        "reference": "Romans 6"
+      },
+      {
+        "reference": "Luke 24"
+      }
+    ]
+  },
+  {
+    "id": "gratitude-14",
+    "title": "Thanksgiving, 14 days",
+    "description": "Two weeks in the passages that give thanks — several of them written by people with very little to be thankful for.",
+    "category": "Seasons",
+    "days": [
+      {
+        "reference": "Psalms 100"
+      },
+      {
+        "reference": "Psalms 103"
+      },
+      {
+        "reference": "Psalms 107"
+      },
+      {
+        "reference": "Psalms 136"
+      },
+      {
+        "reference": "Psalms 145"
+      },
+      {
+        "reference": "Psalms 34"
+      },
+      {
+        "reference": "1 Chronicles 16"
+      },
+      {
+        "reference": "Luke 17"
+      },
+      {
+        "reference": "Colossians 3"
+      },
+      {
+        "reference": "Ephesians 5"
+      },
+      {
+        "reference": "1 Thessalonians 5"
+      },
+      {
+        "reference": "Philippians 4"
+      },
+      {
+        "reference": "2 Corinthians 9"
+      },
+      {
+        "reference": "Revelation 7"
+      }
+    ]
+  },
+  {
+    "id": "anxiety-14",
+    "title": "Peace for anxious days",
+    "description": "Fourteen passages for a mind that will not settle. Read one, slowly, when the day starts or when it will not end.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Philippians 4"
+      },
+      {
+        "reference": "Matthew 6"
+      },
+      {
+        "reference": "Psalms 23"
+      },
+      {
+        "reference": "Psalms 46"
+      },
+      {
+        "reference": "Psalms 91"
+      },
+      {
+        "reference": "Isaiah 41"
+      },
+      {
+        "reference": "Isaiah 43"
+      },
+      {
+        "reference": "John 14"
+      },
+      {
+        "reference": "1 Peter 5"
+      },
+      {
+        "reference": "Psalms 121"
+      },
+      {
+        "reference": "Matthew 11"
+      },
+      {
+        "reference": "Romans 8"
+      },
+      {
+        "reference": "2 Corinthians 12"
+      },
+      {
+        "reference": "Psalms 34"
+      }
+    ]
+  },
+  {
+    "id": "grief-14",
+    "title": "Comfort in grief",
+    "description": "For loss. These do not hurry you — several of them sit in the dark and say so plainly.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Psalms 23"
+      },
+      {
+        "reference": "Psalms 34"
+      },
+      {
+        "reference": "Psalms 42"
+      },
+      {
+        "reference": "Lamentations 3"
+      },
+      {
+        "reference": "Job 19"
+      },
+      {
+        "reference": "Isaiah 61"
+      },
+      {
+        "reference": "Matthew 5"
+      },
+      {
+        "reference": "John 11"
+      },
+      {
+        "reference": "Romans 8"
+      },
+      {
+        "reference": "2 Corinthians 1"
+      },
+      {
+        "reference": "1 Thessalonians 4"
+      },
+      {
+        "reference": "1 Corinthians 15"
+      },
+      {
+        "reference": "Psalms 147"
+      },
+      {
+        "reference": "Revelation 21"
+      }
+    ]
+  },
+  {
+    "id": "hard-times-21",
+    "title": "When life is hard",
+    "description": "Three weeks on suffering that does not lift quickly — Job, the psalms that complain, and what the New Testament does with endurance.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Job 1"
+      },
+      {
+        "reference": "Job 2"
+      },
+      {
+        "reference": "Job 38"
+      },
+      {
+        "reference": "Job 42"
+      },
+      {
+        "reference": "Psalms 13"
+      },
+      {
+        "reference": "Psalms 22"
+      },
+      {
+        "reference": "Psalms 42"
+      },
+      {
+        "reference": "Psalms 73"
+      },
+      {
+        "reference": "Psalms 77"
+      },
+      {
+        "reference": "Habakkuk 3"
+      },
+      {
+        "reference": "Lamentations 3"
+      },
+      {
+        "reference": "Isaiah 40"
+      },
+      {
+        "reference": "Romans 5"
+      },
+      {
+        "reference": "Romans 8"
+      },
+      {
+        "reference": "2 Corinthians 4"
+      },
+      {
+        "reference": "2 Corinthians 12"
+      },
+      {
+        "reference": "James 1"
+      },
+      {
+        "reference": "1 Peter 1"
+      },
+      {
+        "reference": "1 Peter 4"
+      },
+      {
+        "reference": "Hebrews 12"
+      },
+      {
+        "reference": "Revelation 21"
+      }
+    ]
+  },
+  {
+    "id": "prayer-21",
+    "title": "Learning to pray",
+    "description": "Three weeks of prayers people actually prayed — and the two occasions Jesus was asked to teach it.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Matthew 6"
+      },
+      {
+        "reference": "Luke 11"
+      },
+      {
+        "reference": "Luke 18"
+      },
+      {
+        "reference": "Psalms 5"
+      },
+      {
+        "reference": "Psalms 51"
+      },
+      {
+        "reference": "Psalms 63"
+      },
+      {
+        "reference": "Psalms 86"
+      },
+      {
+        "reference": "Psalms 139"
+      },
+      {
+        "reference": "1 Kings 8"
+      },
+      {
+        "reference": "2 Chronicles 7"
+      },
+      {
+        "reference": "Nehemiah 1"
+      },
+      {
+        "reference": "Daniel 9"
+      },
+      {
+        "reference": "Acts 4"
+      },
+      {
+        "reference": "John 17"
+      },
+      {
+        "reference": "Romans 8"
+      },
+      {
+        "reference": "Ephesians 3"
+      },
+      {
+        "reference": "Philippians 4"
+      },
+      {
+        "reference": "Colossians 1"
+      },
+      {
+        "reference": "1 Thessalonians 5"
+      },
+      {
+        "reference": "Hebrews 4"
+      },
+      {
+        "reference": "James 5"
+      }
+    ]
+  },
+  {
+    "id": "identity-21",
+    "title": "Who you are in Christ",
+    "description": "Three weeks on what is said to be true of you already, rather than what you are told to become.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Genesis 1"
+      },
+      {
+        "reference": "Psalms 139"
+      },
+      {
+        "reference": "Isaiah 43"
+      },
+      {
+        "reference": "John 1"
+      },
+      {
+        "reference": "John 15"
+      },
+      {
+        "reference": "Romans 6"
+      },
+      {
+        "reference": "Romans 8"
+      },
+      {
+        "reference": "Romans 12"
+      },
+      {
+        "reference": "1 Corinthians 6"
+      },
+      {
+        "reference": "2 Corinthians 5"
+      },
+      {
+        "reference": "Galatians 2"
+      },
+      {
+        "reference": "Galatians 3"
+      },
+      {
+        "reference": "Ephesians 1"
+      },
+      {
+        "reference": "Ephesians 2"
+      },
+      {
+        "reference": "Ephesians 4"
+      },
+      {
+        "reference": "Philippians 3"
+      },
+      {
+        "reference": "Colossians 3"
+      },
+      {
+        "reference": "Titus 3"
+      },
+      {
+        "reference": "Hebrews 4"
+      },
+      {
+        "reference": "1 Peter 2"
+      },
+      {
+        "reference": "1 John 3"
+      }
+    ]
+  },
+  {
+    "id": "forgiveness-14",
+    "title": "Forgiveness",
+    "description": "Two weeks on being forgiven and on forgiving — which the Bible refuses to treat as separate subjects.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Genesis 50"
+      },
+      {
+        "reference": "Psalms 32"
+      },
+      {
+        "reference": "Psalms 51"
+      },
+      {
+        "reference": "Psalms 103"
+      },
+      {
+        "reference": "Isaiah 1"
+      },
+      {
+        "reference": "Micah 7"
+      },
+      {
+        "reference": "Matthew 6"
+      },
+      {
+        "reference": "Matthew 18"
+      },
+      {
+        "reference": "Luke 15"
+      },
+      {
+        "reference": "Luke 23"
+      },
+      {
+        "reference": "Romans 5"
+      },
+      {
+        "reference": "Ephesians 4"
+      },
+      {
+        "reference": "Colossians 3"
+      },
+      {
+        "reference": "1 John 1"
+      }
+    ]
+  },
+  {
+    "id": "marriage-14",
+    "title": "Marriage & family",
+    "description": "Two weeks for couples and households — including the passages usually quoted at weddings, read in full rather than in fragments.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Genesis 2"
+      },
+      {
+        "reference": "Deuteronomy 6"
+      },
+      {
+        "reference": "Psalms 127"
+      },
+      {
+        "reference": "Psalms 128"
+      },
+      {
+        "reference": "Proverbs 5"
+      },
+      {
+        "reference": "Proverbs 31"
+      },
+      {
+        "reference": "Song of Solomon 2"
+      },
+      {
+        "reference": "Song of Solomon 8"
+      },
+      {
+        "reference": "Malachi 2"
+      },
+      {
+        "reference": "Matthew 19"
+      },
+      {
+        "reference": "1 Corinthians 13"
+      },
+      {
+        "reference": "Ephesians 5"
+      },
+      {
+        "reference": "Colossians 3"
+      },
+      {
+        "reference": "1 Peter 3"
+      }
+    ]
+  },
+  {
+    "id": "money-work-14",
+    "title": "Money & work",
+    "description": "Two weeks on earning, giving, debt and contentment — a subject the Bible is far blunter about than most preaching on it.",
+    "category": "For where you are",
+    "days": [
+      {
+        "reference": "Proverbs 3"
+      },
+      {
+        "reference": "Proverbs 6"
+      },
+      {
+        "reference": "Proverbs 11"
+      },
+      {
+        "reference": "Proverbs 13"
+      },
+      {
+        "reference": "Ecclesiastes 5"
+      },
+      {
+        "reference": "Malachi 3"
+      },
+      {
+        "reference": "Matthew 6"
+      },
+      {
+        "reference": "Luke 12"
+      },
+      {
+        "reference": "Luke 16"
+      },
+      {
+        "reference": "2 Corinthians 9"
+      },
+      {
+        "reference": "Colossians 3"
+      },
+      {
+        "reference": "1 Timothy 6"
+      },
+      {
+        "reference": "Hebrews 13"
+      },
+      {
+        "reference": "James 5"
+      }
+    ]
   }
 ];
+
+/** Categories in the order they should appear, with their plans. */
+export const PLAN_CATEGORIES: { name: string; plans: PlanTemplate[] }[] = (() => {
+  const order: string[] = [];
+  const grouped = new Map<string, PlanTemplate[]>();
+
+  for (const template of PLAN_TEMPLATES) {
+    if (!grouped.has(template.category)) {
+      grouped.set(template.category, []);
+      order.push(template.category);
+    }
+    grouped.get(template.category)!.push(template);
+  }
+
+  return order.map((name) => ({ name, plans: grouped.get(name)! }));
+})();
