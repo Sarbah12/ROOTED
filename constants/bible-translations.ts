@@ -325,29 +325,33 @@ export const LICENSED_TRANSLATIONS: Translation[] = [
   // Biblica publish these as open editions and the same key already reaches
   // them. Coverage was read from each Bible's own book list rather than
   // assumed — Hausa really is New Testament only.
+  //
+  // Both Twi editions are CC BY-SA 4.0, so they ship inside the app like the
+  // KJV rather than being fetched. A reader in Ghana should not need our
+  // server to be up to read scripture in their own language.
   {
     id: 'twi-akuapem',
     abbr: 'Twi (Akuapem)',
     name: 'Akuapem Twi Nkwa Asɛm',
-    source: 'remote',
-    provider: 'proxied',
+    source: 'offline',
+    provider: 'bundled',
     coverage: 'full',
     language: 'Twi',
     bibleId: 'b6aee081108c0bc6-01',
-    note: 'Akuapem dialect',
-    copyright: '© Biblica, Inc.',
+    note: 'Akuapem dialect — bundled, works offline',
+    copyright: 'Biblica® Open Akuapem Twi Contemporary Bible™ © 1996, 2020 Biblica, Inc. Licensed CC BY-SA 4.0.',
   },
   {
     id: 'twi-asante',
     abbr: 'Twi (Asante)',
     name: 'Asante Twi Nkwa Asɛm',
-    source: 'remote',
-    provider: 'proxied',
+    source: 'offline',
+    provider: 'bundled',
     coverage: 'full',
     language: 'Twi',
     bibleId: '18f6cf27f7b43297-01',
-    note: 'Asante dialect',
-    copyright: '© Biblica, Inc.',
+    note: 'Asante dialect — bundled, works offline',
+    copyright: 'Biblica® Open Asante Twi Contemporary Bible™ © 1996, 2020 Biblica, Inc. Licensed CC BY-SA 4.0.',
   },
   {
     id: 'ewe',

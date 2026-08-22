@@ -73,32 +73,64 @@ async function checkBackendSyntax() {
 
 /** The bundled text: complete, and free of the translators' apparatus. */
 async function checkBible() {
-  const dir = path.join(root, 'assets', 'bible', 'kjv');
-  const files = (await readdir(dir)).filter((f) => f.endsWith('.json'));
-
-  let chapters = 0;
-  let verses = 0;
-  let apparatus = 0;
-  let empty = 0;
+  // Every translation that ships inside the app. The KJV verse count is exact
+  // because it is a known edition; the others only have to be complete —
+  // translations legitimately differ on where a verse boundary falls.
+  const EXPECTED = {
+    kjv: 31102,
+    'twi-akuapem': null,
+    'twi-asante': null,
+  };
   const NOTE = /\.\.\.:\s|:\s(Heb|Gr|Chal)\.\s/;
 
-  for (const file of files) {
-    const book = JSON.parse(await readFile(path.join(dir, file), 'utf8'));
-    chapters += book.length;
-    for (const chapter of book) {
-      if (chapter.length === 0) empty += 1;
-      for (const verse of chapter) {
-        verses += 1;
-        if (NOTE.test(verse)) apparatus += 1;
+  const summaries = [];
+  const problems = [];
+
+  for (const [translation, expectedVerses] of Object.entries(EXPECTED)) {
+    const dir = path.join(root, 'assets', 'bible', translation);
+    let files;
+    try {
+      files = (await readdir(dir)).filter((f) => f.endsWith('.json'));
+    } catch {
+      problems.push(`${translation}: not bundled`);
+      continue;
+    }
+
+    let chapters = 0;
+    let verses = 0;
+    let apparatus = 0;
+    let empty = 0;
+
+    for (const file of files) {
+      const book = JSON.parse(await readFile(path.join(dir, file), 'utf8'));
+      chapters += book.length;
+      for (const chapter of book) {
+        const present = chapter.filter((verse) => verse.length > 0);
+        if (present.length === 0) empty += 1;
+        verses += present.length;
+        // Only the KJV carries the apparatus this pattern looks for; running
+        // it over the others would flag ordinary Twi punctuation.
+        if (translation === 'kjv') {
+          for (const verse of present) if (NOTE.test(verse)) apparatus += 1;
+        }
       }
     }
+
+    if (files.length !== 66) problems.push(`${translation}: ${files.length} books, expected 66`);
+    if (chapters !== 1189) problems.push(`${translation}: ${chapters} chapters, expected 1189`);
+    if (empty) problems.push(`${translation}: ${empty} empty chapters`);
+    if (apparatus) problems.push(`${translation}: ${apparatus} verses carry apparatus`);
+    if (expectedVerses !== null && verses !== expectedVerses) {
+      problems.push(`${translation}: ${verses} verses, expected ${expectedVerses}`);
+    }
+
+    summaries.push(`${translation} ${verses}`);
   }
 
-  const ok = files.length === 66 && chapters === 1189 && verses === 31102 && apparatus === 0 && empty === 0;
   record(
     'Bible bundle',
-    ok,
-    `${files.length} books · ${chapters} chapters · ${verses} verses · ${apparatus} with apparatus`,
+    problems.length === 0,
+    problems.length ? problems.join('; ') : `${summaries.length} bundled · 1189 chapters each · ${summaries.join(' · ')} verses`,
   );
 }
 

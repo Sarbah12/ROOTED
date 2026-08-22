@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 
 import { BIBLE_BOOKS_BY_ID } from '@/constants/bible-books';
-import { getOfflineChapter } from '@/constants/bible-offline';
+import { DEFAULT_TRANSLATION, getOfflineChapter } from '@/constants/bible-offline';
 import { BACKEND_API_BASE_URL } from '@/constants/firebase';
 import { getTranslation, isUnavailableFor } from '@/constants/bible-translations';
 
@@ -120,12 +120,25 @@ export function useChapter(
   const willFetch =
     translation.source === 'remote' && !(book && isUnavailableFor(translation, book.testament));
 
+  // A bundled translation reads its own text. Every fallback elsewhere in this
+  // hook stays on the KJV, which is the one translation always present.
+  const offlineId = translation.source === 'offline' ? translation.id : DEFAULT_TRANSLATION;
+
   const offlineVerses =
-    translation.source === 'offline' || !willFetch ? getOfflineChapter(bookId, chapter) : null;
+    translation.source === 'offline' || !willFetch
+      ? getOfflineChapter(bookId, chapter, offlineId)
+      : null;
 
   const [state, setState] = useState<ChapterState>(() =>
     offlineVerses
-      ? { verses: toVerses(offlineVerses), loading: false, error: null, origin: 'offline', copyright: null }
+      ? {
+          verses: toVerses(offlineVerses),
+          loading: false,
+          error: null,
+          origin: 'offline',
+          // CC BY-SA obliges us to show this next to the text, not bury it.
+          copyright: translation.copyright ?? null,
+        }
       : { verses: [], loading: willFetch, error: null, origin: null, copyright: null }
   );
 
@@ -156,10 +169,16 @@ export function useChapter(
     }
 
     if (translation.source === 'offline') {
-      const verses = getOfflineChapter(bookId, chapter);
+      const verses = getOfflineChapter(bookId, chapter, offlineId);
       setState(
         verses
-          ? { verses: toVerses(verses), loading: false, error: null, origin: 'offline', copyright: null }
+          ? {
+              verses: toVerses(verses),
+              loading: false,
+              error: null,
+              origin: 'offline',
+              copyright: translation.copyright ?? null,
+            }
           : {
               verses: [],
               loading: false,
