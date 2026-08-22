@@ -131,8 +131,22 @@ async function checkReferences() {
     }
   }
 
-  record('Plan templates', badPlans.length === 0,
-    `${templates.length} plans · ${planRefs} references${badPlans.length ? ` · bad: ${badPlans.slice(0, 3)}` : ''}`);
+  // A day whose reference parses to no chapters shows no scripture at all,
+  // which is how most plan days silently displayed nothing.
+  const unreadable = [];
+  for (const template of templates) {
+    for (const day of template.days) {
+      const chapters = day.reference.split(/\s*[·;]\s*/).filter((part) => {
+        const m = part.trim().match(/^(.+?)\s+(\d+)(?:\s*[-–]\s*(\d+))?$/);
+        return m && byName[m[1].trim().toLowerCase()];
+      });
+      if (chapters.length === 0) unreadable.push(`${template.id}: ${day.reference}`);
+    }
+  }
+
+  record('Plan templates', badPlans.length === 0 && unreadable.length === 0,
+    `${templates.length} plans · ${planRefs} references · ${unreadable.length} unreadable` +
+      (badPlans.length ? ` · bad: ${badPlans.slice(0, 3)}` : ''));
 
   // Verse pool: must resolve, and must still be a full-cycle permutation.
   const poolSrc = await readFile(path.join(root, 'constants', 'verse-pool.ts'), 'utf8');

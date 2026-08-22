@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,29 +16,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_THEMES } from '@/constants/app-theme';
-import { BIBLE_BOOKS } from '@/constants/bible-books';
-import { getOfflineChapter } from '@/constants/bible-offline';
 import { useFirebaseAuth } from '@/context/firebase-auth';
 import { useThemeMode } from '@/context/theme-mode';
 import { usePlan, useReflections } from '@/hooks/use-plan';
+import { isLocalPlanId, useLocalPlan } from '@/hooks/use-local-plans';
+import { PassageReader } from '@/components/passage-reader';
+import { useReadingTranslation } from '@/hooks/use-reading-translation';
 
 const MAX_LENGTH = 2000;
-
-/** "John 3" -> the chapter's verses from the bundled KJV, or null. */
-function resolvePassage(reference: string) {
-  const match = reference.trim().match(/^(.*?)\s*(\d+)$/);
-  if (!match) return null;
-
-  const name = match[1].trim().toLowerCase();
-  const chapter = Number(match[2]);
-  const book = BIBLE_BOOKS.find((b) => b.name.toLowerCase() === name);
-  if (!book) return null;
-
-  const verses = getOfflineChapter(book.id, chapter);
-  if (!verses) return null;
-
-  return { bookName: book.name, chapter, verses };
-}
 
 function timeAgo(iso: string) {
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -56,17 +41,31 @@ export default function PlanDayScreen() {
   const theme = isDarkMode ? APP_THEMES.dark : APP_THEMES.light;
   const { firebaseUser } = useFirebaseAuth();
 
-  const { plan, days, completedDays, toggleDay } = usePlan(id);
+  // A plan started on the device keeps its days in storage rather than on the
+  // server, and this screen only ever asked the server for them.
+  const local = isLocalPlanId(id);
+  const server = usePlan(local ? undefined : id);
+  const stored = useLocalPlan(local ? id : undefined);
+
+  const plan = local ? stored.plan : server.plan;
+  const days = local
+    ? (stored.plan?.days ?? []).map((d, i) => ({
+        day: i + 1,
+        reference: d.reference,
+        title: d.title ?? '',
+        prompt: d.prompt ?? '',
+      }))
+    : server.days;
+  const completedDays = local ? (stored.plan?.completedDays ?? []) : server.completedDays;
+  const toggleDay = local ? stored.toggleDay : server.toggleDay;
+
+  const [translationId, setTranslationId] = useReadingTranslation();
   const { reflections, isLoading, post, remove, report, block } = useReflections(id, dayNumber);
 
   const [draft, setDraft] = useState('');
   const [isPosting, setIsPosting] = useState(false);
 
   const planDay = days.find((entry) => entry.day === dayNumber);
-  const passage = useMemo(
-    () => (planDay ? resolvePassage(planDay.reference) : null),
-    [planDay],
-  );
   const isDone = completedDays.includes(dayNumber);
 
   const handlePost = async () => {
@@ -176,23 +175,13 @@ export default function PlanDayScreen() {
             </View>
           ) : null}
 
-          {passage ? (
+          {planDay ? (
             <View style={[styles.passageCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.passageRef, { color: theme.primary }]}>
-                {passage.bookName} {passage.chapter} · KJV
-              </Text>
-              {passage.verses.map((verse, index) => (
-                <Text key={index} style={[styles.verse, { color: theme.text }]}>
-                  <Text style={[styles.verseNum, { color: theme.textMuted }]}>{index + 1} </Text>
-                  {verse}
-                </Text>
-              ))}
-            </View>
-          ) : planDay ? (
-            <View style={[styles.promptCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.promptText, { color: theme.textSecondary }]}>
-                Open the Bible tab to read {planDay.reference}.
-              </Text>
+              <PassageReader
+                reference={planDay.reference}
+                translationId={translationId}
+                onChangeTranslation={setTranslationId}
+              />
             </View>
           ) : null}
 
@@ -293,9 +282,6 @@ const styles = StyleSheet.create({
   promptLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1.2 },
   promptText: { fontSize: 14.5, lineHeight: 21 },
   passageCard: { borderWidth: 1, borderRadius: 20, padding: 18, marginTop: 14, gap: 10 },
-  passageRef: { fontSize: 11.5, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
-  verse: { fontSize: 15.5, lineHeight: 25, fontFamily: 'Georgia' },
-  verseNum: { fontSize: 11, fontWeight: '800', fontFamily: undefined },
   sectionLabel: { fontSize: 17, fontFamily: 'Georgia', marginTop: 26, marginBottom: 10 },
   composer: { borderWidth: 1, borderRadius: 18, padding: 14 },
   composerInput: { fontSize: 15, lineHeight: 22, minHeight: 76, textAlignVertical: 'top' },
